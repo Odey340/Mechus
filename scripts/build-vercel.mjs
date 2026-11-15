@@ -16,7 +16,10 @@ if (configuredOrigin) {
     throw new Error("MECHUS_API_ORIGIN must use http:// or https://");
   }
   parsed.pathname = parsed.pathname.replace(/\/$/, "");
-  apiOrigin = parsed.toString().replace(/\/$/, "");
+  // An https page cannot call a plain-http backend from the browser (mixed content), so
+  // for an http:// backend the dashboard uses the same-origin bridge (api/proxy.js), which
+  // talks to the backend server-to-server.
+  apiOrigin = parsed.protocol === "https:" ? parsed.toString().replace(/\/$/, "") : "";
 }
 
 await rm(outputRoot, { recursive: true, force: true });

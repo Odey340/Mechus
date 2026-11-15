@@ -347,16 +347,20 @@ class LiveKitVideoCard:
 
         image = Image.new("RGBA", (LiveKitVideoCard.WIDTH, LiveKitVideoCard.HEIGHT), (13, 18, 28, 255))
         draw = ImageDraw.Draw(image)
-        try:
-            title_font = ImageFont.truetype("arial.ttf", 38)
-            number_font = ImageFont.truetype("arial.ttf", 150)
-            body_font = ImageFont.truetype("arial.ttf", 28)
-            small_font = ImageFont.truetype("arial.ttf", 22)
-        except OSError:
-            title_font = ImageFont.load_default()
-            number_font = title_font
-            body_font = title_font
-            small_font = title_font
+        # Arial on Windows/macOS; DejaVu on Linux servers (Dockerfile installs fonts-dejavu-core).
+        fonts = None
+        for name in ("arial.ttf", "DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"):
+            try:
+                fonts = [ImageFont.truetype(name, size) for size in (38, 150, 28, 22)]
+                break
+            except OSError:
+                continue
+        if fonts is None:
+            try:
+                fonts = [ImageFont.load_default(size=size) for size in (38, 150, 28, 22)]
+            except TypeError:  # Pillow < 10.1 has no sized default font
+                fonts = [ImageFont.load_default()] * 4
+        title_font, number_font, body_font, small_font = fonts
 
         margin = 54
         draw.rounded_rectangle((margin, 70, 262, 118), radius=22, fill=(34, 75, 63, 255))

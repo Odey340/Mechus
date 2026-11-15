@@ -1,0 +1,15 @@
+# Lean server setup for the dashboard + FaceTime (Chert) calls: API container only,
+# no Zoom SDK or Chromium worker images. Used by scripts/deploy-vultr.sh.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.vultr.yml up -d --build
+#
+# Tenants, reports and photos live in ./mechus_notes on the server, so they survive rebuilds.
+
+services:
+  mechus:
+    environment:
+      - MECHUS_NOTES_DIR=/app/mechus_notes
+      - MECHUS_MEETING_STORE_DIR=/app/mechus_notes/mechus_meetings
+      - MECHUS_ESTATES_DIR=/app/mechus_notes/estates
+    volumes:
+      - ./mechus_notes:/app/mechus_notes
