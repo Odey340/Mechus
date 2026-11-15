@@ -1869,7 +1869,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     if (path.startsWith("/api/estates/outbox")) return { entries: [] };
     if (path.endsWith("/audio")) throw new Error("Demo mode: voicing needs the live server with ElevenLabs keys");
     if (path.endsWith("/process")) return { started: true, ai_mode: "live" };
-    if (m !== "GET") throw new Error("Demo mode is read-only for this action. Open without ?demo to use real data.");
+    if (m !== "GET") throw new Error(new URLSearchParams(location.search).has("offline") ? "The live Mechus server was offline when this page loaded, so you are seeing sample data. Reload the page to reconnect." : "Demo mode is read-only for this action. Open without ?demo to use real data.");
     throw new Error("Demo has no data for " + path);
   }
 
@@ -1881,10 +1881,20 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
       $("demoBadge").textContent = "live server offline · sample data";
       // Go back to the live data as soon as the server answers again.
       const check = async () => {
-        try { const r = await fetch(apiUrl("/health"), { cache: "no-store" }); if (r.ok && (r.headers.get("content-type") || "").includes("json")) { const j = await r.json(); if (j.service !== "mechus-vercel-ui") { const u = new URL(location.href); u.searchParams.delete("demo"); u.searchParams.delete("offline"); location.replace(u.toString()); return; } } } catch {}
-        setTimeout(check, 15000);
+        try {
+          // The server's address can change while this page is open, so read the current one
+          // from the site rather than using the one this page loaded with.
+          let origin = API_ORIGIN;
+          try { const cfg = await (await fetch("/static/js/runtime-config.js?t=" + Date.now(), { cache: "no-store" })).text(); const m = cfg.match(/"apiOrigin":"([^"]*)"/); if (m) origin = m[1].replace(/\/$/, ""); } catch {}
+          const r = await fetch(origin + "/health", { cache: "no-store" });
+          if (r.ok && (r.headers.get("content-type") || "").includes("json")) {
+            const j = await r.json();
+            if (j.service !== "mechus-vercel-ui") { const u = new URL(location.href); u.searchParams.delete("demo"); u.searchParams.delete("offline"); location.replace(u.toString()); return; }
+          }
+        } catch {}
+        setTimeout(check, 10000);
       };
-      setTimeout(check, 15000);
+      setTimeout(check, 4000);
     }
   }
   (async () => {
