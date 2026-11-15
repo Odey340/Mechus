@@ -1,0 +1,113 @@
+Koov + Zoom demo setup (macOS)
+
+Goal:
+- Koov listens to Zoom speaker audio via a virtual device
+- Koov speaks into Zoom as a virtual microphone
+- Koov only speaks after wake word "koov"
+
+This setup uses 2 separate virtual devices to avoid echo:
+- BlackHole 16ch: for capturing Zoom speaker output (Koov listens here)
+- BlackHole 2ch: for injecting Koov speech into Zoom microphone (Zoom listens here)
+
+1) Install virtual audio devices (BlackHole)
+   - Install BlackHole 16ch
+   - Install BlackHole 2ch
+   - After install, open "Audio MIDI Setup" and confirm you see:
+     - "BlackHole 16ch"
+     - "BlackHole 2ch"
+
+2) Create a Multi-Output device for Zoom speakers (so you can still hear the meeting)
+   - Open "Audio MIDI Setup"
+   - Click the "+" (bottom left) -> "Create Multi-Output Device"
+   - Name it: "Zoom Speakers (Headphones + BH16)" (any name is fine)
+   - Check these outputs:
+     - Your headphones/speakers output (e.g. "MacBook Pro Speakers" or your headset)
+     - "BlackHole 16ch"
+   - Set the Multi-Output device sample rate to 48000 Hz
+   - Enable Drift Correction on the headphones/speakers if needed (leave BH16 unchecked unless required)
+
+3) Configure Zoom audio routing (no Zoom API required)
+   - Open Zoom -> Settings -> Audio
+   - Speaker: select your Multi-Output device ("Zoom Speakers (Headphones + BH16)")
+   - Microphone: select "BlackHole 2ch"
+   - Disable "Automatically adjust microphone volume"
+   - If available: enable "Original Sound" / lower aggressive noise suppression so Koov speech is not mangled
+
+Important:
+- With this routing, Zoom audio goes to your headphones AND to BlackHole 16ch.
+- Koov listens on BlackHole 16ch so it hears the meeting.
+- Koov speaks to BlackHole 2ch so Zoom microphone transmits Koov to the meeting.
+- Koov does not capture from BlackHole 2ch, so it won't re-trigger on its own output.
+
+4) Install Python deps
+   - In the repo folder:
+     - python3 -m venv .venv
+     - source .venv/bin/activate
+     - pip install -r requirements.txt
+   - Optional wake backend (openWakeWord):
+     - pip install -r requirements-openwakeword.txt
+
+5) Download a Vosk model (wake word backend)
+   - Option A (script, requires network):
+     - python3 scripts/download_vosk_model.py --out models
+   - Option B (manual):
+     - Download: vosk-model-small-en-us-0.15
+     - Unzip into: ./models/vosk-model-small-en-us-0.15
+
+6) Choose a TTS backend (voice output)
+   Option A: ElevenLabs (cloud, very natural)
+   - Create an ElevenLabs account and API key
+   - Pick a voice and note its voice ID
+   - In .env set:
+     - KOOV_TTS_BACKEND=elevenlabs
+     - KOOV_ELEVEN_API_KEY=<your-api-key>
+     - KOOV_ELEVEN_VOICE_ID=<your-voice-id>
+     - (optional) KOOV_ELEVEN_MODEL_ID=<model-id>
+   Option B: Piper (fully local)
+   - You need:
+     - the "piper" CLI in your PATH (so `piper --help` works)
+     - a voice model file: *.onnx (example: en_US-lessac-medium.onnx)
+   - Put the voice model somewhere under ./models/piper/ (recommended)
+   - In .env set:
+     - KOOV_TTS_BACKEND=piper
+     - KOOV_PIPER_MODEL_PATH=./models/piper/<your-voice>.onnx
+
+7) Create your .env and set device names
+   - Copy:
+     - cp .env.example .env
+   - Edit .env and set at minimum:
+     - KOOV_INPUT_DEVICE=BlackHole 16ch
+     - KOOV_OUTPUT_DEVICE=BlackHole 2ch
+     - KOOV_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15
+   - Leave KOOV_SAMPLE_RATE_HZ=48000
+
+8) Start the demo (paste the Zoom link)
+   - source .venv/bin/activate
+   - python3 scripts/zoom_demo.py
+   - Paste your Zoom meeting link when prompted
+   - Join the meeting in Zoom
+
+9) Use it live
+   - Preferred (single utterance):
+     - "koov summarize"
+     - "koov action items"
+     - "koov what did they say about pricing"
+   - Also supported (two-step):
+     - "koov"
+     - then your request
+   - If only the wake word is spoken and no request follows, Koov stays silent and returns dormant.
+   - Koov will wait for a speaking gap, speak once, and return dormant.
+
+Troubleshooting
+- If Koov never wakes:
+  - Confirm KOOV_WAKE_BACKEND=vosk
+  - Confirm KOOV_VOSK_MODEL_PATH points to a real folder
+  - Confirm Zoom speaker is the Multi-Output device and that it includes BlackHole 16ch
+- If the meeting hears itself echo:
+  - Zoom microphone must be BlackHole 2ch (not BlackHole 16ch)
+  - Zoom speaker must NOT be BlackHole 2ch
+- If Koov speech is not heard in Zoom:
+  - Confirm Zoom microphone is BlackHole 2ch
+  - Confirm KOOV_OUTPUT_DEVICE is BlackHole 2ch
+  - If using Piper, confirm `piper --help` works
+  - If using ElevenLabs, confirm KOOV_ELEVEN_API_KEY and KOOV_ELEVEN_VOICE_ID are set

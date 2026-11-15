@@ -1,0 +1,28 @@
+{
+  "_note": "Default repair ranges in USD for a moderate issue. Edit freely; severity scales them (minor x0.6, major x1.7). Estimates only, not legal advice.",
+  "rules": [
+    {"match": ["hole", "puncture"], "label": "Drywall hole repair + paint", "low": 120, "high": 300},
+    {"match": ["burn"], "label": "Burn repair", "low": 150, "high": 450},
+    {"match": ["carpet"], "label": "Carpet cleaning / patch", "low": 90, "high": 350},
+    {"match": ["stain"], "label": "Stain removal", "low": 60, "high": 220},
+    {"match": ["crack", "cracked"], "label": "Crack repair", "low": 140, "high": 420},
+    {"match": ["tile"], "label": "Tile replacement", "low": 150, "high": 400},
+    {"match": ["window", "glass", "mirror"], "label": "Glass replacement", "low": 120, "high": 520},
+    {"match": ["blind", "shade"], "label": "Blinds replacement", "low": 35, "high": 110},
+    {"match": ["door"], "label": "Door repair", "low": 140, "high": 450},
+    {"match": ["cabinet", "drawer"], "label": "Cabinet repair", "low": 110, "high": 380},
+    {"match": ["counter", "countertop"], "label": "Countertop repair", "low": 160, "high": 600},
+    {"match": ["appliance", "fridge", "refrigerator", "oven", "stove", "dishwasher", "microwave", "washer", "dryer"], "label": "Appliance repair", "low": 150, "high": 700},
+    {"match": ["scratch", "gouge", "dent", "chip"], "label": "Surface repair / refinish", "low": 90, "high": 320},
+    {"match": ["paint", "wall", "scuff", "mark"], "label": "Wall touch-up + paint", "low": 80, "high": 240},
+    {"match": ["floor", "hardwood", "laminate", "vinyl"], "label": "Floor repair", "low": 140, "high": 520},
+    {"match": ["water", "mold", "leak"], "label": "Water damage remediation", "low": 250, "high": 1200},
+    {"match": ["smoke detector", "alarm"], "label": "Smoke detector", "low": 25, "high": 70},
+    {"match": ["bulb", "light"], "label": "Light fixture / bulbs", "low": 15, "high": 160},
+    {"match": ["fixture", "faucet", "handle", "knob", "towel bar"], "label": "Fixture replacement", "low": 45, "high": 220},
+    {"match": ["trash", "debris", "left behind", "junk"], "label": "Haul-away", "low": 75, "high": 300}
+  ],
+  "cleaning": {"label": "Cleaning beyond normal", "low": 60, "high": 180},
+  "missing": {"label": "Replace missing item", "low": 30, "high": 200},
+  "fallback": {"label": "General repair", "low": 80, "high": 260}
+}

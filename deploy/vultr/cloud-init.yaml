@@ -1,0 +1,19 @@
+#cloud-config
+# Vultr Cloud-Init user data for a Koov API server (Ubuntu 24.04).
+# Passed automatically by scripts/vultr_deploy.py. Installs Docker + Compose,
+# opens SSH and the Koov API port, and prepares ~/koovdemo for `./run.sh deploy`.
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - rsync
+  - ufw
+runcmd:
+  - curl -fsSL https://get.docker.com | sh
+  - systemctl enable --now docker
+  - ufw allow 22/tcp
+  - ufw allow 5001/tcp
+  - ufw --force enable
+  - mkdir -p /root/koovdemo/koov_notes/koov_meetings
+  - touch /root/.koov-cloud-init-done
+final_message: "Koov Vultr host ready after $UPTIME seconds"

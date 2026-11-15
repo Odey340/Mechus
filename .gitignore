@@ -1,0 +1,32 @@
+.env
+.deploy.env
+.rtms_meetings.json
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+
+koov_notes/
+models/
+*.onnx
+*.pt
+*.bin
+*.jsonl
+*.wav
+
+.DS_Store
+
+node_modules/
+public/
+
+# Cursor worktree config (if accidentally created)
+.cursor/worktrees.json
+.venv/
+*.pyc
+__pycache__/
+
+# Local secrets (Tiger Data URL, Vultr keys) - loaded after .env by koov/envfile.py
+.env.local
+tiger-cloud-*credentials*

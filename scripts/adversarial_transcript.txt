@@ -1,0 +1,104 @@
+Sam: So we never really locked the timeline for the migration.
+Lina: I thought we said end of March.
+Dev: That was for the pilot. The full thing is still up in the air.
+Omar: Can we even do March? I'll check with infra.
+Sam: Yeah check with them. And someone needs to own the runbook.
+Lina: I'll handle that. No idea when though.
+Omar: Are we doing the training before or after the cutover. Nobody said.
+Sam: Good question. We didn't decide. Add it to the list.
+Dev: So training timing is open. And runbook owner Lina. And timeline TBD.
+Lina: I said I'd handle the runbook. I didn't say when.
+Dev: We should probably use the new API. The old one is deprecated.
+Sam: Agreed. Let's go with the new API for the migration.
+Omar: Hold on, the new API doesn't support batch yet. We said we'd need batch.
+Dev: Right. So maybe we stick with the old one for phase one.
+Sam: Actually ignore what I said earlier. Let's stay on the old API until batch is ready.
+Lina: So we're not switching to the new API?
+Sam: Not for now. Old API, phase one. New when batch ships.
+Koov, what did we decide about the API?
+Dev: Budget question. Did we ever get a number from finance?
+Omar: They mentioned something like forty. Or was it fifty.
+Lina: I have forty in my notes. Sam you had fifty.
+Sam: I'll follow up with them by Friday. We need a number.
+Dev: Who's doing the vendor comparison?
+Omar: I thought Lina was. Or was that the runbook.
+Lina: I can do the vendor comparison. I'll have something by next Wednesday.
+Sam: And the runbook?
+Lina: Runbook too. I'll handle both.
+Dev: What about the security review. Is that still a thing?
+Omar: Yeah we never resolved that. And compliance wanted to know about data retention.
+Sam: Let's table the security review for now. We'll pick it up after the pilot.
+Dev: So security review is postponed.
+Omar: And data retention?
+Sam: We'll decide later. Too many unknowns.
+Koov, what are the action items?
+Lina: So just to be clear we're on old API and migration timeline is TBD.
+Sam: Pretty much. Omar you're checking with infra for March.
+Omar: I'll reach out today.
+Dev: I still think we should push for the new API in Q2.
+Sam: We already went through this. Old API for now.
+Lina: What about the pricing tier. Did we ever decide?
+Omar: I thought we were doing the standard tier. Or was that only for pilot.
+Sam: Standard for pilot. We can revisit for full rollout.
+Dev: So standard tier. Got it.
+Lina: Actually I need to confirm with sales. They had a different number.
+Sam: Fine. Let's say standard for now and we'll confirm.
+Omar: Remind me who's writing the migration doc.
+Dev: I'll do it. No deadline set though.
+Sam: Just get a draft. We can add dates later.
+Lina: Has anyone tried the new dashboard. Completely off topic but it's really slow.
+Dev: Yeah it's a known issue. Back to the migration.
+Omar: My kid's school play is next week. Sorry. Runbook. So Lina has runbook and vendor comparison.
+Lina: Right. Both. By next Wednesday for vendor. Runbook I'll do my best.
+Dev: And migration doc. I'll own that. No hard date.
+Sam: We need at least a draft before we can get sign-off from leadership.
+Dev: I'll aim for end of next week. No promise.
+Omar: So runbook Lina, vendor comparison Lina, migration doc Dev, infra check me. What about the runbook deadline.
+Lina: I didn't commit to a date. I said I'd handle it.
+Sam: Can we have runbook by end of next week.
+Lina: I'll try. I've got the vendor thing too.
+Koov, what questions are still open?
+Dev: We still need to figure out who runs the pilot.
+Sam: Good point. That's still open.
+Omar: And the forty vs fifty from finance.
+Lina: And data retention. We tabled that.
+Sam: And security review we postponed.
+Dev: So pilot owner, budget number, data retention, security. All still floating.
+Omar: I'll take pilot if we do it in March. Depends on infra.
+Sam: So Omar might run pilot. We'll see.
+Lina: Can we postpone the pricing tier decision too. Sales is a mess.
+Sam: Let's table pricing for now. Standard stands until we hear from them.
+Dev: The contract says we need to notify them thirty days before go-live. Nobody mentioned that.
+Omar: So we need a date before we can even plan. Chicken and egg.
+Lina: I thought legal was handling the contract. Or is that someone else.
+Sam: Legal is handling it. We just need to give them a date when we have one.
+Dev: So timeline is still the big open item. And pilot owner.
+Omar: And budget. Forty or fifty changes a lot.
+Sam: I'll get the number. Friday.
+Koov, what are we even doing?
+Dev: We're trying to lock migration scope and owners. That's what we're doing.
+Lina: And decisions. API, tier, what's postponed.
+Omar: Right. So. Old API, standard tier for pilot, security and data retention and pricing tier postponed. Runbook and vendor comp with Lina, migration doc Dev, infra and pilot maybe me.
+Sam: And budget from me by Friday. Good.
+Koov, what did we decide about the API again?
+Dev: I'm still worried we're going to regret staying on old API.
+Sam: We've been over this. Old API until batch is ready.
+Omar: What if batch slips. Then we're stuck.
+Sam: Then we revisit. For now the decision is old API.
+Lina: So no new API for phase one. Understood.
+Dev: Fine.
+Sam: Anything else. We're at time.
+Omar: I'll send the infra ask today. And I'll have an answer on March by Monday.
+Lina: I'll have runbook and vendor comparison draft by next Wednesday. No promises on which day.
+Dev: I'll start the migration doc. No date.
+Sam: And I'll get the budget number from finance by Friday. So we're good.
+Lina: What about the kickoff. Do we need a separate meeting for that.
+Dev: Probably. Or we could do it async. Open question I guess.
+Omar: I'd say we need one sync before we start. Who sets that up.
+Sam: We can figure that out. Add it to the list. Open items: pilot owner, budget, kickoff owner, timeline.
+Koov, give us a quick recap.
+Omar: One more thing. Actually ignore what I said earlier about running the pilot. I might be in another project.
+Sam: So pilot owner is open again.
+Lina: Great.
+Dev: So that's still TBD.
+Sam: Yeah. We'll figure it out. Anything else. No. Okay we're done.

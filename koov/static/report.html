@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Condition report · Mechus</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #f6f5f1; --surface: #fff; --surface-2: #f3f1ec; --ink: #15202b; --ink-2: #3d4852; --muted: #6c737a; --line: #e6e2d9;
+  --accent: #2d5d8a; --red: #c4432f; --red-soft: #f9e5e0; --amber: #9a6510; --amber-soft: #f7eedb; --green: #3f7a3a; --green-soft: #e6f0e1; --blue-soft: #e4edf6; --gray: #eceae4;
+  --serif: "Instrument Serif", Georgia, serif; --sans: "Inter", system-ui, sans-serif; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 400 22px var(--serif); color: var(--ink-2); }
+.brand i { width: 26px; height: 26px; border-radius: 8px; background: var(--ink); display: grid; place-items: center; }
+h1 { font: 400 44px/1.05 var(--serif); margin: 26px 0 6px; letter-spacing: -.01em; }
+.sub { color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 26px 0 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.tile .l { font-size: 12px; color: var(--muted); } .tile .v { font: 400 28px/1.15 var(--serif); margin-top: 4px; }
+.summary { font: 400 20px/1.45 var(--serif); color: var(--ink-2); margin: 18px 0; }
+audio { width: 100%; margin: 6px 0 12px; }
+h2 { font: 400 26px var(--serif); margin: 34px 0 12px; }
+.f { display: grid; grid-template-columns: 300px 1fr; gap: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 14px; break-inside: avoid; }
+.imgs { display: grid; gap: 2px; background: var(--line); }
+.imgs img { width: 100%; display: block; aspect-ratio: 4/3; object-fit: cover; }
+.imgs .cap { font-size: 11px; color: var(--muted); background: var(--surface-2); padding: 3px 8px; }
+.fb { padding: 16px 18px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { height: 22px; padding: 0 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: var(--gray); color: var(--muted); display: inline-flex; align-items: center; }
+.tag.red { background: var(--red-soft); color: var(--red); } .tag.amber { background: var(--amber-soft); color: var(--amber); } .tag.green { background: var(--green-soft); color: var(--green); } .tag.blue { background: var(--blue-soft); color: var(--accent); }
+.cost { font-weight: 600; margin-top: auto; }
+.resp { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+button { font: inherit; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 600; font-size: 12.5px; }
+button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.audit { font-size: 12px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.audit code { font: 11px ui-monospace, Menlo, monospace; word-break: break-all; }
+.note { font-size: 12px; color: var(--muted); margin-top: 26px; }
+.empty { text-align: center; padding: 80px 0; color: var(--muted); }
+.toolbar { display: flex; gap: 8px; margin-top: 18px; }
+@media (max-width: 720px) { .tiles { grid-template-columns: repeat(2, 1fr); } .f { grid-template-columns: 1fr; } .fb { padding: 0 16px 16px; } h1 { font-size: 34px; } }
+@media print { body { background: #fff; } .toolbar, .resp, audio { display: none !important; } .wrap { padding: 0; } .f, .tile, .audit { border-color: #ddd; } }
+</style>
+<link rel="stylesheet" href="../static/css/minimal.css">
+</head>
+<body class="page-report">
+<div class="wrap" id="app"><div class="empty">Loading report…</div></div>
+<script src="/static/js/runtime-config.js"></script>
+<script>
+(() => {
+  "use strict";
+  const token = location.pathname.split("/").filter(Boolean).pop();
+  const API_ORIGIN = String((window.MECHUS_RUNTIME || {}).apiOrigin || "").replace(/\/$/, "");
+  const apiUrl = (path) => API_ORIGIN && path.startsWith("/") ? API_ORIGIN + path : path;
+  const app = document.getElementById("app");
+  const CAT = { defect: ["Documented", "blue"], new_damage: ["New damage", "red"], pre_existing: ["Pre-existing", "blue"], wear_and_tear: ["Normal wear", ""], cleaning: ["Cleaning", "amber"], missing: ["Missing", "red"], resolved: ["Resolved", "green"] };
+  const KIND = { move_in: "Move-in", move_out: "Move-out", routine: "Routine", job: "Job check", survey: "Survey" };
+  const money = (n) => "$" + Math.round(n || 0).toLocaleString();
+  const range = (a, b) => (a || b) ? (a === b ? money(a) : money(a) + "–" + money(b)) : "$0";
+  const asset = (kind, name) => apiUrl(`/api/estates/public/${token}/asset/${kind}/${encodeURIComponent(name)}`);
+  const date = (ts) => ts ? new Date(ts * 1000).toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" }) : "";
+  function el(tag, props, ...kids) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) { if (v == null || v === false) continue; if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); }
+    for (const c of kids.flat()) if (c != null && c !== false) n.append(c.nodeType ? c : document.createTextNode(String(c)));
+    return n;
+  }
+  fetch(apiUrl(`/api/estates/public/${token}`)).then((r) => r.json()).then((d) => {
+    if (!d.success) throw new Error(d.error || "Report not found");
+    render(d.report);
+  }).catch((e) => app.replaceChildren(el("div", { class: "empty", text: e.message })));
+
+  function render(r) {
+    const t = r.totals || {}, p = r.property || {}, out = r.kind === "move_out";
+    const audioEntry = Object.entries(r.audio || {})[0];
+    const responses = r.responses || {};
+    document.title = `${KIND[r.kind]} report · ${p.name || "Property"}`;
+    const tile = (l, v) => el("div", { class: "tile" }, el("div", { class: "l", text: l }), el("div", { class: "v", text: v }));
+    const rooms = (r.rooms || []).map((room) => {
+      const fs = (r.findings || []).filter((f) => f.room === room.label);
+      if (!fs.length) return null;
+      return [el("h2", { text: room.label }), ...fs.map((f) => {
+        const [label, tone] = CAT[f.category] || [f.category, ""];
+        const imgs = el("div", { class: "imgs" });
+        if (f.before && f.before.image) imgs.append(el("div", { class: "cap", text: "Move-in" }), el("img", { src: asset("evidence", f.before.image), alt: "Move-in", loading: "lazy" }));
+        if (f.after && f.after.image) imgs.append(el("div", { class: "cap", text: out ? "Move-out" : "Photo" }), el("img", { src: asset("evidence", f.after.image), alt: "Evidence", loading: "lazy" }));
+        const resp = responses[f.id];
+        const btn = (kind, text) => el("button", { class: resp && resp.response === kind ? "on" : "", onclick: async () => {
+          const note = kind === "dispute" ? prompt("What's your side? (optional)") || "" : "";
+          const res = await fetch(apiUrl(`/api/estates/public/${token}/response`), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ finding_id: f.id, response: kind, note }) });
+          if (res.ok) { responses[f.id] = { response: kind, note }; render(r); } else alert("Couldn't save your response");
+        } }, text);
+        return el("div", { class: "f" }, imgs, el("div", { class: "fb" },
+          el("div", { class: "tags" }, el("span", { class: "tag " + tone, text: label }), el("span", { class: "tag", text: f.severity }), f.timestamp && f.timestamp.t != null ? el("span", { class: "tag", text: `Video ${Math.floor(f.timestamp.t / 60)}:${String(Math.floor(f.timestamp.t % 60)).padStart(2, "0")}` }) : null, f.review === "confirmed" ? el("span", { class: "tag green", text: "Confirmed by landlord" }) : null),
+          el("div", { text: f.description }), f.reason ? el("div", { class: "sub", style: "font-size:12.5px", text: f.reason }) : null,
+          el("div", { class: "cost", text: (f.cost || {}).chargeable ? `Est. ${range(f.cost.low, f.cost.high)}` : "Not chargeable" }),
+          out && (f.cost || {}).chargeable ? el("div", { class: "resp" }, el("span", { class: "sub", style: "font-size:12px", text: "Tenant:" }), btn("acknowledge", "Acknowledge"), btn("dispute", "Dispute"), resp && resp.note ? el("span", { class: "sub", style: "font-size:12px", text: "“" + resp.note + "”" }) : null) : null));
+      })];
+    }).filter(Boolean).flat();
+    app.replaceChildren(
+      el("div", { class: "brand" }, el("i", null, el("svg", null)), "Mechus"),
+      el("h1", { text: `${KIND[r.kind] || "Condition"} report` }),
+      el("div", { class: "sub", text: [p.name, p.address, p.unit && "Unit " + p.unit].filter(Boolean).join(" · ") }),
+      el("div", { class: "sub", text: `Prepared ${date(r.processed_at)}${r.baseline ? " · compared with the move-in report of " + date(r.baseline.processed_at) : ""}${p.landlord ? " · Landlord " + p.landlord : ""}${p.tenant ? " · Tenant " + p.tenant : ""}` }),
+      el("div", { class: "tiles" }, out ? tile("New issues", String(t.new_issues || 0)) : tile("Documented issues", String((t.by_category || {}).defect || 0)),
+        out ? tile("Est. chargeable", range(t.chargeable_low, t.chargeable_high)) : tile("Rooms", String((r.rooms || []).length)),
+        tile("Rooms", String((r.rooms || []).length)), tile("Files", String((r.media || []).length))),
+      r.summary_text ? el("p", { class: "summary", text: r.summary_text }) : null,
+      audioEntry ? el("audio", { controls: "", src: asset("audio", audioEntry[1].file) }) : null,
+      el("div", { class: "toolbar" }, el("button", { onclick: () => print() }, "Print / save PDF")),
+      ...rooms,
+      el("h2", { text: "Evidence trail" }),
+      el("div", { class: "audit" }, el("div", { text: "Original files are stored unmodified. SHA-256 fingerprints let anyone verify them." }),
+        ...(r.media || []).map((m) => el("div", { style: "margin-top:8px" }, el("b", { text: m.filename }), ` · ${m.kind}${m.captured_at ? " · captured " + m.captured_at : ""} · uploaded ${m.uploaded_at || ""}${m.source === "imessage" ? " · via iMessage" : ""}`, el("br"), el("code", { text: m.sha256 || "" })))),
+      el("p", { class: "note", text: "Cost figures are estimates from a standard price table, not legal advice. Normal wear and tear and issues documented at move-in are never charged. The landlord reviews every item before anything is final." }));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Chert FaceTime API join backend (join_backend=facetime_chert).
+# Koov joins a LiveKit room; Chert's FaceTime bridge joins the same room and carries the call.
+# Install: pip install -r requirements.txt -r requirements-chert.txt
+# See docs/CHERT_FACETIME.md.
+
+livekit>=1.0.0
+# Move-in / move-out inspection store (KOOV_INSPECT_MODE); optional, falls back to files.
+pymongo>=4.6

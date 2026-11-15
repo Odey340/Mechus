@@ -1,0 +1,7 @@
+# Zoom RTMS (Realtime Media Streams) for Koov.
+# Enables scripts/rtms_koov.py for real-time audio from Zoom App meetings.
+# Install: pip install -r requirements.txt -r requirements-rtms.txt
+# See: docs/RTMS_SETUP.md
+
+rtms>=1.0.0
+python-dotenv>=1.0.0

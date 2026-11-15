@@ -1,0 +1,24 @@
+certifi>=2024.0.0
+setuptools>=65.0
+urllib3>=2.0.0
+numpy>=1.24
+sounddevice>=0.4.6
+soundfile>=0.12.1
+webrtcvad>=2.0.10
+vosk==0.3.44
+faster-whisper>=1.0.3
+flask>=3.0.0
+flask-cors>=4.0.0
+pillow>=10.0.0
+selenium>=4.15.0
+
+supabase>=2.0.0
+websocket-client>=1.8.0
+
+# Koov Properties: bundled ffmpeg, image ops, iPhone HEIC photos
+imageio-ffmpeg>=0.5.1
+opencv-python-headless>=4.9
+pillow-heif>=0.16
+
+# Tiger Data (TimescaleDB) meeting analytics - see docs/TIGER_DATA.md
+psycopg[binary,pool]>=3.2

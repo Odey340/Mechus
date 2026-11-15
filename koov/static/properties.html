@@ -1,0 +1,1861 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mechus · Property dashboard</title>
+<link rel="icon" type="image/png" href="/static/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #000; --surface: #0a0a0a; --surface-2: #111; --surface-3: #1a1a1a;
+  --ink: #ededed; --ink-2: #c7c7c7; --muted: #8f8f8f; --faint: #5f5f5f; --line: #1f1f1f; --line-strong: #2e2e2e;
+  --accent: #ededed; --accent-ink: #000; --accent-soft: rgba(255, 255, 255, .06); --accent-hover: #fff;
+  --blue: #3291ff; --blue-soft: rgba(50, 145, 255, .12); --green: #3ecf8e; --green-soft: rgba(62, 207, 142, .12);
+  --amber: #f5a623; --amber-soft: rgba(245, 166, 35, .12); --red: #ff5b5b; --red-soft: rgba(255, 91, 91, .12);
+  --gray-soft: #161616; --bubble-in: #1a1a1a; --bubble-out: #ededed;
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serif: var(--sans); --radius: 10px; --shadow: none; --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, .9);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+a { color: inherit; }
+.num, .mono { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+::selection { background: rgba(255, 255, 255, .2); }
+
+/* ---------- header + tabs ---------- */
+.hdr { position: sticky; top: 0; z-index: 30; background: rgba(0, 0, 0, .82); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); border-bottom: 1px solid var(--line); }
+.hdr-row { display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 24px; max-width: 1400px; margin: 0 auto; position: relative; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: -.01em; flex: none; }
+.brand svg, .brand .brand-mark { width: 26px; height: 26px; }
+.slash { color: var(--line-strong); font-size: 22px; font-weight: 300; margin: 0 2px; }
+.crumbs { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); min-width: 0; }
+.crumbs a { text-decoration: none; } .crumbs a:hover { color: var(--ink); }
+.crumbs b { color: var(--ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spacer { flex: 1; }
+.search { display: flex; align-items: center; gap: 8px; height: 34px; width: 260px; padding: 0 8px 0 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--muted); transition: border-color .15s; }
+.search:focus-within { border-color: #555; }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 13px; color: var(--ink); }
+.search input::placeholder { color: var(--faint); }
+.search input::-webkit-search-cancel-button { display: none; }
+kbd { font: 500 11px var(--mono); color: var(--muted); border: 1px solid var(--line-strong); border-radius: 5px; padding: 1px 6px; background: var(--surface-2); }
+.me { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 600; text-decoration: none; color: #fff; background: linear-gradient(135deg, #4f46e5, #ec4899); flex: none; }
+.burger { display: none; }
+.tabsbar { display: flex; gap: 2px; padding: 0 16px; max-width: 1400px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; }
+.tabsbar a { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 10px 10px 12px; font-size: 14px; color: var(--muted); text-decoration: none; white-space: nowrap; border-radius: 6px; }
+.tabsbar a:hover { color: var(--ink); }
+.tabsbar a::before { content: ""; position: absolute; inset: 5px 2px 7px; border-radius: 6px; background: transparent; z-index: -1; transition: background .15s; }
+.tabsbar a:hover::before { background: var(--surface-3); }
+.tabsbar a.on { color: var(--ink); }
+.tabsbar a.on::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 0; height: 2px; background: var(--ink); border-radius: 2px; }
+.tabsbar .count { font: 500 11px var(--mono); color: var(--muted); background: var(--surface-3); border-radius: 999px; padding: 1px 6px; }
+.view { padding: 32px 24px 80px; max-width: 1400px; margin: 0 auto; width: 100%; }
+.demo-badge { font: 500 11px var(--mono); padding: 3px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent); color: var(--amber); }
+
+/* ---------- type + common ---------- */
+h1 { font: 600 30px/1.15 var(--sans); letter-spacing: -.035em; margin: 0 0 6px; }
+h1 em { font-style: normal; color: var(--muted); font-weight: 500; }
+h2 { font: 600 16px/1.3 var(--sans); letter-spacing: -.015em; margin: 0; }
+h3 { font-size: 14px; font-weight: 600; margin: 0; }
+.card h2, .ov-card h2, dialog h2 { font-size: 15px !important; }
+.r-head h2 { font-size: 20px !important; }
+.lede { color: var(--muted); margin: 0 0 28px; font-size: 14px; }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 12.5px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.card-pad { padding: 20px; }
+.card-head { display: flex; align-items: center; gap: 10px; padding: 16px 20px 0; }
+.two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid transparent; font-weight: 500; font-size: 13.5px; cursor: pointer; white-space: nowrap; text-decoration: none; transition: background .15s, border-color .15s, opacity .15s, color .15s; }
+.btn svg { width: 15px; height: 15px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-primary { background: var(--ink); color: #000; }
+.btn-primary:hover:not(:disabled) { background: #fff; }
+.btn-secondary { background: var(--surface); border-color: var(--line-strong); color: var(--ink); }
+.btn-secondary:hover:not(:disabled) { background: var(--surface-3); }
+.btn-ghost { background: none; color: var(--muted); }
+.btn-ghost:hover:not(:disabled) { background: var(--surface-3); color: var(--ink); }
+.btn-danger { background: transparent; border-color: color-mix(in srgb, var(--red) 40%, transparent); color: var(--red); }
+.btn-danger:hover:not(:disabled) { background: var(--red-soft); }
+.btn-sm { height: 30px; padding: 0 10px; font-size: 13px; border-radius: 7px; }
+.btn-icon { width: 34px; padding: 0; }
+.btn:focus-visible, .tab:focus-visible, .chip:focus-visible, .tabsbar a:focus-visible, a:focus-visible { outline: none; box-shadow: 0 0 0 2px #000, 0 0 0 4px #666; }
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.tag { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 500; border: 1px solid var(--line-strong); color: var(--muted); background: transparent; white-space: nowrap; }
+.tag.red { color: var(--red); border-color: color-mix(in srgb, var(--red) 35%, transparent); background: var(--red-soft); }
+.tag.amber { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 35%, transparent); background: var(--amber-soft); }
+.tag.green { color: var(--green); border-color: color-mix(in srgb, var(--green) 35%, transparent); background: var(--green-soft); }
+.tag.blue, .tag.accent { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 35%, transparent); background: var(--blue-soft); }
+.tag .d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+label.field { display: block; }
+label.field > span { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); margin-bottom: 6px; }
+.input { width: 100%; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 11px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.input:focus { border-color: #666; box-shadow: 0 0 0 3px rgba(255, 255, 255, .06); }
+select.input { appearance: none; -webkit-appearance: none; padding-right: 30px; background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238f8f8f' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E") no-repeat right 9px center / 14px; }
+textarea.input { resize: vertical; min-height: 70px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.form-section { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 6px 0 -2px; }
+
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: 20px 0 24px; overflow-x: auto; }
+.tab { border: 0; background: none; padding: 10px 10px 12px; font-weight: 500; font-size: 14px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; text-decoration: none; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.tab .n { font: 500 11px var(--mono); color: var(--muted); margin-left: 4px; }
+
+.empty { text-align: center; padding: 56px 20px; color: var(--muted); }
+.empty svg { color: var(--faint); margin: 0 auto 14px; }
+.empty strong { display: block; font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: -.01em; }
+.empty .btn { margin-top: 16px; }
+.skel { border-radius: 12px; background: linear-gradient(90deg, var(--surface), var(--surface-3), var(--surface)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.list-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--line); text-decoration: none; cursor: pointer; transition: background .15s; }
+.list-row:first-child { border-top: 0; }
+.list-row:hover { background: var(--surface-2); }
+.list-row .ico { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; flex: none; border: 1px solid var(--line-strong); color: var(--muted); }
+.list-row .ico svg { width: 14px; height: 14px; }
+.list-row .ico.red { color: var(--red); border-color: color-mix(in srgb, var(--red) 35%, transparent); }
+.list-row .ico.amber { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 35%, transparent); }
+.list-row .ico.blue { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 35%, transparent); }
+.list-row .t { font-size: 14px; color: var(--ink); }
+.list-row .s { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+.list-row .when { margin-left: auto; font: 12px var(--mono); color: var(--faint); white-space: nowrap; }
+
+/* ---------- overview ---------- */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+.stat { display: block; padding: 20px 22px 22px; text-decoration: none; border-left: 1px solid var(--line); transition: background .15s; min-width: 0; }
+.stat:first-child { border-left: 0; }
+.stat:hover { background: var(--surface-2); }
+.stat-label { font-size: 13px; color: var(--muted); }
+.stat-value { font: 600 30px/1.1 var(--sans); letter-spacing: -.04em; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-sub { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.trend { font: 500 12px var(--mono); }
+.trend.up { color: var(--green); } .trend.down { color: var(--red); }
+.ov-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; margin-top: 16px; align-items: start; }
+.ov-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ov-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.ov-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.ov-head .meta { font: 12px var(--mono); color: var(--muted); }
+.ov-head a.more { margin-left: auto; font-size: 13px; color: var(--muted); text-decoration: none; }
+.ov-head a.more:hover { color: var(--ink); }
+.prow { display: grid; grid-template-columns: 40px minmax(0, 1fr) 120px 110px 70px; gap: 14px; align-items: center; padding: 12px 18px; border-top: 1px solid var(--line); text-decoration: none; transition: background .15s; }
+.prow:first-of-type { border-top: 0; }
+.prow:hover { background: var(--surface-2); }
+.prow .thumb { width: 40px; height: 40px; border-radius: 8px; background: var(--surface-3) center / cover no-repeat; border: 1px solid var(--line-strong); }
+.prow .name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow .addr { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow .amt { font: 13px var(--mono); text-align: right; color: var(--ink-2); }
+.prow .when { font: 12px var(--mono); color: var(--faint); text-align: right; }
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+.status.green i { background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+.status.amber i { background: var(--amber); box-shadow: 0 0 0 3px var(--amber-soft); }
+.status.red i { background: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+.status.blue i { background: var(--blue); animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.seg { display: inline-flex; margin-left: auto; padding: 2px; border: 1px solid var(--line-strong); border-radius: 8px; }
+.seg button { border: 0; background: none; color: var(--muted); font: 500 12px var(--mono); height: 24px; padding: 0 9px; border-radius: 6px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface-3); color: var(--ink); }
+.chart-sum { display: flex; gap: 24px; padding: 16px 18px 0; }
+.chart-sum div { font-size: 12.5px; color: var(--muted); }
+.chart-sum b { display: block; font: 600 22px/1.2 var(--sans); letter-spacing: -.03em; color: var(--ink); }
+.chart2 { display: flex; align-items: flex-end; gap: 6px; height: 180px; padding: 18px 18px 0; }
+.chart2 .col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; cursor: default; }
+.chart2 .bar2 { width: 100%; max-width: 46px; border-radius: 4px 4px 0 0; background: #2a2a2a; min-height: 3px; transition: background .15s; }
+.create-ic { display: none; }
+#topActions .btn-primary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+#topActions .btn-primary:hover:not(:disabled) { background: var(--surface-3); }
+.chart2 .col:hover .bar2, .chart2 .col.today .bar2 { background: var(--ink); }
+.chart2 .col .tip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; font: 12px var(--mono); padding: 4px 8px; border-radius: 6px; background: var(--surface-3); border: 1px solid var(--line-strong); color: var(--ink); opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 2; }
+.chart2 .col:hover .tip { opacity: 1; }
+.chart-x { display: flex; gap: 6px; padding: 8px 18px 16px; border-top: 1px solid var(--line); margin-top: 0; }
+.chart-x span { flex: 1; text-align: center; font: 11px var(--mono); color: var(--faint); }
+.prs { display: flex; align-items: center; gap: 12px; padding: 11px 18px; border-top: 1px solid var(--line); text-decoration: none; transition: background .15s; }
+.prs:first-of-type { border-top: 0; }
+.prs:hover { background: var(--surface-2); }
+.av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 11px; font-weight: 600; color: #fff; }
+.prs .t { font-size: 13.5px; } .prs .s { font-size: 12.5px; color: var(--muted); }
+.msgrow { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; padding: 12px 18px; border-top: 1px solid var(--line); text-decoration: none; transition: background .15s; }
+.msgrow:first-of-type { border-top: 0; }
+.msgrow:hover { background: var(--surface-2); }
+.msgrow .top2 { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; }
+.msgrow .top2 > span:first-child { white-space: nowrap; flex: none; }
+.msgrow .top2 em { font-style: normal; color: var(--muted); min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msgrow .top2 .when { margin-left: auto; font: 11.5px var(--mono); color: var(--faint); white-space: nowrap; }
+.msgrow .txt { font-size: 13px; color: var(--muted); margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.none { padding: 18px; font-size: 13px; color: var(--muted); }
+
+/* ---------- property cards ---------- */
+.props { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+.prop { overflow: hidden; cursor: pointer; text-decoration: none; display: block; transition: border-color .15s; }
+.prop:hover { border-color: var(--line-strong); }
+.prop .img { aspect-ratio: 16 / 9; background: var(--surface-2) center / cover no-repeat; position: relative; border-bottom: 1px solid var(--line); }
+.prop .img .tag { position: absolute; left: 10px; top: 10px; background: rgba(0, 0, 0, .7); backdrop-filter: blur(6px); }
+.prop .body { padding: 14px 16px 16px; }
+.prop .name { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+.prop .addr { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.prop .meta { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.placeholder-img { display: grid; place-items: center; color: var(--faint); }
+
+/* ---------- property header ---------- */
+.p-head { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.people { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--muted); align-items: center; }
+.people b { color: var(--ink); font-weight: 500; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 10.5px; font-weight: 600; background: var(--surface-3); color: var(--ink-2); border: 1px solid var(--line-strong); flex: none; }
+.avatar.k { background: var(--ink); color: #000; border-color: var(--ink); }
+
+/* ---------- inspections ---------- */
+.insp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.insp { padding: 16px 18px; cursor: pointer; transition: border-color .15s; }
+.insp:hover { border-color: var(--line-strong); }
+.insp .k { font-size: 15px; font-weight: 600; }
+.insp .stats { display: flex; gap: 16px; margin-top: 12px; font-size: 12.5px; color: var(--muted); border: 0; background: none; border-radius: 0; overflow: visible; grid-template-columns: none; }
+.insp .stats b { color: var(--ink); font-weight: 600; font-family: var(--mono); }
+.bar { height: 4px; border-radius: 4px; background: var(--surface-3); overflow: hidden; margin-top: 12px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--ink); border-radius: 4px; transition: width .6s ease; }
+.pair-hint { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-size: 13.5px; margin-bottom: 16px; }
+
+/* ---------- dialogs ---------- */
+dialog { border: 0; padding: 0; background: transparent; color: var(--ink); max-width: none; max-height: none; }
+dialog::backdrop { background: rgba(0, 0, 0, .7); }
+.modal { width: min(540px, calc(100vw - 32px)); margin: 10vh auto 0; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow-lg); }
+.drawer[open] { position: fixed; inset: 0 0 0 auto; height: 100%; width: min(540px, 100vw); margin: 0; }
+.drawer .modal { margin: 0; height: 100%; width: 100%; border-radius: 0; display: flex; flex-direction: column; border-width: 0 0 0 1px; }
+.modal-head { display: flex; align-items: flex-start; gap: 10px; padding: 20px 22px 8px; }
+.modal-body { padding: 14px 22px; overflow-y: auto; }
+.drawer .modal-body { flex: 1; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 22px; border-top: 1px solid var(--line); background: var(--surface-2); border-radius: 0 0 12px 12px; }
+.err { color: var(--red); font-size: 13px; min-height: 1em; margin: 0; }
+.kind-pick { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.kind-pick button { text-align: left; padding: 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); cursor: pointer; }
+.kind-pick button b { display: block; font-size: 13.5px; font-weight: 500; }
+.kind-pick button span { font-size: 12.5px; color: var(--muted); }
+.kind-pick button[aria-pressed="true"] { border-color: var(--ink); }
+.drop { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 28px 16px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color .15s, background .15s; background: var(--bg); }
+.drop:hover, .drop.over { border-color: #666; background: var(--surface-2); }
+.drop svg { margin: 0 auto 8px; color: var(--muted); }
+.drop b { color: var(--ink); font-weight: 500; }
+.files { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.file { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; }
+.file .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file .bar { width: 90px; margin: 0; }
+.stepper { display: flex; flex-direction: column; gap: 2px; }
+.step { display: flex; align-items: flex-start; gap: 12px; padding: 9px 0; }
+.step .ic { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line-strong); flex: none; display: grid; place-items: center; margin-top: 1px; }
+.step.running .ic { border-color: var(--ink); border-right-color: transparent; animation: spin .9s linear infinite; }
+.step.done .ic { border-color: var(--green); background: var(--green); color: #000; }
+.step.skipped .ic { color: var(--faint); }
+.step.failed .ic { border-color: var(--red); background: var(--red); color: #000; }
+.step .ic svg { width: 11px; height: 11px; }
+.step .l { font-weight: 500; font-size: 13.5px; }
+.step.pending .l { color: var(--muted); }
+.step .d { font-size: 12.5px; color: var(--muted); }
+
+/* ---------- report ---------- */
+.r-head { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.r-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.r-tile { padding: 16px 18px; border-left: 1px solid var(--line); }
+.r-tile:first-child { border-left: 0; }
+.r-tile .label { font-size: 13px; color: var(--muted); }
+.r-tile .value { font: 600 24px/1.2 var(--sans); letter-spacing: -.03em; margin-top: 6px; }
+.audio { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); margin-top: 12px; flex-wrap: wrap; }
+.audio .play { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--ink); color: #000; display: grid; place-items: center; cursor: pointer; flex: none; }
+.audio .play svg { width: 14px; height: 14px; }
+.audio .play:disabled { opacity: .35; cursor: default; }
+.wave { flex: 1; min-width: 140px; height: 28px; display: flex; align-items: center; gap: 2px; cursor: pointer; }
+.wave i { flex: 1; border-radius: 2px; background: var(--line-strong); }
+.wave i.on { background: var(--ink); }
+.audio .meta { font: 12px var(--mono); color: var(--muted); }
+.summary { font-size: 15px; line-height: 1.65; color: var(--ink-2); margin: 18px 0 0; max-width: 78ch; }
+.warn-box { margin-top: 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--amber) 35%, transparent); background: var(--amber-soft); color: var(--ink); font-size: 13.5px; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin: 24px 0 6px; }
+.chip { border: 1px solid var(--line-strong); background: transparent; border-radius: 999px; height: 28px; padding: 0 12px; font-size: 13px; color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s; }
+.chip:hover { color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #000; }
+.room { margin-top: 28px; }
+.room-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.room-head h2 { font-size: 16px; }
+.findings { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.finding { overflow: hidden; display: flex; flex-direction: column; }
+.finding.dismissed { opacity: .5; }
+.finding .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.finding .desc { font-size: 14px; color: var(--ink); }
+.finding .why { font-size: 13px; color: var(--muted); }
+.finding .quote { font-size: 13.5px; color: var(--ink-2); border-left: 2px solid var(--line-strong); padding-left: 10px; }
+.finding .cost { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: auto; padding-top: 6px; }
+.finding .cost b { font: 500 14px var(--mono); }
+.finding .actions { display: flex; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.finding .actions .btn { flex: 1; }
+.cmp { position: relative; aspect-ratio: 4 / 3; background: var(--surface-3); overflow: hidden; user-select: none; touch-action: pan-y; border-bottom: 1px solid var(--line); }
+.cmp img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.cmp .after { clip-path: inset(0 0 0 var(--x, 50%)); }
+.cmp .handle { position: absolute; top: 0; bottom: 0; left: var(--x, 50%); width: 2px; background: #fff; transform: translateX(-1px); pointer-events: none; }
+.cmp .handle::after { content: ""; position: absolute; top: 50%; left: 50%; width: 28px; height: 28px; border-radius: 50%; background: #fff; transform: translate(-50%, -50%); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m9 7-4 5 4 5M15 7l4 5-4 5'/%3E%3C/svg%3E"); background-size: 16px; background-position: center; background-repeat: no-repeat; }
+.cmp input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+.cmp .lab { position: absolute; top: 10px; font: 500 11px var(--mono); text-transform: uppercase; padding: 3px 7px; border-radius: 5px; background: rgba(0, 0, 0, .7); color: #fff; pointer-events: none; }
+.cmp .lab.l { left: 10px; } .cmp .lab.r { right: 10px; }
+.single { aspect-ratio: 4 / 3; background: var(--surface-3) center / cover no-repeat; border-bottom: 1px solid var(--line); }
+
+/* ---------- tenants + call errors ---------- */
+.call-error { margin: 10px 0 0; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--red); background: var(--red-soft); color: var(--red); font-size: 13.5px; font-weight: 500; line-height: 1.45; min-height: 0; }
+.tenant-add { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 10px; align-items: end; }
+.tenant-card { margin-top: 14px; }
+.tenant-card h2 { font-size: 17px !important; margin: 0; }
+.tenant-checks { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
+.tenant-check { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface-2); }
+.tenant-check h3 { margin: 0 0 8px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.tenant-detail { margin: 10px 0 0; padding: 0; list-style: none; font-size: 13.5px; }
+.tenant-detail li { padding: 4px 0; border-top: 1px solid var(--line); }
+@media (max-width: 720px) { .tenant-add, .tenant-checks { grid-template-columns: 1fr; } }
+
+/* ---------- timeline ---------- */
+.tl { position: relative; padding-left: 26px; }
+.tl::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 1px; background: var(--line-strong); }
+.tl-item { position: relative; padding: 0 0 20px; }
+.tl-item::before { content: ""; position: absolute; left: -21px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--faint); }
+.tl-item.red::before { border-color: var(--red); background: var(--red); } .tl-item.amber::before { border-color: var(--amber); }
+.tl-item.blue::before { border-color: var(--blue); } .tl-item.green::before { border-color: var(--green); background: var(--green); }
+.tl-item .when { font: 12px var(--mono); color: var(--faint); }
+.tl-item .t { font-size: 14px; margin-top: 2px; }
+.tl-item .row { margin-top: 6px; }
+
+/* ---------- settings ---------- */
+.checks { display: flex; flex-direction: column; }
+.check { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.check:first-child { border-top: 0; }
+.check .st { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; flex: none; border: 1px solid var(--line-strong); color: var(--muted); }
+.check .st.ok { color: var(--green); border-color: color-mix(in srgb, var(--green) 40%, transparent); }
+.check .st.no { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 40%, transparent); }
+.check .st svg { width: 11px; height: 11px; }
+.check code, .codebox { font: 12.5px var(--mono); background: var(--surface-3); padding: 2px 6px; border-radius: 5px; }
+.codebox { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); overflow-x: auto; white-space: nowrap; }
+
+/* ---------- toasts ---------- */
+.toasts { position: fixed; right: 20px; bottom: 20px; z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.toast { display: flex; gap: 10px; align-items: flex-start; max-width: 380px; padding: 11px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--ink); box-shadow: var(--shadow-lg); font-size: 13.5px; animation: tin .2s ease-out; }
+.toast .d { width: 7px; height: 7px; border-radius: 50%; margin-top: 7px; background: var(--green); flex: none; }
+.toast.err .d { background: var(--red); } .toast.info .d { background: var(--blue); }
+@keyframes tin { from { opacity: 0; transform: translateY(6px); } }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) { .ov-grid { grid-template-columns: 1fr; } .stats, .r-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stat:nth-child(3), .r-tile:nth-child(3) { border-left: 0; } .stat:nth-child(n+3), .r-tile:nth-child(n+3) { border-top: 1px solid var(--line); } .two { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .hdr-row { padding: 0 14px; gap: 8px; } .slash, .crumbs, .brand-text, .demo-badge { display: none; } .search { width: auto; flex: 1; min-width: 0; } .search kbd { display: none; }
+  #createBtn { width: 32px; padding: 0; } #createBtn .lbl { display: none; } #createBtn .create-ic { display: block; } #topActions { display: none; }
+  .view { padding: 22px 14px 60px; } h1 { font-size: 26px; }
+  .prow { grid-template-columns: 40px minmax(0, 1fr) auto; } .prow .amt, .prow .when { display: none; }
+  .grid2, .grid3 { grid-template-columns: 1fr; } .findings { grid-template-columns: 1fr; }
+  #topActions .btn { padding: 0 8px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+</style>
+<link rel="stylesheet" href="../static/css/minimal.css">
+</head>
+<body class="page-properties">
+<header class="hdr" id="top">
+  <div class="hdr-row">
+    <a class="brand" href="#/overview" aria-label="Mechus Properties home">
+      <img class="brand-mark" src="/static/img/mechus-mark.png" alt="" width="24" height="24">
+      <span class="brand-text">Mechus</span>
+      <span class="brand-product">Property management</span>
+    </a>
+    <span class="slash" aria-hidden="true">/</span>
+    <div class="crumbs" id="crumbs"></div>
+    <span class="spacer"></span>
+    <span class="demo-badge" id="demoBadge" hidden>demo data</span>
+    <div class="row" id="topActions"></div>
+    <label class="search" id="globalSearch"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="search" type="search" placeholder="Search properties…" autocomplete="off" aria-label="Search properties"><kbd>/</kbd></label>
+    <button class="btn btn-primary btn-sm" id="createBtn" type="button" aria-label="New property"><svg class="create-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">New property</span></button>
+    <a class="me" id="meBtn" href="#/settings" aria-label="Settings"></a>
+  </div>
+  <nav class="tabsbar" id="nav" aria-label="Sections"></nav>
+</header>
+<main class="view" id="view"></main>
+
+<!-- New property -->
+<dialog id="dlgProperty"><form class="modal" id="propForm" method="dialog" autocomplete="off">
+  <div class="modal-head"><div class="grow"><h2 id="propTitle">New property</h2><p class="muted small" style="margin:4px 0 0">Phone numbers let Mechus text the landlord and tenant over iMessage.</p></div>
+    <button class="btn btn-ghost btn-icon" value="cancel" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="modal-body stack">
+    <div class="grid2">
+      <label class="field"><span>Name</span><input class="input" name="name" placeholder="Harbor Lofts 4B" required></label>
+      <label class="field"><span>Type</span><select class="input" name="kind"><option value="residential">Residential</option><option value="commercial">Commercial</option><option value="warehouse">Warehouse</option><option value="land">Land</option></select></label>
+    </div>
+    <div class="grid2">
+      <label class="field"><span>Address</span><input class="input" name="address" placeholder="12 Ithaca St, Austin TX"></label>
+      <label class="field"><span>Unit</span><input class="input" name="unit" placeholder="4B"></label>
+    </div>
+    <div class="form-section">Landlord</div>
+    <div class="grid2"><label class="field"><span>Name</span><input class="input" name="landlord_name"></label>
+      <label class="field"><span>Phone</span><input class="input" name="landlord_phone" placeholder="+15551234567" inputmode="tel"></label></div>
+    <div class="form-section">Tenant</div>
+    <div class="grid3"><label class="field"><span>Name</span><input class="input" name="tenant_name"></label>
+      <label class="field"><span>Phone</span><input class="input" name="tenant_phone" placeholder="+15557654321" inputmode="tel"></label>
+      <label class="field"><span>Language</span><select class="input" name="tenant_language"><option value="en">English</option><option value="es">Spanish</option><option value="fr">French</option><option value="pt">Portuguese</option><option value="zh">Chinese</option><option value="hi">Hindi</option><option value="ar">Arabic</option><option value="de">German</option></select></label></div>
+    <p class="err" id="propErr"></p>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" value="cancel">Cancel</button><button class="btn btn-primary" id="propSave" value="default">Save property</button></div>
+</form></dialog>
+
+<!-- New inspection drawer -->
+<dialog id="dlgInspect" class="drawer"><div class="modal">
+  <div class="modal-head"><div class="grow"><h2 id="inspTitle">New inspection</h2><p class="muted small" id="inspSub" style="margin:4px 0 0"></p></div>
+    <button class="btn btn-ghost btn-icon" id="inspClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="modal-body stack" id="inspBody"></div>
+  <div class="modal-foot" id="inspFoot"></div>
+</div></dialog>
+
+<input type="file" id="fileInput" multiple accept="video/*,image/*,audio/*,.heic,.heif,.mov" hidden>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="/static/js/runtime-config.js"></script>
+<script>
+(() => {
+  "use strict";
+  const DEMO = new URLSearchParams(location.search).has("demo");
+  const API_ORIGIN = String((window.MECHUS_RUNTIME || {}).apiOrigin || "").replace(/\/$/, "");
+  const apiUrl = (path) => API_ORIGIN && path.startsWith("/") ? API_ORIGIN + path : path;
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("koov." + k); return v == null ? d : v; } catch { return d; } },
+    set(k, v) { try { v ? localStorage.setItem("koov." + k, v) : localStorage.removeItem("koov." + k); } catch {} },
+  };
+  const S = { status: null, props: [], timers: new Set(), route: null };
+
+  // ---------- helpers ----------
+  function el(tag, props, ...kids) {
+    const n = document.createElement(tag);
+    if (props) for (const [k, v] of Object.entries(props)) {
+      if (v == null || v === false) continue;
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k === "html") n.innerHTML = v; // trusted static markup only (icons)
+      else if (k === "style" && typeof v === "object") Object.assign(n.style, v);
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) n.append(c.nodeType ? c : document.createTextNode(String(c)));
+    return n;
+  }
+  const I = {
+    home: '<path d="M4 11 12 4l8 7v9H4z"/><path d="M10 20v-6h4v6"/>',
+    grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+    scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 12h8"/>',
+    chat: '<path d="M5 18.5V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8.5z"/>',
+    doc: '<path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>', check: '<path d="m5 12 5 5 9-10"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>',
+    alert: '<path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17.5v.5"/>', clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+    upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
+    send: '<path d="M4 12 20 4l-6 16-3-7z"/>', image: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 8"/>',
+    play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>', pause: '<path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="currentColor" stroke="none"/>',
+    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>', video: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+    sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+    dots: '<circle cx="6" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18" cy="12" r="1.3" fill="currentColor"/>',
+    phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+    refresh: '<path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/><path d="M20 3v5h-5"/>', ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+    users: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 4.5a3 3 0 0 1 0 6M18 20a6 6 0 0 0-3-5.2"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>', chev: '<path d="m7 10 5 5 5-5"/>', user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+    wallet: '<rect x="3" y="7" width="18" height="13" rx="3"/><path d="M16 13.5h2M3 10l13-5 2 2"/>', arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>', house: '<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>',
+  };
+  const icon = (name, size = 17) => {
+    const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("width", size); s.setAttribute("height", size);
+    s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "1.8");
+    s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round"); s.innerHTML = I[name] || "";
+    return s;
+  };
+  const money = (n) => "$" + Math.round(n || 0).toLocaleString();
+  const range = (lo, hi) => (lo || hi) ? (lo === hi ? money(lo) : `${money(lo)}–${money(hi)}`) : "$0";
+  const initials = (s) => (s || "?").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
+  const toDate = (ts) => { if (ts == null || ts === "") return null; const d = typeof ts === "number" ? new Date(ts < 1e12 ? ts * 1000 : ts) : new Date(ts); return isNaN(d) ? null : d; };
+  function ago(ts) {
+    const d = toDate(ts); if (!d) return "";
+    const s = (Date.now() - d) / 1000;
+    if (s < 60) return "just now"; if (s < 3600) return Math.floor(s / 60) + "m ago"; if (s < 86400) return Math.floor(s / 3600) + "h ago";
+    if (s < 172800) return "yesterday"; return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+  const clock = (ts) => { const d = toDate(ts); return d ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : ""; };
+  const mmss = (t) => t == null ? "" : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+  const KIND = { move_in: "Move-in", move_out: "Move-out", routine: "Routine", job: "Job check", survey: "Survey" };
+  const CAT = {
+    defect: ["Documented", "blue"], new_damage: ["New damage", "red"], pre_existing: ["Pre-existing", "blue"],
+    wear_and_tear: ["Normal wear", ""], cleaning: ["Cleaning", "amber"], missing: ["Missing", "red"], resolved: ["Resolved", "green"],
+  };
+  const MSGKIND = { maintenance_request: ["Repair", "amber"], evidence: ["Evidence", "blue"], agreement: ["Agreement", "accent"], payment: ["Payment", "green"], scheduling: ["Schedule", ""], question: ["Question", ""], chitchat: null };
+  const assetUrl = (token, kind, name) => DEMO ? demoAsset(name) : apiUrl(`/api/estates/public/${token}/asset/${kind}/${encodeURIComponent(name)}`);
+
+  function toast(text, kind = "ok") {
+    const t = el("div", { class: "toast " + kind, role: kind === "err" ? "alert" : "status" }, el("span", { class: "d" }), el("span", { text }));
+    $("toasts").append(t);
+    setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .2s"; setTimeout(() => t.remove(), 220); }, kind === "err" ? 6000 : 3800);
+  }
+  // Why a FaceTime call failed, in plain words. Raw text comes from the call worker.
+  function callFailure(raw) {
+    const s = String(raw || "");
+    if (!s) return "";
+    if (/recipient_not_verified/i.test(s)) return "Call refused: this number isn't verified on your FaceTime line yet. Shared Chert lines can only call verified recipients. Verify the number in Chert, then try again.";
+    if (/line_busy/i.test(s)) return "Someone else is using the line.";
+    if (/before it was answered|not_answered|did not connect/i.test(s)) return "No answer: the call rang for about 30 seconds and was not picked up. It shows as a FaceTime call from your Chert line's name and number.";
+    if (/not configured|missing env/i.test(s)) return "FaceTime calling isn't set up on this server: " + s;
+    if (/Chert refused the call/i.test(s)) return s.replace(/\s*\(meeting_id=[^)]*\)/, "").replace(/\s*request_id=\S+/, "");
+    return "The call failed: " + s;
+  }
+  // After a call is started, poll it briefly and report a refusal or no-answer loudly.
+  function watchCall(meetingId, onFail) {
+    if (!meetingId || DEMO) return;
+    let tries = 0;
+    const tick = async () => {
+      tries += 1;
+      let s = null;
+      try { s = await api("/api/status?meeting_id=" + encodeURIComponent(meetingId)); } catch { /* keep trying */ }
+      const state = s ? String(s.status || "").toLowerCase() : "";
+      const err = s && (s.worker_error || s.facetime_worker_error);
+      if (state === "error" || (err && state !== "active")) { const msg = callFailure(err || "the call ended with an error"); toast(msg, "err"); if (onFail) onFail(msg); return; }
+      if (state === "active" || state === "stopped" || tries > 40) return;
+      setTimeout(tick, 2000);
+    };
+    setTimeout(tick, 1500);
+  }
+  function busy(btn, on, label) {
+    if (on) { btn.disabled = true; btn.dataset.html = btn.innerHTML; rc(btn, el("span", { class: "spin" }), label || ""); }
+    else { btn.disabled = false; if (btn.dataset.html != null) btn.innerHTML = btn.dataset.html; }
+  }
+  const put = (parent, ...kids) => parent.append(...kids.flat().filter((k) => k != null && k !== false));
+  const rc = (parent, ...kids) => parent.replaceChildren(...kids.flat().filter((k) => k != null && k !== false));
+  const skel = (h, n = 1) => Array.from({ length: n }, () => el("div", { class: "skel", style: { height: h + "px" } }));
+  function every(ms, fn) { const id = setInterval(fn, ms); S.timers.add(id); return id; }
+  function clearTimers() { S.timers.forEach(clearInterval); S.timers.clear(); }
+
+  // ---------- API ----------
+  async function api(path, opts = {}) {
+    if (DEMO) return demoApi(path, opts);
+    const init = { method: opts.method || "GET", headers: { Accept: "application/json" } };
+    const key = store.get("key", "");
+    if (key) init.headers["X-API-Key"] = key;
+    if (opts.form) init.body = opts.form;
+    else if (opts.body !== undefined) { init.headers["Content-Type"] = "application/json"; init.body = JSON.stringify(opts.body); }
+    let res;
+    try { res = await fetch(apiUrl(path), init); } catch { throw new Error("Can't reach the Mechus server"); }
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok || data.success === false) {
+      const e = new Error(res.status === 401 ? "API key missing or wrong (Settings)" : (data.error || `HTTP ${res.status}`));
+      e.code = data.code; e.status = res.status; throw e;
+    }
+    return data;
+  }
+  function uploadFile(iid, file, onProgress) {
+    if (DEMO) return new Promise((r) => { let p = 0; const t = setInterval(() => { p += 0.2; onProgress(Math.min(1, p)); if (p >= 1) { clearInterval(t); r({}); } }, 120); });
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiUrl(`/api/estates/inspections/${iid}/media`));
+      const key = store.get("key", ""); if (key) xhr.setRequestHeader("X-API-Key", key);
+      xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total);
+      xhr.onload = () => { let d = {}; try { d = JSON.parse(xhr.responseText); } catch {} xhr.status < 300 && d.success !== false ? resolve(d) : reject(new Error(d.error || `Upload failed (${xhr.status})`)); };
+      xhr.onerror = () => reject(new Error("Upload failed (network)"));
+      const fd = new FormData(); fd.append("files", file); xhr.send(fd);
+    });
+  }
+  function sampleBtn(cls = "btn btn-secondary") {
+    const b = el("button", { class: cls }, icon("sparkle"), "Load sample property");
+    b.onclick = async () => {
+      busy(b, true, "Building sample…");
+      try { const d = await api("/api/estates/sample", { method: "POST" }); toast("Sample property ready: a finished move-in + move-out"); await loadProps(); location.hash = `#/p/${d.property.id}/report`; }
+      catch (e) { toast(e.message, "err"); busy(b, false); }
+    };
+    return b;
+  }
+  const chertGuard = (e) => {
+    if (e.code === "chert_not_configured") { toast("Connect Chert first: add your keys in .env (see Settings)", "info"); return true; }
+    return false;
+  };
+
+  // ---------- chrome ----------
+  const NAV = [["tenants", "Tenants"], ["overview", "Overview"], ["properties", "Properties"], ["meetings", "Meetings"], ["inspections", "Inspections"], ["messages", "iMessage"], ["reports", "Reports"]];
+  function renderNav(active, counts = {}) {
+    rc($("nav"), NAV.map(([key, label]) => el("a", { href: "#/" + key, class: active === key ? "on" : "", "aria-current": active === key ? "page" : null },
+      label, counts[key] ? el("span", { class: "count", text: counts[key] }) : null)));
+  }
+  function crumbs(...parts) {
+    rc($("crumbs"), ...parts.flatMap((p, i) => {
+      const node = p[1] ? el("a", { href: p[1], text: p[0] }) : el("b", { text: p[0] });
+      return i ? [el("span", { text: "/", style: { color: "var(--faint)" } }), node] : [node];
+    }));
+  }
+  function actions(...nodes) { rc($("topActions"), ...nodes.filter(Boolean)); }
+  let attentionCache = [];
+  function setPills() {}
+  async function loadStatus() { try { S.status = await api("/api/estates/status"); } catch { S.status = null; } }
+  async function loadProps() { try { S.props = (await api("/api/estates/properties")).properties || []; } catch { S.props = []; } }
+  function applyTheme() { document.documentElement.dataset.theme = "light"; }
+
+  $("createBtn").addEventListener("click", () => openPropertyModal());
+  $("search").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") location.hash = "#/properties?q=" + encodeURIComponent($("search").value.trim());
+    if (e.key === "Escape") { $("search").value = ""; $("search").blur(); if (S.route && S.route.view === "properties") filterProps(""); }
+  });
+  $("search").addEventListener("input", () => { if (S.route && S.route.view === "properties") filterProps($("search").value); });
+  addEventListener("keydown", (e) => {
+    const t = e.target;
+    if (e.key === "/" && !(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t && t.isContentEditable))) { e.preventDefault(); $("search").focus(); }
+  });
+  const me = (store.get("user", "") || "Mechus").trim();
+  $("meBtn").textContent = initials(me === "odysseus" ? "Mechus" : me);
+  $("meBtn").title = "Settings";
+
+  // ---------- router ----------
+  function parseRoute() {
+    const [path, q] = (location.hash.slice(1) || "/tenants").split("?");
+    const parts = path.split("/").filter(Boolean);
+    const query = new URLSearchParams(q || "");
+    if (parts[0] === "p") return { view: "property", pid: parts[1], tab: parts[2] || "inspections", iid: parts[3] || "", query };
+    return { view: parts[0] || "tenants", query };
+  }
+  async function route() {
+    clearTimers();
+    document.body.classList.remove("nav-open");
+    S.route = parseRoute();
+    const r = S.route;
+    if (r.view !== "properties") $("search").value = "";
+    const meetingView = r.view === "meetings";
+    $("globalSearch").hidden = meetingView;
+    $("createBtn").hidden = meetingView;
+    const view = $("view");
+    rc(view, ...skel(120, 3).map((s) => (s.style.marginTop = "14px", s)));
+    actions();
+    renderNav(r.view === "property" ? "properties" : r.view, navCounts());
+    try {
+      if (r.view === "tenants") await viewTenants();
+      else if (r.view === "overview") await viewOverview();
+      else if (r.view === "properties") await viewProperties(r.query.get("new") === "1");
+      else if (r.view === "meetings") await viewMeetings();
+      else if (r.view === "property") await viewProperty(r);
+      else if (r.view === "inspections") await viewInspections();
+      else if (r.view === "messages") await viewMessages();
+      else if (r.view === "reports") await viewReports();
+      else if (r.view === "settings") await viewSettings();
+      else location.hash = "#/overview";
+    } catch (e) {
+      rc(view, el("div", { class: "card empty" }, icon("alert", 36), el("strong", { text: "Couldn't load this page" }), el("span", { text: e.message })));
+    }
+    scrollTo(0, 0);
+  }
+  let _counts = {};
+  const navCounts = () => _counts;
+  addEventListener("hashchange", route);
+
+  // ---------- overview ----------
+  const GRADS = [["#4f46e5", "#ec4899"], ["#0ea5e9", "#22c55e"], ["#f97316", "#eab308"], ["#8b5cf6", "#06b6d4"], ["#ef4444", "#f59e0b"], ["#10b981", "#3b82f6"]];
+  const gradFor = (s) => { let h = 0; for (const c of s || "") h = (h * 31 + c.charCodeAt(0)) >>> 0; const g = GRADS[h % GRADS.length]; return `linear-gradient(135deg, ${g[0]}, ${g[1]})`; };
+  const compact = (n) => n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, "") + "m" : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, "") + "k" : String(Math.round(n || 0));
+  const trendNode = (pct) => pct == null ? null : el("span", { class: "trend " + (pct > 0 ? "up" : pct < 0 ? "down" : ""), text: (pct > 0 ? "+" : "") + pct.toFixed(1) + "%" });
+  const propStatus = (p) => {
+    const l = p.latest;
+    if (!l) return ["No reports", ""];
+    if (l.status === "processing") return ["Processing", "blue"];
+    if (l.status === "failed") return ["Failed", "red"];
+    if (l.status === "draft") return ["Draft", ""];
+    return (l.totals || {}).pending_review ? ["Needs review", "amber"] : ["Ready", "green"];
+  };
+
+  async function viewOverview() {
+    crumbs(["Overview"]);
+    const [d] = await Promise.all([api("/api/estates/overview"), loadProps()]);
+    attentionCache = d.attention || [];
+    const k = d.kpis;
+    _counts = { properties: k.properties || "", reports: k.pending_review || "", messages: d.today_messages || "" };
+    renderNav("overview", _counts);
+
+    const withGroup = S.props.filter((p) => p.chat_id).length;
+    const stat = (label, value, sub, href, trend) => el("a", { class: "stat", href },
+      el("div", { class: "stat-label", text: label }), el("div", { class: "stat-value num", text: value }),
+      el("div", { class: "stat-sub" }, trendNode(trend), el("span", { text: sub })));
+    const stats = el("div", { class: "stats" },
+      stat("Properties", String(k.properties || 0), `${withGroup} with an iMessage group`, "#/properties", k.properties_trend),
+      stat("Open repairs", String(k.open_issues || 0), "reported in group chats", "#/messages"),
+      stat("Reports to review", String(k.pending_review || 0), "waiting for your sign-off", "#/reports?filter=review"),
+      stat("Est. chargeable", "$" + compact(k.chargeable_high || 0), k.chargeable_low ? range(k.chargeable_low, k.chargeable_high) + " across move-outs" : "across move-out reports", "#/reports?filter=move_out", k.chargeable_trend));
+
+    // Properties
+    const plist = el("section", { class: "ov-card" },
+      el("div", { class: "ov-head" }, el("h2", { text: "Properties" }), el("span", { class: "meta", text: String(S.props.length) }), el("a", { class: "more", href: "#/properties" }, "View all →")),
+      S.props.length ? S.props.slice(0, 6).map((p) => {
+        const l = p.latest, [st, tone] = propStatus(p), t = (l && l.totals) || {};
+        const amt = l && l.status === "ready" && l.kind === "move_out" ? money(t.chargeable_high || 0) : "—";
+        const thumb = l && l.thumb ? { backgroundImage: `url("${DEMO ? demoAsset(l.thumb) : l.thumb}")` } : { backgroundImage: gradFor(p.name) };
+        return el("a", { class: "prow", href: `#/p/${p.id}${l && l.status === "ready" ? "/report/" + l.id : ""}` },
+          el("div", { class: "thumb", style: thumb }),
+          el("div", { style: { minWidth: 0 } }, el("div", { class: "name", text: p.name }), el("div", { class: "addr", text: [p.address, p.unit && "Unit " + p.unit].filter(Boolean).join(" · ") || cap(p.kind) })),
+          el("span", { class: "status " + tone }, el("i"), st),
+          el("span", { class: "amt", text: amt, title: "Est. chargeable on the latest move-out" }),
+          el("span", { class: "when", text: ago((l && (l.processed_at || l.created_at)) || p.updated_at || p.created_at) }));
+      }) : [el("div", { class: "empty", style: { padding: "36px 20px" } }, el("strong", { text: "No properties yet" }), el("span", { text: "Add one, or load the sample to see a finished report." }),
+        el("div", { class: "row", style: { justifyContent: "center", marginTop: "16px" } }, el("button", { class: "btn btn-primary", onclick: () => openPropertyModal() }, icon("plus"), "New property"), sampleBtn()))]);
+
+    // Activity
+    let n = store.get("ovRange", "7") === "30" ? 30 : 7;
+    const chartWrap = el("div");
+    const seg = el("div", { class: "seg", role: "group", "aria-label": "Range" });
+    function drawChart() {
+      rc(seg, [7, 30].map((v) => el("button", { type: "button", "aria-pressed": String(n === v), onclick: () => { n = v; store.set("ovRange", String(v)); drawChart(); } }, v + "d")));
+      const days = (d.activity || []).slice(0, n).reverse();
+      const vals = days.map((x) => (x.events || 0) + (x.findings || 0));
+      const max = Math.max(1, ...vals);
+      const events = days.reduce((a, x) => a + (x.events || 0), 0), findings = days.reduce((a, x) => a + (x.findings || 0), 0);
+      const dateOf = (x) => new Date(Date.now() - x.day_offset * 86400000);
+      rc(chartWrap,
+        el("div", { class: "chart-sum" }, el("div", null, el("b", { class: "num", text: String(events) }), "messages & updates"), el("div", null, el("b", { class: "num", text: String(findings) }), "findings in new reports")),
+        el("div", { class: "chart2", style: { gap: n > 7 ? "3px" : "" } }, days.map((x, i) => el("div", { class: "col" + (x.day_offset === 0 ? " today" : "") },
+          el("span", { class: "tip", text: `${dateOf(x).toLocaleDateString([], { month: "short", day: "numeric" })} · ${vals[i]}` }),
+          el("div", { class: "bar2", style: { height: (vals[i] / max) * 100 + "%" } })))),
+        el("div", { class: "chart-x" }, days.map((x, i) => el("span", { text: n === 7 ? dateOf(x).toLocaleDateString([], { weekday: "short" }) : (i % 5 === 0 ? dateOf(x).toLocaleDateString([], { month: "numeric", day: "numeric" }) : "") }))));
+    }
+    drawChart();
+    const activity = el("section", { class: "ov-card" }, el("div", { class: "ov-head" }, el("h2", { text: "Activity" }), seg), chartWrap);
+
+    // Needs attention
+    const attention = el("section", { class: "ov-card" },
+      el("div", { class: "ov-head" }, el("h2", { text: "Needs attention" }), el("span", { class: "meta", text: String(attentionCache.length) })),
+      attentionCache.length ? el("div", null, attentionCache.slice(0, 6).map(attentionRow)) : el("div", { class: "none", text: "All clear. Nothing needs you right now." }));
+
+    // Messages
+    const msgs = d.messages || [];
+    const messages = el("section", { class: "ov-card" },
+      el("div", { class: "ov-head" }, el("h2", { text: "iMessage activity" }), d.today_messages ? el("span", { class: "meta", text: `${d.today_messages} today` }) : null, el("a", { class: "more", href: "#/messages" }, "Manage →")),
+      msgs.length ? el("div", null, msgs.slice(0, 4).map((m) => {
+        const who = m.actor && !/^\+?\d/.test(m.actor) ? m.actor : cap(m.role || "") || "Someone";
+        return el("a", { class: "msgrow", href: `#/p/${m.property_id}/messages` }, el("span", { class: "av", style: { background: gradFor(who) }, text: initials(who) }),
+          el("div", { style: { minWidth: 0 } }, el("div", { class: "top2" }, el("span", { text: who }), el("em", { text: m.property }), el("span", { class: "when", text: ago(m.ts) })),
+            el("div", { class: "txt", text: m.text || "Sent a photo" })));
+      })) : el("div", { class: "none", text: "Texts from your iMessage groups show up here." }));
+
+    // People
+    const people = d.people || [];
+    const crew = el("section", { class: "ov-card" },
+      el("div", { class: "ov-head" }, el("h2", { text: "People" }), el("span", { class: "meta", text: String(people.length) })),
+      people.length ? el("div", null, people.slice(0, 6).map((p) => el("a", { class: "prs", href: `#/p/${p.property_id}/messages`, title: "Open their iMessage group" },
+        el("span", { class: "av", style: { background: gradFor(p.name) }, text: initials(p.name) }),
+        el("div", { style: { minWidth: 0 } }, el("div", { class: "t", text: p.name }), el("div", { class: "s", text: `${cap(p.role)} · ${p.property}` })))))
+        : el("div", { class: "none", text: "Add tenants and landlords to a property so Mechus can text them." }));
+
+    rc($("view"),
+      el("div", { class: "page-intro" },
+        el("p", { class: "eyebrow", text: "Portfolio command center" }),
+        el("h1", { text: "Your portfolio" }),
+        el("p", { class: "lede", text: "Reports, repairs, tenants and conversations—organized across every property you manage." })),
+      stats,
+      el("div", { class: "ov-grid" }, el("div", { class: "ov-col" }, plist, activity), el("div", { class: "ov-col" }, attention, messages, crew)));
+  }
+  function attentionRow(a) {
+    const map = { urgent: ["alert", "red"], review: ["doc", "amber"], failed: ["x", "red"], send_failed: ["send", "red"] };
+    const [ic, tone] = map[a.type] || ["clock", ""];
+    const href = a.type === "urgent" || a.type === "send_failed" ? `#/p/${a.property_id}/messages` : a.type === "failed" ? `#/p/${a.property_id}/inspections` : `#/p/${a.property_id}/report/${a.inspection_id}`;
+    return el("a", { class: "list-row", href }, el("span", { class: "ico " + tone }, icon(ic)),
+      el("div", { class: "grow" }, el("div", { class: "t", text: a.text }), el("div", { class: "s", text: a.property })), el("span", { class: "when", text: ago(a.ts) }));
+  }
+  function activityRow(ev) {
+    const cls = ev.classification || {};
+    const tone = cls.urgent ? "red" : ev.direction === "out" ? "blue" : ev.kind === "system" ? "" : "amber";
+    const ic = ev.kind === "system" ? "sparkle" : ev.direction === "out" ? "send" : "chat";
+    const who = ev.direction === "out" ? "Mechus" : ev.kind === "system" ? "Mechus" : (ev.role && ev.role !== "guest" ? cap(ev.role) : ev.actor);
+    return el("a", { class: "list-row", href: `#/p/${ev.property_id}/${ev.kind === "system" ? "timeline" : "messages"}` }, el("span", { class: "ico " + tone }, icon(ic)),
+      el("div", { class: "grow" }, el("div", { class: "t", text: ev.text || (ev.attachments && ev.attachments.length ? "Sent a photo" : "") }), el("div", { class: "s", text: `${who} · ${ev.property}` })),
+      el("span", { class: "when", text: ago(ev.ts) }));
+  }
+  const cap = (s) => (s || "").charAt(0).toUpperCase() + (s || "").slice(1);
+
+  // ---------- properties ----------
+  async function viewProperties(openNew) {
+    crumbs(["Properties"]);
+    await loadProps(); renderNav("properties", _counts);
+    const v = $("view");
+    if (!S.props.length) {
+      rc(v, el("h1", { text: "Properties" }), el("div", { class: "card empty" }, icon("house", 40), el("strong", { text: "No properties yet" }),
+        el("span", { text: "Add a home, unit, warehouse or lot. Then upload a walkthrough video." }), el("div", { class: "row", style: { justifyContent: "center", marginTop: "14px" } }, el("button", { class: "btn btn-primary", onclick: () => openPropertyModal() }, icon("plus"), "New property"), sampleBtn())));
+    } else {
+      const q = (S.route.query.get("q") || $("search").value || "").trim();
+      $("search").value = q;
+      rc(v, el("h1", { text: "Properties" }), el("p", { class: "lede", id: "propCount", text: `${S.props.length} propert${S.props.length === 1 ? "y" : "ies"}` }), el("div", { class: "props", id: "propGrid" }, S.props.map(propCard)));
+      if (q) filterProps(q);
+    }
+    if (openNew) { history.replaceState(null, "", "#/properties"); openPropertyModal(); }
+  }
+  function filterProps(q) {
+    const grid = $("propGrid");
+    if (!grid) return;
+    q = (q || "").toLowerCase();
+    const shown = S.props.filter((p) => !q || [p.name, p.address, p.unit, (p.tenant || {}).name, (p.landlord || {}).name].join(" ").toLowerCase().includes(q));
+    rc(grid, shown.length ? shown.map(propCard) : [el("div", { class: "muted", style: { padding: "20px 0" }, text: `No properties match “${q}”.` })]);
+    if ($("propCount")) $("propCount").textContent = q ? `${shown.length} of ${S.props.length} matching “${q}”` : `${S.props.length} propert${S.props.length === 1 ? "y" : "ies"}`;
+  }
+  function propCard(p) {
+    const l = p.latest;
+    const img = l && l.thumb ? el("div", { class: "img", style: { backgroundImage: `url("${DEMO ? demoAsset(l.thumb) : l.thumb}")` } }) : el("div", { class: "img placeholder-img" }, icon("house", 34));
+    if (l) img.append(statusTag(l));
+    return el("a", { class: "card prop", href: `#/p/${p.id}` }, img,
+      el("div", { class: "body" }, el("div", { class: "name", text: p.name }), el("div", { class: "addr", text: [p.address, p.unit && "Unit " + p.unit].filter(Boolean).join(" · ") || cap(p.kind) }),
+        el("div", { class: "meta" }, p.sample ? el("span", { class: "tag amber", text: "Sample" }) : null, el("span", { class: "tag", text: `${p.inspections} inspection${p.inspections === 1 ? "" : "s"}` }),
+          p.chat_id ? el("span", { class: "tag green" }, el("span", { class: "d" }), "iMessage group") : el("span", { class: "tag", text: "No group" }),
+          p.tenant && p.tenant.name ? el("span", { class: "tag", text: p.tenant.name }) : null)));
+  }
+  function statusTag(i) {
+    if (i.status === "processing") return el("span", { class: "tag accent" }, el("span", { class: "spin", style: { width: "10px", height: "10px", borderWidth: "1.5px" } }), "Processing");
+    if (i.status === "failed") return el("span", { class: "tag red", text: "Failed" });
+    if (i.status === "draft") return el("span", { class: "tag", text: "Draft" });
+    const pend = (i.totals || {}).pending_review;
+    return pend ? el("span", { class: "tag amber", text: `${KIND[i.kind]} · ${pend} to review` }) : el("span", { class: "tag green", text: `${KIND[i.kind]} · ready` });
+  }
+
+  function openPropertyModal(existing) {
+    const f = $("propForm");
+    f.reset(); $("propErr").textContent = "";
+    $("propTitle").textContent = existing ? "Edit property" : "New property";
+    if (existing) {
+      f.name.value = existing.name || ""; f.kind.value = existing.kind || "residential"; f.address.value = existing.address || ""; f.unit.value = existing.unit || "";
+      f.landlord_name.value = (existing.landlord || {}).name || ""; f.landlord_phone.value = (existing.landlord || {}).phone || "";
+      f.tenant_name.value = (existing.tenant || {}).name || ""; f.tenant_phone.value = (existing.tenant || {}).phone || ""; f.tenant_language.value = (existing.tenant || {}).language || "en";
+    }
+    f.dataset.pid = existing ? existing.id : "";
+    $("dlgProperty").showModal();
+    setTimeout(() => f.name.focus(), 50);
+  }
+  $("propForm").addEventListener("submit", async (e) => {
+    if (e.submitter && e.submitter.value === "cancel") return;
+    e.preventDefault();
+    const f = e.target;
+    const body = {
+      name: f.name.value.trim(), kind: f.kind.value, address: f.address.value.trim(), unit: f.unit.value.trim(),
+      landlord: { name: f.landlord_name.value.trim(), phone: f.landlord_phone.value.trim() },
+      tenant: { name: f.tenant_name.value.trim(), phone: f.tenant_phone.value.trim(), language: f.tenant_language.value },
+    };
+    if (!body.name) { $("propErr").textContent = "Give the property a name."; return; }
+    busy($("propSave"), true, "Saving…");
+    try {
+      const pid = f.dataset.pid;
+      const d = pid ? await api(`/api/estates/properties/${pid}`, { method: "PATCH", body }) : await api("/api/estates/properties", { method: "POST", body });
+      $("dlgProperty").close();
+      toast(pid ? "Saved" : `${d.property.name} added`);
+      await loadProps();
+      location.hash = `#/p/${d.property.id}`;
+      if (pid) route();
+    } catch (err) { $("propErr").textContent = err.message; }
+    finally { busy($("propSave"), false); }
+  });
+
+  // ---------- property ----------
+  async function viewProperty(r) {
+    const d = await api(`/api/estates/properties/${r.pid}`);
+    const p = d.property, insps = d.inspections;
+    await loadProps(); renderNav("properties", _counts);
+    crumbs(["Properties", "#/properties"], [p.name]);
+    actions(
+      el("button", { class: "btn btn-secondary", onclick: () => openPropertyModal(p) }, "Edit"),
+      el("button", { class: "btn btn-primary", onclick: () => openInspection(p, insps) }, icon("upload"), "New inspection"));
+    const ll = p.landlord || {}, tn = p.tenant || {};
+    const person = (role, cls, x) => x.name || x.phone ? el("span", { class: "row", style: { gap: "8px" } }, el("span", { class: "avatar " + cls, text: initials(x.name || role) }), el("span", null, el("b", { text: x.name || x.phone }), " · " + role)) : null;
+    const readyReports = insps.filter((i) => i.status === "ready");
+    const tabs = [["inspections", "Inspections", insps.length], ["report", "Report", readyReports.length], ["messages", "iMessage", ""], ["timeline", "Timeline", ""], ["details", "Details", ""]];
+    const iid = r.iid || (readyReports[0] || {}).id || "";
+    // FaceTime the tenant with Mechus on the line. Needs only the tenant's number, not an iMessage group.
+    const callBtn = (label, inspectMode, done) => {
+      const b = el("button", { class: "btn btn-secondary btn-sm", type: "button" }, icon("video", 14), label);
+      b.onclick = async () => {
+        if (!tn.phone) { toast("Add the tenant's phone number first (Edit).", "err"); return; }
+        busy(b, true, "Calling…");
+        try {
+          const d = await api(`/api/estates/properties/${p.id}/facetime`, { method: "POST", body: { role: "tenant", video: true, inspect_mode: inspectMode } });
+          toast(done);
+          watchCall((d.call || {}).meeting_id);
+        } catch (e) { toast(e.message, "err"); }
+        finally { busy(b, false); }
+      };
+      return b;
+    };
+    const callRow = p.sample ? null : el("div", { class: "people" },
+      el("span", { text: tn.phone ? `FaceTime ${tn.name || "the tenant"}:` : "FaceTime the tenant (add their phone number first):" }),
+      callBtn("Video call", "", "Mechus is calling the tenant on FaceTime"),
+      callBtn("Move-out walkthrough", "move_out", "Mechus is calling the tenant for a live move-out walkthrough"));
+    const head = el("div", null,
+      el("div", { class: "p-head" }, el("div", { class: "grow" },
+        el("h1", { text: p.name }),
+        el("div", { class: "muted", text: [p.address, p.unit && "Unit " + p.unit, cap(p.kind)].filter(Boolean).join(" · ") }),
+        el("div", { class: "people" }, p.sample ? el("span", { class: "tag amber", text: "Sample property · no messages are sent" }) : null, person("landlord", "", ll), person("tenant", "t", tn),
+          p.chat_id ? el("span", { class: "tag green" }, el("span", { class: "d" }), "iMessage group live") : el("span", { class: "tag", text: "No iMessage group yet" })),
+        callRow)),
+      el("div", { class: "tabs", role: "tablist" }, tabs.map(([k, label, n]) => el("a", { class: "tab", role: "tab", "aria-selected": String(r.tab === k), href: `#/p/${p.id}/${k}${k === "report" && iid ? "/" + iid : ""}` }, label, n ? el("span", { class: "n", text: n }) : null))));
+    const body = el("div");
+    rc($("view"), head, body);
+    if (r.tab === "inspections") renderInspections(body, p, insps);
+    else if (r.tab === "report") await renderReport(body, p, insps, iid);
+    else if (r.tab === "messages") await renderMessages(body, p, insps);
+    else if (r.tab === "timeline") await renderTimeline(body, p);
+    else if (r.tab === "details") renderDetails(body, p);
+  }
+
+  function renderInspections(body, p, insps) {
+    if (!insps.length) {
+      put(body, el("div", { class: "card empty" }, icon("video", 40), el("strong", { text: "Start with a move-in walkthrough" }),
+        el("span", { text: "Film each room slowly and talk through anything you notice. Mechus builds the baseline report." }),
+        el("button", { class: "btn btn-primary", onclick: () => openInspection(p, insps, "move_in") }, icon("upload"), "Upload move-in footage")));
+      return;
+    }
+    const hasMoveIn = insps.some((i) => i.kind === "move_in" && i.status === "ready");
+    const hasMoveOut = insps.some((i) => i.kind === "move_out");
+    if (hasMoveIn && !hasMoveOut) put(body, el("div", { class: "pair-hint" }, icon("sparkle"), el("span", { class: "grow", text: "Move-in baseline is ready. At move-out, upload new footage and Mechus compares every room automatically." }),
+      el("button", { class: "btn btn-primary btn-sm", onclick: () => openInspection(p, insps, "move_out") }, "Start move-out")));
+    const grid = el("div", { class: "insp-grid" });
+    for (const i of insps) {
+      const t = i.totals || {};
+      const card = el("div", { class: "card insp", tabindex: "0", onclick: () => i.status === "ready" ? (location.hash = `#/p/${p.id}/report/${i.id}`) : openInspection(p, insps, null, i.id) },
+        el("div", { class: "row" }, el("div", { class: "k grow", text: KIND[i.kind] + (i.label ? " · " + i.label : "") }), statusTag(i)),
+        el("div", { class: "small muted", text: `Created ${ago(i.created_at)} · ${i.media_count} file${i.media_count === 1 ? "" : "s"}` }),
+        i.status === "ready" ? el("div", { class: "stats" }, el("span", null, el("b", { text: i.rooms }), " rooms"), el("span", null, el("b", { text: t.findings || 0 }), (t.findings === 1 ? " finding" : " findings")),
+          i.kind === "move_out" ? el("span", null, el("b", { class: "num", text: range(t.chargeable_low, t.chargeable_high) }), " est.") : null) : null,
+        i.status === "processing" ? el("div", { class: "bar" }, el("i", { style: { width: Math.round((i.progress || 0) * 100) + "%" } })) : null,
+        i.status === "failed" ? el("div", { class: "small", style: { color: "var(--red)", marginTop: "8px" }, text: i.error }) : null);
+      grid.append(card);
+    }
+    put(body, grid);
+    if (insps.some((i) => i.status === "processing")) every(2000, () => route());
+  }
+
+  // ---------- inspection drawer ----------
+  async function openInspection(p, insps, kind, iid) {
+    const dlg = $("dlgInspect");
+    let insp = iid ? (await api(`/api/estates/inspections/${iid}`)).inspection : null;
+    let chosen = kind || (insps.some((i) => i.kind === "move_in" && i.status === "ready") ? "move_out" : "move_in");
+    const queue = [];
+    let poll = null;
+    const close = () => { clearInterval(poll); dlg.close(); route(); };
+    $("inspClose").onclick = close;
+    dlg.onclose = () => clearInterval(poll);
+
+    function render() {
+      const body = $("inspBody"), foot = $("inspFoot");
+      $("inspTitle").textContent = insp ? `${KIND[insp.kind]} inspection` : "New inspection";
+      $("inspSub").textContent = p.name;
+      if (insp && (insp.status === "processing" || insp.status === "ready" || insp.status === "failed")) return renderProgress(body, foot);
+      const media = insp ? insp.media : [];
+      rc(body, 
+        insp ? null : el("div", null, el("div", { class: "form-section", text: "Type", style: { marginBottom: "8px" } }), el("div", { class: "kind-pick" },
+          [["move_in", "Move-in", "Baseline before the tenant arrives"], ["move_out", "Move-out", "Compared against move-in"], ["routine", "Routine", "Periodic condition check"], ["survey", "Survey", "Warehouse, lot or land"]]
+            .map(([k, label, sub]) => el("button", { type: "button", "aria-pressed": String(chosen === k), onclick: () => { chosen = k; render(); } }, el("b", { text: label }), el("span", { text: sub }))))),
+        chosen === "move_out" && !insp ? el("div", { class: "pair-hint", style: { margin: 0 } }, icon("link"),
+          el("span", { text: insps.some((i) => i.kind === "move_in" && i.status === "ready") ? "Will compare against the latest move-in report." : "No finished move-in report yet, so this becomes a condition inventory." })) : null,
+        el("div", null, el("div", { class: "form-section", text: "Footage", style: { marginBottom: "8px" } }),
+          dropZone(),
+          el("div", { class: "files", id: "fileList" }, media.map((m) => fileRow(m.filename, m.kind, 1, m.id)), queue.map((q) => q.row))),
+        el("p", { class: "small muted", text: "Tip: walk slowly, film each wall, floor and fixture, and say what you see out loud. ElevenLabs transcribes your narration and Mechus uses it as evidence." }));
+      const ready = media.length + queue.filter((q) => q.done).length > 0;
+      const go = el("button", { class: "btn btn-primary", disabled: !ready || queue.some((q) => !q.done && !q.error) }, icon("sparkle"), "Process footage");
+      go.onclick = async () => {
+        busy(go, true, "Starting…");
+        try { const d = await api(`/api/estates/inspections/${insp.id}/process`, { method: "POST" }); insp.status = "processing"; if (d.ai_mode === "offline") toast("Running in offline AI mode (no OpenAI key)", "info"); startPolling(); render(); }
+        catch (e) { toast(e.message, "err"); busy(go, false); }
+      };
+      rc(foot, el("button", { class: "btn btn-secondary", onclick: close }, insp ? "Save draft" : "Cancel"), go);
+    }
+    function dropZone() {
+      const z = el("div", { class: "drop", tabindex: "0" }, icon("upload", 28), el("div", null, el("b", { text: "Drop videos, photos or voice memos" })), el("div", { class: "small", text: "or click to choose · MP4, MOV, HEIC, JPG, M4A" }));
+      z.onclick = () => { $("fileInput").onchange = (e) => addFiles([...e.target.files]); $("fileInput").value = ""; $("fileInput").click(); };
+      z.onkeydown = (e) => (e.key === "Enter" || e.key === " ") && z.click();
+      z.ondragover = (e) => { e.preventDefault(); z.classList.add("over"); };
+      z.ondragleave = () => z.classList.remove("over");
+      z.ondrop = (e) => { e.preventDefault(); z.classList.remove("over"); addFiles([...e.dataTransfer.files]); };
+      return z;
+    }
+    function fileRow(name, kind, progress, mid) {
+      const bar = el("i", { style: { width: Math.round(progress * 100) + "%" } });
+      const ic = kind === "video" ? "video" : kind === "audio" ? "mic" : "image";
+      const row = el("div", { class: "file" }, icon(ic, 16), el("span", { class: "nm", text: name }), el("div", { class: "bar" }, bar),
+        mid ? el("button", { class: "btn btn-ghost btn-icon btn-sm", "aria-label": "Remove", onclick: async () => { try { await api(`/api/estates/inspections/${insp.id}/media/${mid}`, { method: "DELETE" }); insp.media = insp.media.filter((m) => m.id !== mid); render(); } catch (e) { toast(e.message, "err"); } } }, icon("x", 14)) : null);
+      row._bar = bar;
+      return row;
+    }
+    async function addFiles(files) {
+      if (!files.length) return;
+      if (!insp) {
+        try { insp = (await api(`/api/estates/properties/${p.id}/inspections`, { method: "POST", body: { kind: chosen } })).inspection; }
+        catch (e) { toast(e.message, "err"); return; }
+      }
+      const items = files.map((f) => { const q = { file: f, done: false, error: "", row: fileRow(f.name, /video/.test(f.type) || /\.(mov|mp4|m4v)$/i.test(f.name) ? "video" : /audio/.test(f.type) ? "audio" : "image", 0) }; queue.push(q); return q; });
+      render();
+      for (const q of items) {
+        try { await uploadFile(insp.id, q.file, (pr) => { q.row._bar.style.width = Math.round(pr * 100) + "%"; }); q.done = true; }
+        catch (e) { q.error = e.message; q.row.style.color = "var(--red)"; toast(`${q.file.name}: ${e.message}`, "err"); }
+      }
+      if (!DEMO) insp = (await api(`/api/estates/inspections/${insp.id}`)).inspection;
+      else insp.media = (insp.media || []).concat(items.filter((q) => q.done).map((q) => ({ id: "m" + Math.random(), filename: q.file.name, kind: "video" })));
+      queue.length = 0;
+      render();
+    }
+    function renderProgress(body, foot) {
+      const stepIcon = (st) => st === "done" ? icon("check", 12) : st === "failed" ? icon("x", 12) : st === "skipped" ? el("span", { text: "–", style: { fontSize: "12px" } }) : null;
+      rc(body, 
+        el("div", { class: "bar", style: { marginTop: 0, height: "6px" } }, el("i", { style: { width: Math.round((insp.progress || 0) * 100) + "%" } })),
+        el("div", { class: "stepper", style: { marginTop: "10px" } }, insp.stages.map((s) => el("div", { class: "step " + s.state }, el("span", { class: "ic" }, stepIcon(s.state)),
+          el("div", null, el("div", { class: "l", text: s.label }), s.detail ? el("div", { class: "d", text: s.detail }) : null)))),
+        insp.status === "failed" ? el("div", { class: "warn-box", style: { background: "var(--red-soft)" }, text: insp.error }) : null,
+        insp.status === "processing" ? el("p", { class: "small muted", text: "You can close this; processing continues in the background." }) : null);
+      const btns = [el("button", { class: "btn btn-secondary", onclick: close }, "Close")];
+      if (insp.status === "ready") btns.push(el("button", { class: "btn btn-primary", onclick: () => { clearInterval(poll); dlg.close(); location.hash = `#/p/${p.id}/report/${insp.id}`; } }, "Open report"));
+      if (insp.status === "failed") btns.push(el("button", { class: "btn btn-primary", onclick: async () => { try { await api(`/api/estates/inspections/${insp.id}/process`, { method: "POST" }); insp.status = "processing"; startPolling(); render(); } catch (e) { toast(e.message, "err"); } } }, "Retry"));
+      rc(foot, ...btns);
+    }
+    function startPolling() {
+      clearInterval(poll);
+      poll = setInterval(async () => {
+        try { insp = (await api(`/api/estates/inspections/${insp.id}`)).inspection; } catch { return; }
+        render();
+        if (insp.status !== "processing") { clearInterval(poll); if (insp.status === "ready") toast("Report ready"); }
+      }, 1200);
+    }
+    if (insp && insp.status === "processing") startPolling();
+    render();
+    if (!dlg.open) dlg.showModal();
+  }
+
+  // ---------- report ----------
+  async function renderReport(body, p, insps, iid) {
+    if (!iid) {
+      put(body, el("div", { class: "card empty" }, icon("doc", 40), el("strong", { text: "No finished reports yet" }), el("span", { text: "Process an inspection and the report appears here." })));
+      return;
+    }
+    const insp = (await api(`/api/estates/inspections/${iid}`)).inspection;
+    const t = insp.totals || {};
+    const ready = insps.filter((i) => i.status === "ready");
+    const picker = ready.length > 1 ? el("select", { class: "input", style: { width: "auto" }, onchange: (e) => (location.hash = `#/p/${p.id}/report/${e.target.value}`) },
+      ready.map((i) => el("option", { value: i.id, selected: i.id === iid ? true : null, text: `${KIND[i.kind]} · ${new Date((i.processed_at || i.created_at) * 1000).toLocaleDateString()}` }))) : null;
+    const shareUrl = location.origin + "/r/" + insp.share_token;
+    const groupBtn = el("button", { class: "btn btn-secondary" }, icon("chat"), "Send to group");
+    groupBtn.onclick = async () => { busy(groupBtn, true, "Sending…"); try { await api(`/api/estates/properties/${p.id}/report/${iid}/send`, { method: "POST" }); toast("Report link sent to the iMessage group"); } catch (e) { chertGuard(e) || toast(e.message, "err"); } finally { busy(groupBtn, false); } };
+    const isOut = insp.kind === "move_out";
+    const tile = (label, value) => el("div", { class: "r-tile" }, el("div", { class: "label", text: label }), el("div", { class: "value num", text: value }));
+    put(body,
+      el("div", { class: "r-head" }, el("div", { class: "grow" }, el("div", { class: "row" }, el("h2", { text: `${KIND[insp.kind]} report` }), picker),
+        el("div", { class: "small muted" }, insp.sample ? el("span", { class: "tag amber", style: { marginRight: "8px" }, text: "Model report" }) : null, `Processed ${ago(insp.processed_at)} · ${insp.media.length} file${insp.media.length === 1 ? "" : "s"} · ${(insp.rooms || []).length} rooms`)),
+        el("div", { class: "row" },
+          el("button", { class: "btn btn-ghost", onclick: () => { navigator.clipboard && navigator.clipboard.writeText(shareUrl); toast("Share link copied"); } }, icon("copy"), "Copy link"),
+          el("a", { class: "btn btn-ghost", href: DEMO ? "#" : "/r/" + insp.share_token, target: "_blank", rel: "noopener" }, icon("ext"), "Open"),
+          el("button", { class: "btn btn-ghost", title: "Run the AI analysis again on the same footage", onclick: async () => {
+            if (!confirm("Re-run the analysis on this footage? Your review decisions on this report will be replaced.")) return;
+            try { await api(`/api/estates/inspections/${iid}/process`, { method: "POST" }); toast("Re-running analysis"); location.hash = `#/p/${p.id}/inspections`; } catch (e) { toast(e.message, "err"); }
+          } }, icon("refresh"), "Re-run"),
+          el("button", { class: "btn btn-ghost", style: { color: "var(--red)" }, onclick: async () => {
+            if (!confirm("Delete this report and its footage? This can't be undone.")) return;
+            try { await api(`/api/estates/inspections/${iid}`, { method: "DELETE" }); toast("Report deleted"); location.hash = `#/p/${p.id}/inspections`; } catch (e) { toast(e.message, "err"); }
+          } }, "Delete"), groupBtn)),
+      el("div", { class: "r-tiles" },
+        isOut ? tile("New issues", String(t.new_issues || 0)) : tile("Documented issues", String((t.by_category || {}).defect || 0)),
+        isOut ? tile("Est. chargeable", range(t.chargeable_low, t.chargeable_high)) : tile("Rooms", String((insp.rooms || []).length)),
+        tile("To review", String(t.pending_review || 0)),
+        tile(isOut ? "Not chargeable" : "Findings", String(isOut ? ((t.by_category || {}).wear_and_tear || 0) + ((t.by_category || {}).pre_existing || 0) : t.findings || 0))),
+      audioBlock(p, insp),
+      insp.summary_text ? el("p", { class: "summary", text: insp.summary_text }) : null,
+      (insp.warnings || []).length ? el("div", { class: "warn-box" }, insp.warnings.map((w) => el("div", { text: "• " + w }))) : null);
+    const cats = [...new Set((insp.findings || []).map((f) => f.category))];
+    let filter = "all";
+    const filters = el("div", { class: "filters" });
+    const roomsWrap = el("div");
+    const draw = () => {
+      rc(filters, ...[["all", "All"], ...cats.map((c) => [c, (CAT[c] || [c])[0]])].map(([k, label]) => el("button", { class: "chip", "aria-pressed": String(filter === k), onclick: () => { filter = k; draw(); } }, label)));
+      rc(roomsWrap, ...(insp.rooms || []).map((room) => {
+        const fs = (insp.findings || []).filter((f) => f.room === room.label && (filter === "all" || f.category === filter));
+        if (!fs.length && filter !== "all") return null;
+        return el("section", { class: "room" }, el("div", { class: "room-head" }, el("h2", { text: room.label }), el("span", { class: "small muted", text: room.summary || "" })),
+          fs.length ? el("div", { class: "findings" }, fs.map((f) => findingCard(p, insp, f, () => renderReportRefresh()))) : el("div", { class: "small muted", text: "No issues found in this room." }));
+      }).filter(Boolean));
+    };
+    const renderReportRefresh = async () => { const fresh = (await api(`/api/estates/inspections/${iid}`)).inspection; Object.assign(insp, fresh); draw(); };
+    draw();
+    put(body, filters, roomsWrap);
+  }
+
+  function audioBlock(p, insp) {
+    const langs = Object.keys(insp.audio || {});
+    const wrap = el("div", { class: "audio" });
+    const lang = langs[0] || "en";
+    const entry = (insp.audio || {})[lang];
+    const audio = new Audio();
+    const bars = Array.from({ length: 48 }, (_, i) => el("i", { style: { height: (8 + Math.abs(Math.sin(i * 1.7) * 22) + (i % 5) * 2) + "px" } }));
+    const wave = el("div", { class: "wave" }, bars);
+    const play = el("button", { class: "play", "aria-label": "Play summary" }, icon("play"));
+    const meta = el("div", { class: "meta" });
+    const langSel = el("select", { class: "input", style: { width: "auto", height: "34px", padding: "4px 8px" } },
+      [["en", "English"], ["es", "Spanish"], ["fr", "French"], ["pt", "Portuguese"], ["zh", "Chinese"], ["hi", "Hindi"], ["ar", "Arabic"], ["de", "German"]].map(([v, l]) => el("option", { value: v, text: l, selected: v === lang ? true : null })));
+    const regen = el("button", { class: "btn btn-secondary btn-sm" }, icon("refresh", 14), "Voice it");
+    const vn = el("button", { class: "btn btn-secondary btn-sm" }, icon("mic", 14), "Voice note to tenant");
+    function load(e, l) {
+      if (!e) { meta.textContent = "No audio yet · ElevenLabs voices the summary"; play.disabled = true; return; }
+      audio.src = assetUrl(insp.share_token, "audio", e.file); play.disabled = false;
+      meta.textContent = `ElevenLabs · ${l.toUpperCase()} · ${e.duration_s}s`;
+    }
+    load(entry, lang);
+    play.onclick = () => audio.paused ? audio.play().catch(() => toast("Couldn't play audio", "err")) : audio.pause();
+    audio.onplay = () => rc(play, icon("pause")); audio.onpause = audio.onended = () => rc(play, icon("play"));
+    audio.ontimeupdate = () => { const r = audio.duration ? audio.currentTime / audio.duration : 0; bars.forEach((b, i) => b.classList.toggle("on", i / bars.length < r)); };
+    wave.onclick = (e) => { if (audio.duration) { const r = (e.clientX - wave.getBoundingClientRect().left) / wave.clientWidth; audio.currentTime = r * audio.duration; } };
+    regen.onclick = async () => {
+      busy(regen, true, "Voicing…");
+      try { const d = await api(`/api/estates/inspections/${insp.id}/audio`, { method: "POST", body: { language: langSel.value } }); (insp.audio = insp.audio || {})[langSel.value] = d.audio; load(d.audio, langSel.value); toast("Voiced with ElevenLabs"); }
+      catch (e) { toast(e.message, "err"); } finally { busy(regen, false); }
+    };
+    vn.onclick = async () => {
+      busy(vn, true, "Sending…");
+      try { await api(`/api/estates/properties/${p.id}/voice-note`, { method: "POST", body: { inspection_id: insp.id, role: "tenant", language: langSel.value } }); toast("Voice note sent to the tenant over iMessage"); }
+      catch (e) { chertGuard(e) || toast(e.message, "err"); } finally { busy(vn, false); }
+    };
+    wrap.append(play, wave, el("div", null, el("div", { class: "small", style: { fontWeight: 600 }, text: "Audio summary" }), meta), langSel, regen, vn);
+    return wrap;
+  }
+
+  function compareView(token, f) {
+    const after = f.after && f.after.image, before = f.before && f.before.image;
+    if (after && before) {
+      const box = el("div", { class: "cmp" },
+        el("img", { src: assetUrl(token, "evidence", before), alt: "Move-in", loading: "lazy" }),
+        el("img", { class: "after", src: assetUrl(token, "evidence", after), alt: "Move-out", loading: "lazy" }),
+        el("span", { class: "handle" }), el("span", { class: "lab l", text: "Move-in" }), el("span", { class: "lab r", text: "Move-out" }));
+      const input = el("input", { type: "range", min: "0", max: "100", value: "50", "aria-label": "Compare move-in and move-out" });
+      input.oninput = () => box.style.setProperty("--x", input.value + "%");
+      box.append(input);
+      return box;
+    }
+    const img = after || before;
+    return img ? el("div", { class: "single", style: { backgroundImage: `url("${assetUrl(token, "evidence", img)}")` } }) : el("div", { class: "single placeholder-img" }, icon("image", 30));
+  }
+
+  function findingCard(p, insp, f, refresh) {
+    const [label, tone] = CAT[f.category] || [f.category, ""];
+    const c = f.cost || {};
+    const ts = f.timestamp && f.timestamp.t != null ? f.timestamp.t : null;
+    const card = el("div", { class: "card finding" + (f.review === "dismissed" ? " dismissed" : "") },
+      compareView(insp.share_token, f),
+      el("div", { class: "body" },
+        el("div", { class: "row", style: { gap: "6px" } }, el("span", { class: "tag " + tone }, el("span", { class: "d" }), label),
+          el("span", { class: "tag", text: cap(f.severity) }), f.item ? el("span", { class: "tag", text: f.item }) : null,
+          ts != null ? el("span", { class: "tag", title: "Where it appears in the video" }, icon("video", 12), mmss(ts)) : null,
+          f.review === "confirmed" ? el("span", { class: "tag green" }, icon("check", 12), "Confirmed") : null),
+        el("div", { class: "desc", text: f.description }),
+        f.reason ? el("div", { class: "why", text: f.reason }) : null,
+        f.narration ? el("div", { class: "quote", text: "“" + f.narration + "”" }) : null,
+        el("div", { class: "cost" }, c.chargeable ? el("b", { class: "num", text: range(c.low, c.high) }) : el("b", { text: "$0", style: { color: "var(--muted)" } }),
+          el("span", { class: "muted small", text: c.basis || "" }), el("span", { class: "grow" }),
+          el("span", { class: "small muted", text: Math.round((f.confidence || 0) * 100) + "% sure" }))),
+      el("div", { class: "actions" },
+        reviewBtn("Confirm", "confirmed", "check"), reviewBtn("Dismiss", "dismissed", "x"),
+        el("button", { class: "btn btn-ghost btn-sm", onclick: editCost }, "Edit cost")));
+    function reviewBtn(text, state, ic) {
+      const b = el("button", { class: "btn btn-sm " + (f.review === state ? "btn-primary" : "btn-secondary") }, icon(ic, 14), text);
+      b.onclick = async () => {
+        try { await api(`/api/estates/inspections/${insp.id}/findings/${f.id}`, { method: "PATCH", body: { review: f.review === state ? "pending" : state } }); await refresh(); }
+        catch (e) { toast(e.message, "err"); }
+      };
+      return b;
+    }
+    async function editCost() {
+      const v = prompt("Repair cost (e.g. 150 or 120-300). Use 0 to make it not chargeable.", c.chargeable ? `${c.low}-${c.high}` : "0");
+      if (v == null) return;
+      const m = v.replace(/[$,\s]/g, "").match(/^(\d+)(?:-(\d+))?$/);
+      if (!m) { toast("Enter a number like 150 or 120-300", "err"); return; }
+      try { await api(`/api/estates/inspections/${insp.id}/findings/${f.id}`, { method: "PATCH", body: { cost_low: +m[1], cost_high: +(m[2] || m[1]) } }); await refresh(); toast("Cost updated"); }
+      catch (e) { toast(e.message, "err"); }
+    }
+    return card;
+  }
+
+  // ---------- messages ----------
+  const smsHref = (phone = "") => "sms:" + String(phone).replace(/[^0-9+.-]/g, "");
+
+  async function renderMessages(body, p, insps) {
+    const st = S.status || {};
+    const ll = p.landlord || {}, tn = p.tenant || {};
+    if (!p.chat_id) {
+      const btn = el("button", { class: "btn btn-primary" }, icon("users"), "Create iMessage group");
+      btn.onclick = async () => {
+        busy(btn, true, "Creating…");
+        try { await api(`/api/estates/properties/${p.id}/group`, { method: "POST", body: {} }); toast("iMessage group created"); route(); }
+        catch (e) { chertGuard(e) || toast(e.message, "err"); busy(btn, false); }
+      };
+      put(body, el("div", { class: "card imessage-setup" },
+        el("span", { class: "imessage-mark" }, icon("chat", 26)),
+        el("div", { class: "imessage-setup-copy" },
+          el("div", { class: "eyebrow", text: "Messages app" }),
+          el("h2", { text: "Start the property iMessage" }),
+          el("p", { class: "muted", text: `Create one real iMessage conversation for ${[ll.name || ll.phone, tn.name || tn.phone].filter(Boolean).join(" and ") || "the landlord and tenant"}. Mechus joins it to log repairs, photos, agreements, and reports.` }),
+          el("p", { class: "small muted", text: "After setup, everyone chats from Apple's Messages app—not from this dashboard." }),
+          !(ll.phone || tn.phone) ? el("p", { class: "small", style: { color: "var(--amber)" }, text: "Add at least one phone number in Details first." }) : null,
+          !st.connected ? el("p", { class: "small", style: { color: "var(--amber)" }, text: "Connect Chert in Settings before creating the group." }) : null,
+          el("div", { class: "row imessage-setup-actions" }, btn,
+            el("a", { class: "btn btn-secondary", href: "#/p/" + p.id + "/details" }, "Review contacts")))));
+      return;
+    }
+    const events = (await api(`/api/estates/properties/${p.id}/timeline?limit=80`)).events || [];
+    const messages = events.filter((e) => ["message", "direct", "alert", "facetime"].includes(e.kind)).slice(-12).reverse();
+    const ready = insps.filter((i) => i.status === "ready");
+    const copyName = el("button", { class: "btn btn-secondary" }, icon("copy", 14), "Copy group name");
+    copyName.onclick = async () => {
+      try { await navigator.clipboard.writeText(p.name); toast("Group name copied"); }
+      catch { toast("Copy “" + p.name + "” to find the group in Messages", "info"); }
+    };
+    const reportBtn = ready[0] ? el("button", { class: "btn btn-secondary" }, icon("doc", 14), "Send latest report") : null;
+    if (reportBtn) reportBtn.onclick = async () => {
+      busy(reportBtn, true, "Sending…");
+      try { await api(`/api/estates/properties/${p.id}/report/${ready[0].id}/send`, { method: "POST" }); toast("Report sent to the iMessage group"); route(); }
+      catch (e) { chertGuard(e) || toast(e.message, "err"); }
+      finally { busy(reportBtn, false); }
+    };
+    const person = (role, x, cls = "") => el("div", { class: "imessage-person" },
+      el("span", { class: "avatar " + cls, text: initials(x.name || role) }),
+      el("div", { class: "grow" }, el("strong", { text: x.name || role }),
+        el("span", { text: x.phone || "No phone number" })),
+      x.phone ? el("a", { class: "btn btn-secondary btn-sm", href: smsHref(x.phone), "aria-label": `Message ${x.name || role} in Messages` }, icon("chat", 14), "Message")
+        : el("a", { class: "btn btn-ghost btn-sm", href: "#/p/" + p.id + "/details" }, "Add number"));
+    const activity = messages.length ? messages.map((ev) => {
+      const classification = ev.classification || {};
+      const role = ev.direction === "out" ? "Mechus" : ev.role === "landlord" ? (ll.name || "Landlord") : ev.role === "tenant" ? (tn.name || "Tenant") : (ev.actor || "Group");
+      const label = classification.summary || ev.text || ((ev.attachments || []).length ? "Shared a photo" : "iMessage activity");
+      return el("div", { class: "imessage-event" },
+        el("span", { class: "imessage-event-icon" }, icon(ev.kind === "alert" ? "alert" : "chat", 15)),
+        el("div", { class: "grow" }, el("div", { class: "imessage-event-top" }, el("strong", { text: role }), el("span", { text: ago(ev.ts) })),
+          el("p", { text: label })),
+        classification.urgent ? el("span", { class: "tag red", text: "Urgent" }) : null);
+    }) : [el("div", { class: "imessage-empty" }, el("strong", { text: "No activity yet" }), el("span", { text: "Messages from the group will sync here as a concise operations record." }))];
+
+    put(body,
+      el("section", { class: "card imessage-handoff" },
+        el("div", { class: "imessage-handoff-copy" },
+          el("span", { class: "imessage-mark" }, icon("chat", 26)),
+          el("div", null, el("div", { class: "eyebrow", text: "Connected iMessage" }),
+            el("h2", { text: "The conversation lives in Messages" }),
+            el("p", { class: "muted", text: `Open Apple's Messages app and choose “${p.name}”. Mechus stays in the group and brings only the useful property activity back here.` }))),
+        el("div", { class: "imessage-handoff-actions" },
+          el("a", { class: "btn btn-primary", href: "sms:" }, icon("chat", 15), "Open Messages"), copyName)),
+      el("div", { class: "imessage-layout" },
+        el("section", { class: "card imessage-activity" },
+          el("div", { class: "imessage-section-head" },
+            el("div", null, el("div", { class: "eyebrow", text: "Synced record" }), el("h2", { text: "Recent iMessage activity" })),
+            el("button", { class: "btn btn-ghost btn-sm", onclick: () => route() }, icon("refresh", 14), "Refresh")),
+          el("div", { class: "imessage-event-list" }, activity)),
+        el("aside", { class: "imessage-side" },
+          el("section", { class: "card imessage-people" },
+            el("div", { class: "imessage-section-head" }, el("div", null, el("div", { class: "eyebrow", text: "Participants" }), el("h2", { text: "Property contacts" }))),
+            person("Landlord", ll), person("Tenant", tn, "t")),
+          el("section", { class: "card imessage-automation" },
+            el("div", { class: "eyebrow", text: "Mechus automation" }),
+            el("h3", { text: "Dashboard actions still arrive in iMessage" }),
+            el("p", { text: "Reports and important property updates can be sent to the same group without turning the dashboard into another inbox." }),
+            reportBtn || el("span", { class: "small muted", text: "A report action appears after an inspection is ready." })))));
+  }
+
+  // ---------- timeline ----------
+  async function renderTimeline(body, p) {
+    const ev = ((await api(`/api/estates/properties/${p.id}/timeline?limit=500`)).events || []).slice().reverse();
+    let filter = "all";
+    const F = [["all", "Everything"], ["maintenance_request", "Repairs"], ["agreement", "Agreements"], ["payment", "Payments"], ["evidence", "Evidence"], ["system", "Reports"]];
+    const chips = el("div", { class: "filters", style: { marginTop: 0 } });
+    const list = el("div", { class: "tl" });
+    const draw = () => {
+      rc(chips, ...F.map(([k, l]) => el("button", { class: "chip", "aria-pressed": String(filter === k), onclick: () => { filter = k; draw(); } }, l)));
+      const items = ev.filter((e) => filter === "all" ? e.kind !== "message" || (e.classification || {}).kind !== "chitchat" : filter === "system" ? e.kind === "system" : (e.classification || {}).kind === filter);
+      rc(list, ...(items.length ? items.map((e) => {
+        const cls = e.classification || {};
+        const tone = cls.urgent ? "red" : cls.kind === "maintenance_request" ? (e.resolved ? "green" : "amber") : cls.kind === "agreement" ? "blue" : e.kind === "system" ? "green" : "";
+        const who = e.direction === "out" || e.kind === "system" ? "Mechus" : cap(e.role && e.role !== "guest" ? e.role : "") || e.actor;
+        const resolveBtn = cls.kind === "maintenance_request" ? el("button", { class: "btn btn-sm " + (e.resolved ? "btn-secondary" : "btn-primary"), onclick: async () => {
+          try { await api(`/api/estates/properties/${p.id}/events/${e.id}`, { method: "PATCH", body: { resolved: !e.resolved } }); e.resolved = !e.resolved; draw(); } catch (er) { toast(er.message, "err"); }
+        } }, e.resolved ? "Reopen" : "Mark fixed") : null;
+        return el("div", { class: "tl-item " + tone }, el("div", { class: "when", text: `${toDate(e.ts) ? toDate(e.ts).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : ""} · ${who}` }),
+          el("div", { class: "t", text: cls.summary || e.text || "Photo" }),
+          el("div", { class: "row" }, MSGKIND[cls.kind] ? el("span", { class: "tag " + MSGKIND[cls.kind][1], text: MSGKIND[cls.kind][0] }) : null, cls.urgent ? el("span", { class: "tag red", text: "Urgent" }) : null,
+            cls.due ? el("span", { class: "tag blue" }, icon("clock", 12), "Due " + cls.due) : null, e.resolved ? el("span", { class: "tag green", text: "Fixed" }) : null, resolveBtn));
+      }) : [el("div", { class: "muted", style: { padding: "20px 0" }, text: "Nothing logged here yet." })]));
+    };
+    draw();
+    put(body, chips, el("div", { class: "card card-pad" }, list));
+  }
+
+  // ---------- details ----------
+  function renderDetails(body, p) {
+    const contractors = p.contractors || [];
+    const name = el("input", { class: "input", placeholder: "Name" }), phone = el("input", { class: "input", placeholder: "+15551234567" }), trade = el("input", { class: "input", placeholder: "Plumber" });
+    const add = el("button", { class: "btn btn-secondary" }, icon("plus"), "Add contractor");
+    add.onclick = async () => { try { await api(`/api/estates/properties/${p.id}/contractors`, { method: "POST", body: { name: name.value, phone: phone.value, trade: trade.value } }); toast("Contractor added"); route(); } catch (e) { toast(e.message, "err"); } };
+    const row = (label, x, cls) => el("div", { class: "check" }, el("span", { class: "avatar " + cls, text: initials(x.name || label) }), el("div", { class: "grow" }, el("div", { style: { fontWeight: 500 }, text: x.name || "—" }), el("div", { class: "small muted", text: `${label}${x.phone ? " · " + x.phone : ""}${x.language && x.language !== "en" ? " · speaks " + x.language : ""}${x.trade ? " · " + x.trade : ""}` })));
+    put(body, el("div", { class: "two", style: { marginTop: 0 } },
+      el("div", { class: "card card-pad" }, el("div", { class: "row", style: { marginBottom: "6px" } }, el("h2", { class: "grow", text: "People", style: { fontSize: "21px" } }), el("button", { class: "btn btn-secondary btn-sm", onclick: () => openPropertyModal(p) }, "Edit")),
+        el("div", { class: "checks" }, row("Landlord", p.landlord || {}, ""), row("Tenant", p.tenant || {}, "t"), contractors.map((c) => row("Contractor", c, "c")))),
+      el("div", { class: "card card-pad stack" }, el("h2", { text: "Add a contractor", style: { fontSize: "21px" } }),
+        el("p", { class: "small muted", style: { margin: 0 }, text: "Contractors join the group when you recreate it, and their after-photos are filed against the repair." }),
+        el("div", { class: "grid3" }, name, phone, trade), el("div", null, add))),
+      el("div", { class: "card card-pad", style: { marginTop: "16px", borderColor: "color-mix(in srgb, var(--red) 30%, var(--line))" } },
+        el("div", { class: "row" }, el("div", { class: "grow" }, el("h3", { text: "Delete property" }), el("div", { class: "small muted", text: "Removes the property, every inspection, its footage, reports and message log. The iMessage group itself stays on people's phones." })),
+          el("button", { class: "btn btn-danger", onclick: async () => {
+            if (prompt(`Type the property name to delete it:\n${p.name}`) !== p.name) return;
+            try { await api(`/api/estates/properties/${p.id}`, { method: "DELETE" }); toast("Property deleted"); await loadProps(); location.hash = "#/properties"; } catch (e) { toast(e.message, "err"); }
+          } }, "Delete property"))));
+  }
+
+  // ---------- tenants ----------
+  async function viewTenants() {
+    crumbs(["Tenants"]);
+    const list = el("div");
+    const note = el("p", { class: "meeting-message", "aria-live": "polite" });
+    const name = el("input", { class: "input", placeholder: "Joey Tribbiani", autocomplete: "off", required: "" });
+    const phone = el("input", { class: "input", placeholder: "+1 555 123 4567", autocomplete: "off", inputmode: "tel", required: "" });
+    const unit = el("input", { class: "input", placeholder: "Apt 4B", autocomplete: "off", required: "" });
+    const landlord = el("input", { class: "input", placeholder: "Optional: +1 555 987 6543", autocomplete: "off", inputmode: "tel" });
+    const add = el("button", { class: "btn btn-primary", type: "submit" }, "Add tenant");
+    const form = el("form", { class: "tenant-add" },
+      el("label", { class: "field" }, el("span", { text: "Tenant name" }), name),
+      el("label", { class: "field" }, el("span", { text: "Phone (FaceTime)" }), phone),
+      el("label", { class: "field" }, el("span", { text: "Unit" }), unit),
+      el("label", { class: "field" }, el("span", { text: "Landlord phone (gets the report)" }), landlord), add);
+    const fail = (text) => { note.textContent = text; note.classList.add("call-error"); note.setAttribute("role", "alert"); };
+    const clear = () => { note.textContent = ""; note.classList.remove("call-error"); };
+
+    const verdict = (c, mode) => {
+      if (!c) return ["Not started", ""];
+      const n = c.findings.length;
+      if (c.result === "in_progress") return [c.current ? `In progress · ${c.current}` : "Calling…", "amber"];
+      if (c.result === "no_answer") return [/refused|verified|busy/i.test(c.error) ? "Call refused" : "No answer", "red"];
+      if (c.result === "needs_review") return [`${n} issue${n === 1 ? "" : "s"} to review`, "red"];
+      if (c.result === "incomplete") return ["Incomplete", "amber"];
+      if (c.result === "passed") return [mode === "move_out" ? "Passed" : "Recorded, no issues", "green"];
+      return ["Unknown", ""];
+    };
+    const checkBox = (t, mode, title, action) => {
+      const c = t[mode];
+      const [label, tone] = verdict(c, mode);
+      const btn = el("button", { class: "btn btn-sm " + (mode === "move_out" && !c ? "btn-primary" : "btn-secondary"), type: "button" }, icon("video", 14), c ? `${action} again` : action);
+      btn.disabled = !!(c && c.result === "in_progress");
+      btn.onclick = async () => {
+        busy(btn, true, "Calling…"); clear();
+        try {
+          const d = await api(`/api/estates/properties/${t.id}/facetime`, { method: "POST", body: { role: "tenant", video: true, inspect_mode: mode } });
+          toast(`Mechus is calling ${t.tenant.name || "the tenant"} on FaceTime.`);
+          watchCall((d.call || {}).meeting_id, async (msg) => { fail(msg); await load(); });
+          await load();
+        } catch (e) { fail(callFailure(e.message) || e.message); toast(e.message, "err"); busy(btn, false); }
+      };
+      return el("div", { class: "tenant-check" }, el("h3", { text: title }),
+        el("div", { class: "row", style: { gap: "8px", flexWrap: "wrap" } }, el("span", { class: "tag " + tone, text: label }), c ? el("span", { class: "small muted", text: ago(c.at) }) : null),
+        c && c.error ? el("div", { class: "call-error", role: "alert", text: callFailure(c.error) }) : null,
+        c && (c.findings.length || c.not_shown.length) ? el("ul", { class: "tenant-detail" },
+          c.findings.map((f) => el("li", null, el("b", { text: cap(f.severity || "low") + ": " }), `${f.issue}${f.surface ? " (" + f.surface + ")" : ""}`)),
+          c.not_shown.map((a) => el("li", { text: "Not shown: " + a }))) : null,
+        el("div", { class: "row", style: { marginTop: "10px", gap: "8px", flexWrap: "wrap" } }, btn,
+          c && c.report_url ? el("a", { class: "btn btn-ghost btn-sm", href: c.report_url, target: "_blank", rel: "noopener" }, icon("doc", 14), "View report") : null));
+    };
+    const tenantCard = (t) => el("section", { class: "card card-pad tenant-card" },
+      el("div", { class: "row", style: { gap: "12px", alignItems: "flex-start" } },
+        el("div", { class: "grow" }, el("h2", { text: t.tenant.name || "Unnamed tenant" }),
+          el("div", { class: "small muted", text: [t.unit, t.tenant.phone || "no phone number"].filter(Boolean).join(" · ") })),
+        el("a", { class: "btn btn-ghost btn-sm", href: `#/p/${t.id}/details`, text: "Details" })),
+      el("div", { class: "tenant-checks" },
+        checkBox(t, "move_out", "Move-out check", "Start move-out check")));
+
+    let live = false;
+    async function load() {
+      let rows = [];
+      try { rows = (await api("/api/estates/tenants")).tenants || []; }
+      catch (e) { rc(list, el("div", { class: "card empty" }, el("span", { text: DEMO ? "Tenants aren't part of the demo. Open the dashboard without ?demo." : e.message }))); return; }
+      live = rows.some((t) => [t.move_in, t.move_out].some((c) => c && c.result === "in_progress"));
+      rc(list, rows.length ? rows.map(tenantCard) : el("div", { class: "card empty tenant-card" }, el("strong", { text: "No tenants yet" }), el("span", { text: "Add one above, then start their move-out check." })));
+    }
+    form.onsubmit = async (event) => {
+      event.preventDefault(); busy(add, true, "Adding…"); clear();
+      try {
+        await api("/api/estates/properties", { method: "POST", body: { name: unit.value.trim(), tenant: { name: name.value.trim(), phone: phone.value.trim() },
+          landlord: landlord.value.trim() ? { phone: landlord.value.trim() } : {} } });
+        form.reset(); toast("Tenant added"); await load();
+      } catch (e) { fail(e.message); }
+      finally { busy(add, false); }
+    };
+    rc($("view"),
+      el("div", null, el("h1", { text: "Tenants" }),
+        el("p", { class: "muted", text: "Mechus calls the tenant on FaceTime and guides them through the unit, room by room." })),
+      el("div", { class: "card card-pad", style: { marginTop: "16px" } }, form, note), list);
+    await load();
+    let n = 0;
+    every(3000, () => { n += 1; if (live || n % 5 === 0) load(); });
+  }
+
+  // ---------- meetings ----------
+  async function viewMeetings() {
+    crumbs(["Meetings"]);
+    await loadProps();
+    const v = $("view");
+    const meeting = { id: store.get("meeting", ""), active: false };
+
+    const link = el("input", {
+      class: "input meeting-link",
+      type: "text",
+      inputmode: "url",
+      placeholder: "Paste a Zoom or FaceTime link, or enter a phone number or Apple ID",
+      autocomplete: "off",
+      "aria-label": "Meeting link or phone number",
+    });
+    // A phone number or Apple ID email is dialed as an outbound FaceTime call.
+    const isHandle = (raw) => /^\+?[\d\s().-]{8,20}$/.test(raw) || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(raw);
+    const isFaceTime = (raw) => isHandle(raw) || raw.toLowerCase().includes("facetime.apple.com") || raw.toLowerCase().startsWith("facetime:");
+    const callType = el("select", { class: "input", "aria-label": "FaceTime call type" },
+      el("option", { value: "video", text: "Video call" }),
+      el("option", { value: "audio", text: "Audio call" }),
+      el("option", { value: "move_out", text: "Move-out walkthrough" }));
+    const callTypeField = el("label", { class: "field", style: { display: "none" } }, el("span", { text: "FaceTime call type" }), callType);
+    const property = el("select", { class: "input" },
+      el("option", { value: "", text: "No property attached" }),
+      S.props.map((p) => el("option", { value: p.id, text: p.name })));
+    const displayName = el("input", {
+      class: "input",
+      value: store.get("meetingName", "Mechus"),
+      placeholder: "Mechus",
+    });
+    const platform = el("span", { class: "meeting-platform", text: "Zoom or FaceTime" });
+    const message = el("p", { class: "meeting-message", "aria-live": "polite" });
+    const join = el("button", { class: "btn btn-primary meeting-join", type: "submit" }, icon("video", 16), "Join meeting");
+
+    link.oninput = () => {
+      const raw = link.value.trim().toLowerCase();
+      platform.textContent = isHandle(raw) ? "FaceTime call"
+        : isFaceTime(raw) ? "FaceTime"
+        : raw.includes("zoom.us/") ? "Zoom" : "Zoom or FaceTime";
+      callTypeField.style.display = isFaceTime(raw) ? "" : "none";
+      rc(join, icon("video", 16), isHandle(raw) ? "Call" : "Join meeting");
+      message.textContent = "";
+    };
+
+    const form = el("form", { class: "meeting-form" },
+      el("div", { class: "meeting-form-head" },
+        el("div", null, el("h2", { text: "Send Mechus to a meeting" }),
+          el("p", { class: "muted", text: "Mechus joins, listens, and turns the conversation into a landlord-ready record." })),
+        platform),
+      el("div", { class: "meeting-link-row" }, link, join),
+      el("div", { class: "meeting-options" },
+        el("label", { class: "field" }, el("span", { text: "Property context (optional)" }), property),
+        el("label", { class: "field" }, el("span", { text: "Name shown in call" }), displayName),
+        callTypeField),
+      message);
+
+    const statusDot = el("i");
+    const statusLabel = el("span", { text: "Ready" });
+    const statusPill = el("span", { class: "meeting-status" }, statusDot, statusLabel);
+    const statusMeta = el("div", { class: "meeting-meta", text: "No active meeting" });
+    const leave = el("button", { class: "btn btn-danger btn-sm", type: "button", hidden: true }, "Leave meeting");
+    const transcript = el("div", { class: "meeting-transcript" },
+      el("div", { class: "meeting-empty" }, el("strong", { text: "The transcript will appear here." }),
+        el("span", { text: "Start a meeting when you’re ready—this space stays quiet until then." })));
+    const liveCard = el("section", { class: "card meeting-live" },
+      el("div", { class: "meeting-live-head" },
+        el("div", null, el("div", { class: "meeting-kicker", text: "Live meeting" }), statusPill, statusMeta),
+        leave),
+      transcript);
+
+    const recentList = el("div", { class: "meeting-recent-list" });
+    const recentCard = el("aside", { class: "card meeting-recent" },
+      el("div", { class: "meeting-side-head" }, el("div", null,
+        el("div", { class: "meeting-kicker", text: "History" }), el("h2", { text: "Recent meetings" }))),
+      recentList);
+    const helpCard = el("aside", { class: "meeting-help" },
+      el("div", { class: "meeting-kicker", text: "During the call" }),
+      el("h3", { text: "Just say “Mechus…”" }),
+      el("p", { text: "Ask for a recap, action items, a decision, or what still needs follow-up." }));
+
+    rc(v,
+      el("div", { class: "page-intro meeting-intro" },
+        el("div", null, el("div", { class: "eyebrow", text: "Meeting operations" }),
+          el("h1", { text: "Meetings" }),
+          el("p", { class: "lede", text: "Run calls and keep the useful parts connected to the properties you manage." }))),
+      el("div", { class: "meeting-layout" },
+        el("div", { class: "meeting-main" }, form, liveCard),
+        el("div", { class: "meeting-side" }, recentCard, helpCard)));
+
+    const setJoining = (on) => {
+      join.disabled = on;
+      join.replaceChildren(on ? el("span", { class: "spin" }) : icon("video", 16), on ? "Joining…" : "Join meeting");
+    };
+    const renderTranscript = (lines) => {
+      if (!lines.length) {
+        rc(transcript, el("div", { class: "meeting-empty" },
+          el("strong", { text: meeting.active ? "Listening for the first words…" : "The transcript will appear here." }),
+          el("span", { text: meeting.active ? "Mechus is connected and waiting for the conversation." : "Start a meeting when you’re ready—this space stays quiet until then." })));
+        return;
+      }
+      rc(transcript, lines.slice(-80).map((line) => {
+        const who = line.speaker || "Someone";
+        const isMechus = who.toLowerCase().includes("mechus") || who.toLowerCase().includes("koov");
+        return el("div", { class: "meeting-line" + (isMechus ? " mechus" : "") },
+          el("span", { class: "meeting-avatar", text: isMechus ? "M" : initials(who) }),
+          el("div", { class: "grow" },
+            el("div", { class: "meeting-speaker" }, el("b", { text: isMechus ? "Mechus" : who }),
+              line.timestamp ? el("span", { text: clock(line.timestamp) }) : null),
+            el("p", { text: line.text || "" })));
+      }));
+      transcript.scrollTop = transcript.scrollHeight;
+    };
+    const renderStatus = (s) => {
+      const raw = (s.status || (s.active ? "active" : "idle")).toLowerCase();
+      const labels = { idle: "Ready", starting: "Starting", joining: "Joining", active: "In call", stopping: "Leaving", stopped: "Completed", error: "Needs attention" };
+      meeting.active = ["starting", "joining", "active", "stopping"].includes(raw) || !!s.active;
+      statusLabel.textContent = labels[raw] || cap(raw);
+      statusPill.dataset.state = raw;
+      const people = Array.isArray(s.participants) ? s.participants.length : 0;
+      const backend = ({ facetime_chert: "FaceTime", facetime_web: "FaceTime", zoom_sdk: "Zoom" })[s.join_backend] || "";
+      statusMeta.textContent = [backend, people ? `${people} participant${people === 1 ? "" : "s"}` : "", s.facetime_phase_label || s.zoom_join_state || ""].filter(Boolean).join(" · ") || (meeting.active ? "Connecting to the call" : "No active meeting");
+      leave.hidden = !meeting.active;
+      renderTranscript(Array.isArray(s.live_transcripts) ? s.live_transcripts : []);
+      const failed = s.worker_error || s.facetime_worker_error;
+      if (failed && raw !== "active") { message.textContent = callFailure(failed); message.classList.add("call-error"); message.setAttribute("role", "alert"); }
+      else if (!failed) message.classList.remove("call-error");
+    };
+    const refreshStatus = async () => {
+      try {
+        if (!meeting.id) {
+          const all = await api("/api/status");
+          const active = (all.sessions || []).find((session) => session.active || ["starting", "joining", "active", "stopping"].includes(session.status));
+          if (active) meeting.id = active.meeting_id;
+        }
+        if (!meeting.id) { renderStatus({ status: "idle", active: false }); return; }
+        const s = await api("/api/status?meeting_id=" + encodeURIComponent(meeting.id));
+        renderStatus(s);
+        if (!DEMO) store.set("meeting", meeting.id);
+      } catch (e) { message.textContent = e.message; }
+    };
+    const loadRecent = async () => {
+      try {
+        const d = await api("/api/meetings/list?limit=8");
+        const rows = d.meetings || [];
+        rc(recentList, rows.length ? rows.map((m) => el("article", { class: "meeting-recent-row" },
+          el("div", { class: "meeting-recent-top" }, el("strong", { text: m.title || "Meeting" }), el("span", { text: ago(m.generated_at) })),
+          m.executive_summary_preview ? el("p", { text: m.executive_summary_preview }) : null,
+          el("div", { class: "meeting-tags" },
+            m.decision_count ? el("span", { text: `${m.decision_count} decision${m.decision_count === 1 ? "" : "s"}` }) : null,
+            m.action_item_count ? el("span", { text: `${m.action_item_count} action${m.action_item_count === 1 ? "" : "s"}` }) : null)))
+          : [el("div", { class: "meeting-empty compact" }, el("strong", { text: "No completed meetings yet." }), el("span", { text: "Finished calls will collect here." }))]);
+      } catch (e) { rc(recentList, el("div", { class: "meeting-empty compact" }, el("span", { text: e.message }))); }
+    };
+
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+      const meetingLink = link.value.trim();
+      if (!meetingLink) { message.textContent = "Paste a meeting link or type a phone number first."; link.focus(); return; }
+      if (!isFaceTime(meetingLink) && !/^https?:\/\//i.test(meetingLink)) { message.textContent = "Enter a full link, phone number, or Apple ID email."; link.focus(); return; }
+      setJoining(true); message.textContent = "";
+      const selectedProperty = property.value;
+      const body = {
+        meeting_link: meetingLink,
+        user_id: store.get("user", "landlord"),
+        display_name: displayName.value.trim() || "Mechus",
+      };
+      if (selectedProperty) Object.assign(body, { team_id: selectedProperty, shared_context: true, share_to_team_context: true });
+      if (isFaceTime(meetingLink)) {
+        const kind = callType.value;
+        const inspecting = kind === "move_in" || kind === "move_out";
+        // A walkthrough is keyed to the property so move-out compares against its move-in.
+        Object.assign(body, { join_backend: "facetime_chert", video: kind !== "audio" },
+          inspecting ? { inspect_mode: kind, inspect_unit: selectedProperty || "default" } : {});
+        if (isHandle(meetingLink)) body.meeting_link = /@/.test(meetingLink) ? meetingLink : meetingLink.replace(/[\s().-]/g, "");
+      }
+      try {
+        const d = await api("/api/join-meeting", { method: "POST", body });
+        meeting.id = d.meeting_id || d.session_group_id || "";
+        store.set("meeting", meeting.id); store.set("meetingName", body.display_name);
+        toast(d.message || "Mechus is joining the meeting.");
+        await refreshStatus();
+      } catch (e) { message.textContent = e.message; }
+      finally { setJoining(false); }
+    };
+    leave.onclick = async () => {
+      if (!meeting.id) return;
+      busy(leave, true, "Leaving…");
+      try {
+        await api("/api/stop", { method: "POST", body: { meeting_id: meeting.id } });
+        toast("Mechus left the meeting.");
+        await refreshStatus(); await loadRecent();
+      } catch (e) { message.textContent = e.message; }
+      finally { busy(leave, false); }
+    };
+
+    await Promise.all([refreshStatus(), loadRecent()]);
+    every(2500, refreshStatus);
+  }
+
+  // ---------- global lists ----------
+  async function allInspections() {
+    await loadProps();
+    const out = [];
+    for (const p of S.props) { const d = await api(`/api/estates/properties/${p.id}`); d.inspections.forEach((i) => out.push({ ...i, property: p })); }
+    return out.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+  }
+  function inspTable(rows, empty) {
+    if (!rows.length) return el("div", { class: "card empty" }, icon("scan", 40), el("strong", { text: empty }), el("button", { class: "btn btn-primary", onclick: () => (location.hash = "#/properties") }, "Go to properties"));
+    return el("div", { class: "card" }, rows.map((i) => el("a", { class: "list-row", href: i.status === "ready" ? `#/p/${i.property.id}/report/${i.id}` : `#/p/${i.property.id}/inspections` },
+      el("span", { class: "ico " + (i.status === "failed" ? "red" : i.status === "ready" ? "blue" : "amber") }, icon(i.kind === "move_out" ? "doc" : "scan")),
+      el("div", { class: "grow" }, el("div", { class: "t", text: `${KIND[i.kind]} · ${i.property.name}` }), el("div", { class: "s", text: `${i.media_count} files · ${i.rooms} rooms${i.kind === "move_out" && i.status === "ready" ? " · " + range((i.totals || {}).chargeable_low, (i.totals || {}).chargeable_high) + " est." : ""}` })),
+      statusTag(i), el("span", { class: "when", text: ago(i.created_at) }))));
+  }
+  async function viewInspections() {
+    crumbs(["Inspections"]);
+    const rows = await allInspections();
+    rc($("view"), el("h1", { text: "Inspections" }), el("p", { class: "lede", text: "Every walkthrough across your properties." }), inspTable(rows, "No inspections yet"));
+    if (rows.some((i) => i.status === "processing")) every(3000, () => route());
+  }
+  async function viewReports() {
+    crumbs(["Reports"]);
+    const d = await api("/api/estates/checks");
+    const rows = d.reports || [];
+    const v = $("view");
+    const tone = { passed: "green", needs_review: "red", incomplete: "amber", in_progress: "amber", no_answer: "red" };
+    const label = { passed: "Passed", needs_review: "Needs review", incomplete: "Incomplete", in_progress: "In progress", no_answer: "Did not connect" };
+    const note = el("p", { class: "meeting-message", "aria-live": "polite" });
+    const row = (r) => {
+      const send = el("button", { class: "btn btn-secondary btn-sm", type: "button" }, icon("chat", 14), "Text to landlord");
+      send.onclick = async () => {
+        busy(send, true, "Sending…"); note.textContent = ""; note.classList.remove("call-error");
+        try { await api(`/api/estates/checks/${r.meeting_id}/send`, { method: "POST" }); toast("Report texted to the landlord"); }
+        catch (e) { note.textContent = "Couldn't text the report: " + e.message; note.classList.add("call-error"); note.setAttribute("role", "alert"); toast(e.message, "err"); }
+        finally { busy(send, false); }
+      };
+      const c = r.counts || {};
+      return el("div", { class: "list-row", style: { alignItems: "center", flexWrap: "wrap" } },
+        el("span", { class: "ico " + (tone[r.result] === "green" ? "blue" : "amber") }, icon("doc")),
+        el("a", { class: "grow", href: r.report_url, target: "_blank", rel: "noopener", style: { textDecoration: "none", minWidth: "220px" } },
+          el("div", { class: "t", text: r.headline }),
+          el("div", { class: "s", text: `${c.ok || 0} of ${c.areas || 0} areas checked out · ${c.issues || 0} issue${c.issues === 1 ? "" : "s"} · ${ago(r.at)}` })),
+        el("span", { class: "tag " + (tone[r.result] || ""), text: label[r.result] || "Unknown" }),
+        el("a", { class: "btn btn-ghost btn-sm", href: r.report_url, target: "_blank", rel: "noopener", text: "Open" }),
+        send);
+    };
+    rc(v, el("h1", { text: "Reports" }),
+      el("p", { class: "muted", text: "One report per FaceTime check, with photos of what Mechus saw." }),
+      note,
+      rows.length ? el("div", { class: "card", style: { marginTop: "14px" } }, rows.map(row))
+        : el("div", { class: "card empty", style: { marginTop: "14px" } }, icon("doc", 40), el("strong", { text: "No reports yet" }),
+            el("span", { text: "Start a move-out check from the Tenants tab. Its report appears here when the call ends." })));
+  }
+  async function viewMessages() {
+    crumbs(["iMessage"]);
+    await loadProps();
+    const v = $("view");
+    if (!S.props.length) { rc(v, el("h1", { text: "iMessage" }), el("div", { class: "card empty" }, icon("chat", 40), el("strong", { text: "No properties yet" }), el("span", { text: "Add a property, then create its iMessage group." }))); return; }
+    const rows = [];
+    for (const p of S.props) {
+      const ev = ((await api(`/api/estates/properties/${p.id}/timeline?limit=40`)).events || []).filter((e) => e.kind === "message" || e.kind === "direct");
+      const last = ev[ev.length - 1];
+      const contacts = [p.landlord, p.tenant].filter((x) => x && (x.name || x.phone)).map((x) => x.name || x.phone).join(" · ");
+      rows.push(el("div", { class: "imessage-property-row" }, el("span", { class: "ico " + (p.chat_id ? "blue" : "") }, icon("chat")),
+        el("div", { class: "grow" }, el("div", { class: "t", text: p.name }),
+          el("div", { class: "s", text: contacts || "Add property contacts" }),
+          last ? el("div", { class: "imessage-property-last", text: `${last.direction === "out" ? "Mechus" : cap(last.role || "") || last.actor}: ${last.text || "Photo"}` }) : null),
+        el("div", { class: "imessage-property-status" },
+          p.chat_id ? el("span", { class: "tag green" }, el("span", { class: "d" }), "Connected") : el("span", { class: "tag", text: "Not connected" }),
+          last ? el("span", { class: "when", text: ago(last.ts) }) : null),
+        el("a", { class: "btn btn-secondary btn-sm", href: `#/p/${p.id}/messages` }, p.chat_id ? "Manage" : "Set up")));
+    }
+    rc(v,
+      el("div", { class: "page-intro" }, el("div", { class: "eyebrow", text: "Apple Messages" }), el("h1", { text: "iMessage" }),
+        el("p", { class: "lede", text: "Keep tenant and landlord conversations in the Messages app. Mechus connects each property group to reports, repairs, and the dashboard timeline." })),
+      el("section", { class: "card imessage-directory-head" },
+        el("div", null, el("h2", { text: "Your property conversations" }), el("p", { class: "muted", text: "Open Messages to chat. Use this page only to set up groups and check that activity is syncing." })),
+        el("a", { class: "btn btn-primary", href: "sms:" }, icon("chat", 15), "Open Messages")),
+      el("div", { class: "card imessage-directory" }, rows));
+  }
+
+  // ---------- settings ----------
+  async function viewSettings() {
+    crumbs(["Settings"]);
+    await loadStatus();
+    const st = S.status || {};
+    const ok = (good, label, detail) => el("div", { class: "check" }, el("span", { class: "st " + (good ? "ok" : "no") }, icon(good ? "check" : "alert", 12)),
+      el("div", { class: "grow" }, el("div", { text: label }), detail ? el("div", { class: "small muted" }, detail) : null));
+    const hookUrl = (st.public_base_url || location.origin) + (st.webhook_path || "/webhooks/chert");
+    const phone = el("input", { class: "input", placeholder: "+15551234567", value: store.get("testPhone", "") });
+    const effect = el("select", { class: "input", style: { width: "auto" } }, el("option", { value: "", text: "No effect" }), el("option", { value: "celebration", text: "Celebration effect" }));
+    const testBtn = el("button", { class: "btn btn-primary" }, icon("send"), "Send test");
+    testBtn.onclick = async () => {
+      store.set("testPhone", phone.value.trim()); busy(testBtn, true, "Sending…");
+      try { await api("/api/estates/test-send", { method: "POST", body: { phone: phone.value.trim(), text: "Mechus is connected ✅ Know what changed while you were away.", effect: effect.value } }); toast("Sent. Check your phone"); }
+      catch (e) { chertGuard(e) || toast(e.message, "err"); } finally { busy(testBtn, false); }
+    };
+    const keyIn = el("input", { class: "input", type: "password", placeholder: "Server API key (if enabled)", value: store.get("key", "") });
+    keyIn.onchange = () => { store.set("key", keyIn.value.trim()); toast("Saved"); loadStatus(); };
+    const code = (t) => el("code", { text: t });
+    rc($("view"), el("h1", { text: "Settings" }), el("p", { class: "lede", text: "Connections and defaults. Secrets live in the server's .env, never in the browser." }),
+      el("div", { class: "two", style: { marginTop: 0 } },
+        el("div", { class: "card card-pad" }, el("h2", { text: "Chert · iMessage", style: { fontSize: "21px", marginBottom: "8px" } }),
+          el("div", { class: "checks" },
+            ok(st.connected, "API credentials", st.connected ? `Tenant ${st.tenant}` : "Add the Chert signing secret and tenant in the server environment"),
+            ok(!!st.line_phone, "Your Chert number", st.line_phone || "Add the phone line used to create groups"),
+            ok(!!st.line_id, "Line id", st.line_id ? "Set (voice notes pin to this line)" : "Add the Chert line id"),
+            ok(!!st.webhook_secret, "Webhook signing secret", st.webhook_secret ? (st.last_webhook && st.last_webhook.at ? `Last event ${ago(st.last_webhook.at)}` : "Waiting for the first event") : "Add the Chert webhook secret")),
+          el("div", { class: "form-section", text: "Webhook URL", style: { margin: "16px 0 8px" } }),
+          el("div", { class: "codebox" }, el("span", { class: "grow", text: hookUrl }), el("button", { class: "btn btn-ghost btn-sm", onclick: () => { navigator.clipboard && navigator.clipboard.writeText(hookUrl); toast("Copied"); } }, icon("copy", 14))),
+          el("p", { class: "small muted", text: "Add it in Chert → Webhook subscriptions (events: message.received, reaction.added). It must be publicly reachable when tunneling." }),
+          el("div", { class: "form-section", text: "Test send", style: { margin: "16px 0 8px" } }),
+          el("div", { class: "row" }, el("div", { class: "grow", style: { minWidth: "180px" } }, phone), effect, testBtn)),
+        el("div", { class: "stack" },
+          el("div", { class: "card card-pad" }, el("h2", { text: "AI + voice", style: { fontSize: "21px", marginBottom: "8px" } }),
+            el("div", { class: "checks" },
+              ok(st.ai_mode === "live", "Vision + reports (OpenAI)", st.ai_mode === "live" ? "Live" : "Add an OpenAI key and disable offline demo mode"),
+              ok(!!st.elevenlabs, "ElevenLabs (Scribe transcripts + voice summaries)", st.elevenlabs ? "Connected" : "Add an ElevenLabs API key and voice id"))),
+          el("div", { class: "card card-pad" }, el("h2", { text: "FaceTime (Chert + LiveKit)", style: { fontSize: "21px", marginBottom: "8px" } }),
+            el("div", { class: "checks" }, (st.facetime_missing || []).length ? (st.facetime_missing || []).map((k) => ok(false, k)) : [ok(true, "Configured", "Outbound calls need the Mechus LiveKit agent running in the room")])),
+          el("div", { class: "card card-pad stack" }, el("h2", { text: "Dashboard", style: { fontSize: "21px" } }),
+            el("label", { class: "field" }, el("span", { text: "API key" }), keyIn),
+            el("div", { class: "row" }, el("a", { class: "btn btn-secondary", href: "#/meetings" }, "Meetings"), el("a", { class: "btn btn-secondary", href: "?demo#/overview" }, "Open demo data"), sampleBtn())))),
+      outboxCard);
+    loadOutbox();
+  }
+
+  const outboxCard = el("div", { class: "card", style: { marginTop: "16px" } });
+  async function loadOutbox() {
+    let entries = [];
+    try { entries = (await api("/api/estates/outbox")).entries || []; } catch (e) { entries = []; }
+    const tone = { sent: "", delivered: "", read: "green", queued: "", pending: "amber", sending: "amber", retrying: "amber", failed: "red", cancelled: "" };
+    rc(outboxCard, el("div", { class: "card-head" }, el("h2", { class: "grow", text: "Outbox", style: { fontSize: "21px" } }), el("button", { class: "btn btn-ghost btn-sm", onclick: loadOutbox }, icon("refresh", 14), "Refresh")),
+      el("p", { class: "small muted", style: { margin: "4px 20px 6px" }, text: "Everything Mechus sends through Chert. Failed sends retry automatically with backoff; nothing is sent twice." }),
+      el("div", { style: { padding: "4px 0 8px" } }, entries.length ? entries.slice(0, 40).map((e) => el("div", { class: "list-row", style: { alignItems: "center", cursor: "default" } },
+        el("span", { class: "ico " + (tone[e.status] || "") }, icon(e.status === "failed" ? "alert" : "send")),
+        el("div", { class: "grow" }, el("div", { class: "t", text: e.preview }), el("div", { class: "s", text: `${e.property || "—"} · ${e.op.replace("_", " ")} · attempt ${e.attempts}/${e.max_attempts}${e.error ? " · " + e.error : ""}` })),
+        el("span", { class: "tag " + (tone[e.status] || ""), text: e.status }),
+        ["failed", "retrying"].includes(e.status) ? el("button", { class: "btn btn-secondary btn-sm", onclick: async () => { try { await api(`/api/estates/outbox/${e.id}/retry`, { method: "POST" }); toast("Retrying"); } catch (er) { toast(er.message, "err"); } loadOutbox(); } }, "Retry") : null,
+        ["pending", "retrying"].includes(e.status) ? el("button", { class: "btn btn-ghost btn-sm", onclick: async () => { try { await api(`/api/estates/outbox/${e.id}/cancel`, { method: "POST" }); } catch (er) { toast(er.message, "err"); } loadOutbox(); } }, "Cancel") : null,
+        el("span", { class: "when", text: ago(e.created_at) }))) : [el("div", { class: "muted small", style: { padding: "12px 20px" }, text: "Nothing sent yet." })]));
+  }
+
+  // ---------- demo mode (client-side only) ----------
+  function svgPhoto(label, hue, mark) {
+    const box = mark ? `<rect x="${mark[0]}" y="${mark[1]}" width="${mark[2]}" height="${mark[3]}" rx="10" fill="none" stroke="#d6452f" stroke-width="5"/>` : "";
+    const s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${hue},28%,86%)"/><stop offset="1" stop-color="hsl(${hue},22%,74%)"/></linearGradient><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${hue + 20},30%,52%)"/><stop offset="1" stop-color="hsl(${hue + 20},34%,38%)"/></linearGradient></defs><rect width="800" height="600" fill="url(#w)"/><path d="M0 420 L800 420 L800 600 L0 600Z" fill="url(#f)"/><rect x="470" y="110" width="200" height="190" rx="6" fill="hsl(${hue},40%,94%)" stroke="hsl(${hue},20%,64%)" stroke-width="6"/><path d="M570 110v190M470 205h200" stroke="hsl(${hue},20%,64%)" stroke-width="5"/><rect x="90" y="230" width="150" height="190" rx="6" fill="hsl(${hue + 10},20%,62%)"/>${box}<text x="28" y="570" font-family="Inter,Arial" font-size="26" fill="rgba(255,255,255,.85)">${label}</text></svg>`;
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+  }
+  const DEMO_ASSETS = {};
+  function demoAsset(name) { return DEMO_ASSETS[name] || svgPhoto("", 30); }
+  let DEMO_DB = null;
+  let DEMO_CALL = null;
+  function demoInit() {
+    const now = Date.now() / 1000, day = 86400;
+    const rooms = [["Living room", 34], ["Kitchen", 22], ["Bathroom", 200], ["Bedroom 1", 260]];
+    rooms.forEach(([r, h], i) => {
+      DEMO_ASSETS[`b${i}`] = svgPhoto(r + " · move-in", h);
+      DEMO_ASSETS[`a${i}`] = svgPhoto(r + " · move-out", h, [300 + i * 20, 160, 120, 110]);
+      DEMO_ASSETS[`d${i}`] = svgPhoto(r, h, [120, 300, 180, 90]);
+    });
+    DEMO_ASSETS.inbox1 = svgPhoto("Under the sink", 200, [320, 260, 160, 140]);
+    const finding = (i, room, cat, desc, sev, low, high, review, reason, t) => ({ id: "x" + i, room, item: "", category: cat, description: desc, severity: sev, confidence: 0.8 + (i % 3) * 0.05,
+      after: { image: `a${rooms.findIndex((r) => r[0] === room)}` }, before: cat === "new_damage" || cat === "pre_existing" ? { image: `b${rooms.findIndex((r) => r[0] === room)}` } : null,
+      cost: { low, high, chargeable: low > 0, basis: low ? "Default price table (" + sev + ")" : "Not chargeable" }, review, reason, timestamp: { t } });
+    const moFindings = [
+      finding(1, "Living room", "new_damage", "Fist-sized hole in the drywall behind the door.", "moderate", 120, 300, "confirmed", "Not visible in move-in footage of the same wall.", 14),
+      finding(2, "Living room", "wear_and_tear", "Light traffic wear on the floor by the sofa.", "minor", 0, 0, "pending", "Expected from normal use over a 2-year lease.", 22),
+      finding(3, "Kitchen", "new_damage", "Burn mark on the countertop next to the stove.", "moderate", 160, 600, "pending", "Countertop was clean at move-in.", 41),
+      finding(4, "Kitchen", "cleaning", "Grease build-up inside the oven.", "minor", 35, 110, "pending", "Beyond routine end-of-lease cleaning.", 47),
+      finding(5, "Bathroom", "pre_existing", "Chipped tile at the base of the tub.", "minor", 0, 0, "confirmed", "Documented at move-in and narrated by the landlord.", 63),
+      finding(6, "Bedroom 1", "missing", "Window blinds missing on the left window.", "moderate", 35, 110, "pending", "Present in move-in footage.", 88),
+    ];
+    const tot = { findings: 6, new_issues: 4, chargeable_low: 350, chargeable_high: 1120, pending_review: 4, by_category: { new_damage: 2, wear_and_tear: 1, cleaning: 1, pre_existing: 1, missing: 1 } };
+    const stagesDone = [["ingest", "Reading your footage", "38 keyframes from 3 files"], ["transcribe", "Transcribing narration (ElevenLabs)", "412 words · 2 speakers"], ["rooms", "Finding the rooms", "Living room, Kitchen, Bathroom, Bedroom 1"], ["inspect", "Inspecting each room", "6 findings in 4 rooms"], ["costs", "Estimating repair costs", "$350–$1,120 chargeable"], ["evidence", "Marking up the evidence", "6 marked photos"], ["summary", "Recording the audio summary (ElevenLabs)", "38s voice summary"]].map(([key, label, detail]) => ({ key, label, detail, state: "done" }));
+    const mo = { id: "i_demo_out", property_id: "p_demo", kind: "move_out", status: "ready", progress: 1, stages: stagesDone, media: [{ id: "m1", filename: "moveout-walkthrough.mov", kind: "video" }, { id: "m2", filename: "kitchen.heic", kind: "photo" }],
+      rooms: rooms.map(([r]) => ({ label: r, summary: "" })), findings: moFindings, totals: tot, share_token: "demo_token_out", processed_at: now - 3600, created_at: now - 4000, compare_to: "i_demo_in",
+      summary_text: "Move-out report for Harbor Lofts 4B is ready. I found four new issues across four rooms, mainly a hole behind the living room door and a burn on the kitchen counter, for an estimated $350 to $1,120 in chargeable repairs. Normal wear and the chipped tub tile from move-in are not counted. You review every item before anything is final.",
+      audio: {}, warnings: [] };
+    const mi = { id: "i_demo_in", property_id: "p_demo", kind: "move_in", status: "ready", progress: 1, stages: stagesDone, media: [{ id: "m0", filename: "movein.mov", kind: "video" }], rooms: mo.rooms,
+      findings: [{ id: "y1", room: "Bathroom", category: "defect", description: "Chipped tile at the base of the tub.", severity: "minor", confidence: 0.86, after: { image: "d2" }, before: null, cost: { low: 0, high: 0, chargeable: false, basis: "Not chargeable (baseline)" }, review: "confirmed", reason: "Documented at move-in", timestamp: { t: 51 } }],
+      totals: { findings: 1, new_issues: 0, chargeable_low: 0, chargeable_high: 0, pending_review: 0, by_category: { defect: 1 } }, share_token: "demo_token_in", processed_at: now - day * 700, created_at: now - day * 700, summary_text: "Move-in report for Harbor Lofts 4B is ready. I documented four rooms and one existing issue, a chipped tub tile, so nobody gets charged for it later.", audio: {}, warnings: [] };
+    const props = [
+      { id: "p_demo", name: "Harbor Lofts 4B", address: "12 Ithaca St, Austin TX", unit: "4B", kind: "residential", chat_id: "chat_demo", landlord: { name: "Odie Laertes", phone: "+15125550101" }, tenant: { name: "Penelope Reyes", phone: "+15125550144", language: "es" }, contractors: [{ name: "Telemachus Plumbing", phone: "+15125550177", trade: "Plumber" }], created_at: now - day * 720 },
+      { id: "p_demo2", name: "Eastside Warehouse", address: "880 Calypso Rd, Austin TX", unit: "", kind: "warehouse", chat_id: "", landlord: { name: "Odie Laertes", phone: "+15125550101" }, tenant: { name: "Scheria Logistics", phone: "" }, contractors: [], created_at: now - day * 40 },
+    ];
+    const events = [
+      { id: "e1", kind: "message", direction: "out", actor: "Mechus", text: "Hi! I'm Mechus, the assistant for Harbor Lofts 4B. I'll keep a shared log of this chat for everyone: repairs, photos, promises and dates.", ts: now - day * 6, message_id: "m1", tapbacks: [{ by: "+15125550144", reaction: "love" }] },
+      { id: "e2", kind: "message", direction: "in", role: "tenant", actor: "+15125550144", text: "The kitchen sink is leaking under the cabinet again 😩", ts: now - day * 5, message_id: "m2", attachments: [{ kind: "photo", file: "inbox1" }], classification: { kind: "maintenance_request", urgent: true, summary: "Kitchen sink leaking under the cabinet" }, tapbacks: [{ by: "Mechus", reaction: "emphasize" }] },
+      { id: "e3", kind: "alert", direction: "out", actor: "Mechus", text: "Alerted landlord: Kitchen sink leaking under the cabinet", ts: now - day * 5 + 30 },
+      { id: "e4", kind: "message", direction: "in", role: "landlord", actor: "+15125550101", text: "On it. I'll have Telemachus come by Thursday morning.", ts: now - day * 5 + 900, message_id: "m4", classification: { kind: "agreement", urgent: false, summary: "Plumber visit Thursday morning", due: "2026-11-12" }, tapbacks: [{ by: "Mechus", reaction: "like" }] },
+      { id: "e5", kind: "message", direction: "in", role: "tenant", actor: "+15125550144", text: "Paid November rent just now", ts: now - day * 3, message_id: "m5", classification: { kind: "payment", urgent: false, summary: "November rent paid" }, tapbacks: [{ by: "Mechus", reaction: "like" }] },
+      { id: "e6", kind: "system", direction: "internal", actor: "Mechus", text: "Move-out report ready: 6 findings, $350–$1,120 chargeable.", ts: now - 3600 },
+      { id: "e7", kind: "message", direction: "in", role: "tenant", actor: "+15125550144", text: "Mechus, what did we agree about the carpet when I moved in?", ts: now - 1800, message_id: "m7", classification: { kind: "question", urgent: false, summary: "Question about carpet agreement" }, tapbacks: [] },
+      { id: "e8", kind: "message", direction: "out", actor: "Mechus", text: "On Nov 3, 2024 Odie said the bedroom carpet was already worn and wouldn't be charged at move-out. It's marked pre-existing in the move-in report.", ts: now - 1790, message_id: "m8", tapbacks: [{ by: "+15125550144", reaction: "love" }] },
+    ];
+    DEMO_DB = { props, insps: { i_demo_out: mo, i_demo_in: mi }, events: { p_demo: events, p_demo2: [] } };
+  }
+  async function demoApi(path, opts) {
+    await new Promise((r) => setTimeout(r, 120));
+    const D = DEMO_DB, m = opts.method || "GET";
+    const card = (i) => ({ ...i, media_count: i.media.length, rooms: i.rooms.length, thumb: (i.findings[0] || {}).after ? i.findings[0].after.image : "" });
+    let x;
+    if (path === "/api/status") return { sessions: DEMO_CALL ? [{ meeting_id: "demo-meeting", status: DEMO_CALL.status, active: DEMO_CALL.status === "active" }] : [], total_active: DEMO_CALL && DEMO_CALL.status === "active" ? 1 : 0 };
+    if (path.startsWith("/api/status?meeting_id=")) return DEMO_CALL || { meeting_id: "demo-meeting", status: "idle", active: false, live_transcripts: [] };
+    if (path.startsWith("/api/meetings/list")) return { meetings: [
+      { meeting_id: "demo-pm", title: "Harbor Lofts repair check-in", generated_at: new Date(Date.now() - 86400000 * 2).toISOString(), executive_summary_preview: "Confirmed the plumber visit, assigned the cabinet repair, and documented the tenant follow-up.", decision_count: 2, action_item_count: 3 },
+      { meeting_id: "demo-turnover", title: "4B turnover review", generated_at: new Date(Date.now() - 86400000 * 8).toISOString(), executive_summary_preview: "Reviewed move-out findings and agreed which items need landlord approval before invoicing.", decision_count: 3, action_item_count: 2 },
+    ] };
+    if (path === "/api/join-meeting" && m === "POST") {
+      DEMO_CALL = { meeting_id: "demo-meeting", status: "active", active: true, join_backend: (opts.body.meeting_link || "").includes("facetime") ? "facetime_chert" : "zoom_sdk", participants: ["Penelope Reyes", "Odie Laertes"], live_transcripts: [
+        { speaker: "Odie Laertes", text: "Let’s confirm the sink repair and the inspection date.", timestamp: Date.now() / 1000 - 34 },
+        { speaker: "Penelope Reyes", text: "Thursday morning works for me.", timestamp: Date.now() / 1000 - 22 },
+        { speaker: "Mechus", text: "Noted. The plumber is scheduled for Thursday morning.", timestamp: Date.now() / 1000 - 12 },
+      ] };
+      return { meeting_id: "demo-meeting", message: "Mechus is joining the meeting." };
+    }
+    if (path === "/api/stop" && m === "POST") { if (DEMO_CALL) { DEMO_CALL.status = "stopped"; DEMO_CALL.active = false; } return { message: "Mechus left the meeting." }; }
+    if (path === "/api/estates/status") return { connected: true, tenant: "mechus-demo", line_phone: "+15125550100", line_id: true, webhook_secret: true, last_webhook: { at: Date.now() / 1000 - 1800 }, ai_mode: "live", elevenlabs: true, facetime_missing: [], webhook_path: "/webhooks/chert", public_base_url: "https://mechus.example" };
+    if (path === "/api/estates/overview") return { kpis: { properties: 2, open_issues: 1, pending_review: 1, chargeable_low: 350, chargeable_high: 1120, properties_trend: 100, chargeable_trend: -36.8 },
+      activity: Array.from({ length: 30 }, (_, i) => ({ day_offset: i, events: [3, 6, 2, 9, 4, 3, 5][i % 7], findings: i === 1 ? 6 : 0 })),
+      people: [{ name: "Penelope Reyes", role: "tenant", property_id: "p_demo", property: "Harbor Lofts 4B" }, { name: "Odie Laertes", role: "landlord", property_id: "p_demo", property: "Harbor Lofts 4B" }, { name: "Telemachus Plumbing", role: "contractor", property_id: "p_demo", property: "Harbor Lofts 4B" }, { name: "Scheria Logistics", role: "tenant", property_id: "p_demo2", property: "Eastside Warehouse" }],
+      messages: D.events.p_demo.filter((e) => e.direction === "in").reverse().map((e) => ({ ...e, actor: e.role === "tenant" ? "Penelope Reyes" : "Odie Laertes", property_id: "p_demo", property: "Harbor Lofts 4B" })), today_messages: 1,
+      recent: D.events.p_demo.slice().reverse().map((e) => ({ ...e, property_id: "p_demo", property: "Harbor Lofts 4B" })),
+      attention: [{ type: "review", property_id: "p_demo", property: "Harbor Lofts 4B", inspection_id: "i_demo_out", text: "4 findings to review in the move-out report", ts: Date.now() / 1000 - 3600 },
+        { type: "urgent", property_id: "p_demo", property: "Harbor Lofts 4B", text: "Kitchen sink leaking under the cabinet", ts: Date.now() / 1000 - 86400 * 5 }] };
+    if (path === "/api/estates/properties" && m === "GET") return { properties: D.props.map((p) => { const ins = Object.values(D.insps).filter((i) => i.property_id === p.id).sort((a, b) => b.created_at - a.created_at); return { ...p, inspections: ins.length, latest: ins[0] ? card(ins[0]) : null }; }) };
+    if ((x = path.match(/^\/api\/estates\/properties\/([^/]+)$/)) && m === "GET") { const p = D.props.find((q) => q.id === x[1]); if (!p) throw new Error("Not found"); return { property: p, inspections: Object.values(D.insps).filter((i) => i.property_id === p.id).sort((a, b) => b.created_at - a.created_at).map(card) }; }
+    if ((x = path.match(/^\/api\/estates\/properties\/([^/]+)\/timeline/))) return { events: D.events[x[1]] || [] };
+    if ((x = path.match(/^\/api\/estates\/properties\/([^/]+)\/group$/)) && m === "POST") {
+      const p = D.props.find((q) => q.id === x[1]);
+      if (p) p.chat_id = "demo_chat_" + p.id;
+      return { event: { kind: "system", text: "iMessage group created" } };
+    }
+    if ((x = path.match(/^\/api\/estates\/inspections\/([^/]+)$/))) return { inspection: D.insps[x[1]] };
+    if ((x = path.match(/^\/api\/estates\/inspections\/([^/]+)\/findings\/([^/]+)$/))) { const i = D.insps[x[1]]; const f = i.findings.find((q) => q.id === x[2]); Object.assign(f, opts.body.review ? { review: opts.body.review } : {}); if (opts.body.cost_low != null) f.cost = { ...f.cost, low: opts.body.cost_low, high: opts.body.cost_high, chargeable: true, basis: "Edited by landlord" }; i.totals.pending_review = i.findings.filter((q) => q.review === "pending").length; return { inspection: i }; }
+    if ((x = path.match(/^\/api\/estates\/properties\/([^/]+)\/messages$/))) { const t = opts.body ? opts.body.text : (opts.form && opts.form.get("text")) || "Photo"; D.events[x[1]].push({ id: "e" + Math.random(), kind: "message", direction: "out", actor: "Mechus", text: t, ts: Date.now() / 1000, message_id: "m" + Math.random(), tapbacks: [] }); return { event: {} }; }
+    if (path.endsWith("/react") || path.endsWith("/typing") || path.endsWith("/send") || path.endsWith("/voice-note") || path.endsWith("/direct") || path.endsWith("/facetime") || path.endsWith("/group") || path === "/api/estates/test-send" || path.endsWith("/edit")) return { ok: true };
+    if (path === "/api/estates/reports") return { reports: Object.values(D.insps).map((i) => ({ ...card(i), property: { id: "p_demo", name: "Harbor Lofts 4B" }, disputes: 0 })),
+      recurring: [{ property_id: "p_demo", property: "Harbor Lofts 4B", room: "Bathroom", item: "tub tile", count: 2, hits: [{ category: "defect" }, { category: "pre_existing" }] }] };
+    if (path.startsWith("/api/estates/outbox")) return { entries: [] };
+    if (path.endsWith("/audio")) throw new Error("Demo mode: voicing needs the live server with ElevenLabs keys");
+    if (path.endsWith("/process")) return { started: true, ai_mode: "live" };
+    if (m !== "GET") throw new Error("Demo mode is read-only for this action. Open without ?demo to use real data.");
+    throw new Error("Demo has no data for " + path);
+  }
+
+  // ---------- boot ----------
+  applyTheme();
+  if (DEMO) { demoInit(); $("demoBadge").hidden = false; }
+  (async () => {
+    await Promise.all([loadStatus(), loadProps()]);
+    if (!location.hash) history.replaceState(null, "", location.pathname + location.search + "#/overview");
+    route();
+    setInterval(loadStatus, 15000);
+  })();
+})();
+</script>
+</body>
+</html>

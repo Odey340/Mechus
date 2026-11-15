@@ -1,0 +1,43 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "node scripts/build-vercel.mjs",
+  "outputDirectory": "public",
+  "functions": {
+    "api/proxy.js": {
+      "maxDuration": 60,
+      "excludeFiles": "{.env,.env.*,*.pem,*.key,.venv/**,tests/**,docs/**,koov_notes/**,models/**,**/*.pyc}"
+    }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/dashboard.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/properties", "destination": "/properties.html" },
+    { "source": "/meetings", "destination": "/meetings.html" },
+    { "source": "/welcome", "destination": "/welcome.html" },
+    { "source": "/health", "destination": "/health.json" },
+    { "source": "/r/:token", "destination": "/report.html" },
+    { "source": "/api/:path*", "destination": "/api/proxy?path=/api/:path*" },
+    { "source": "/callback", "destination": "/api/proxy?path=/callback" },
+    { "source": "/ready", "destination": "/api/proxy?path=/ready" },
+    { "source": "/share/:path*", "destination": "/api/proxy?path=/share/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/:page(dashboard|properties|meetings|welcome)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/static/js/runtime-config.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/static/css/:path*",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/static/vendor/:path*",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}

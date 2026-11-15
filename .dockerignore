@@ -1,0 +1,29 @@
+# Don't copy into image (use env_file at run time)
+.env
+.env.*
+!.env.example
+
+# Python
+.venv
+venv
+__pycache__
+*.py[cod]
+*.pyo
+.pytest_cache
+.mypy_cache
+
+# Git / IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.swp
+*.swo
+
+# Docs / misc (optional – remove if you want them in image)
+docs/
+*.md
+!README.md
+
+# Models (download inside container or mount if needed)
+models/

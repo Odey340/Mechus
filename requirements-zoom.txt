@@ -1,0 +1,7 @@
+# Optional: Zoom Meeting SDK join backend (Linux only).
+# Enables join_backend=zoom_sdk so Koov joins Zoom without a browser.
+# Install: pip install -r requirements-zoom.txt
+# See docs/SCALABLE_JOIN.md and docs/ZOOM_SDK_SETUP.md.
+
+zoom-meeting-sdk>=0.0.20
+PyJWT>=2.0.0

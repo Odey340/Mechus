@@ -1,0 +1,72 @@
+[
+  {
+    "id": "nih_anaphora",
+    "turns": [
+      "What did Alice say about the NIH rollout?",
+      "what about that?"
+    ],
+    "expect_context_keywords": ["nih", "alice", "rollout"],
+    "notes": "Follow-up should stay anchored to NIH / Alice, not generic 'that'."
+  },
+  {
+    "id": "three_blockers_ordinal",
+    "turns": [
+      "What were the three blockers?",
+      "tell me more about the first one"
+    ],
+    "expect_context_keywords": ["funding", "blocker"],
+    "notes": "Ordinal follow-up should lean toward first blocker (e.g. funding), not random chunks."
+  },
+  {
+    "id": "sprint24_h1b_same_framing",
+    "turns": [
+      "Who owns Sprint 24 follow-ups?",
+      "same thing for H1B?"
+    ],
+    "expect_context_keywords": ["sprint", "h1b", "own"],
+    "notes": "Second turn should retrieve H1B / ownership, not only Sprint 24."
+  },
+  {
+    "id": "supabase_specific",
+    "turns": [
+      "Explain the Supabase persistence concerns we discussed"
+    ],
+    "expect_context_keywords": ["supabase"],
+    "notes": "Specific question: expansion should be minimal; no regression vs baseline."
+  },
+  {
+    "id": "recap_time_window",
+    "turns": [
+      "recap the last five minutes"
+    ],
+    "expect_context_keywords": [],
+    "notes": "Must not be classified as vague follow-up; time-window recap should work."
+  },
+  {
+    "id": "decision_then_same",
+    "turns": [
+      "What did we decide about the API versioning?",
+      "same thing — any update on that?"
+    ],
+    "expect_context_keywords": ["api", "version"],
+    "notes": "Casual same-thing callback should keep API context."
+  },
+  {
+    "id": "action_items_then_clarify",
+    "turns": [
+      "What are the open action items?",
+      "who's responsible for the first one?"
+    ],
+    "expect_context_keywords": ["action", "own"],
+    "notes": "Clarifying follow-up should stay on action items / owners."
+  },
+  {
+    "id": "risk_then_elaborate",
+    "turns": [
+      "What risks did we flag for the launch?",
+      "can you explain that again?"
+    ],
+    "expect_context_keywords": ["risk", "launch"],
+    "notes": "Vague 'explain that again' should use dialog anchor, not drift."
+  }
+]

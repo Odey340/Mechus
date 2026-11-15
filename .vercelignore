@@ -1,0 +1,17 @@
+.env
+.env.local
+.deploy.env
+.git
+.venv
+.pytest_cache
+__pycache__
+*.pyc
+koov_notes
+models
+tests
+evals
+docs
+*.wav
+*.jsonl
+Dockerfile*
+docker-compose*

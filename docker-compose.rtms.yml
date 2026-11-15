@@ -1,0 +1,42 @@
+# Add RTMS webhook service alongside Koov API.
+# Zoom sends meeting.rtms_started to port 8080. For Zoom to reach it when running locally,
+# use ngrok: ngrok http 8080  ->  set Zoom App webhook URL to https://YOUR_NGROK_URL/webhook
+#
+# Usage (from repo root):
+#   ./docker-compose-up.sh -f docker-compose.yml -f docker-compose.zoom.yml -f docker-compose.rtms.yml up -d --build
+#   Or: ./docker-compose-zoom.sh -f docker-compose.rtms.yml up -d --build
+#
+# Requires: ZM_RTMS_CLIENT, ZM_RTMS_SECRET in .env (Zoom App for RTMS)
+# Optional: ZOOM_APP_CLIENT_ID, ZOOM_APP_CLIENT_SECRET (Meeting SDK for TTS in hybrid mode)
+
+services:
+  koov:
+    volumes:
+      - rtms-meeting-store:/app/data
+    environment:
+      - KOOV_RTMS_MEETING_STORE=/app/data/rtms_meetings.json
+
+  rtms:
+    image: koov-zoom
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.zoom
+      platforms:
+        - linux/amd64
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - ZM_RTMS_PORT=8080
+      - ZM_RTMS_PATH=/webhook
+      - KOOV_RTMS_MEETING_STORE=/app/data/rtms_meetings.json
+      - KOOV_VOSK_MODEL_PATH=/app/models/vosk-model-small-en-us-0.15
+    volumes:
+      - rtms-meeting-store:/app/data
+    command: ["python3", "scripts/rtms_koov.py"]
+    restart: unless-stopped
+
+volumes:
+  rtms-meeting-store:
