@@ -553,7 +553,14 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     if (opts.form) init.body = opts.form;
     else if (opts.body !== undefined) { init.headers["Content-Type"] = "application/json"; init.body = JSON.stringify(opts.body); }
     let res;
-    try { res = await fetch(apiUrl(path), init); } catch { throw new Error("Can't reach the Mechus server"); }
+    // A tunnel or network blip lasts a second or two: retry reads before giving up.
+    // Writes (POST etc.) are tried once so nothing is sent twice.
+    const tries = init.method === "GET" ? 4 : 1;
+    for (let attempt = 1; ; attempt += 1) {
+      try { res = await fetch(apiUrl(path), init); if (res.status < 502 || res.status > 504 || attempt >= tries) break; }
+      catch { if (attempt >= tries) throw new Error("Can't reach the Mechus server"); }
+      await new Promise((r) => setTimeout(r, 900 * attempt));
+    }
     let data = {};
     try { data = await res.json(); } catch {}
     // Hosted without a backend (no MECHUS_API_ORIGIN set): show the sample data instead of an error.
