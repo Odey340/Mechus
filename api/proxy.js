@@ -24,7 +24,8 @@ function forwardedPath(request) {
   const value = request.query && request.query.path;
   const raw = Array.isArray(value) ? value.join("/") : String(value || "");
   const path = raw.startsWith("/") ? raw : `/${raw}`;
-  if (!/^\/(?:api|callback|ready|share)(?:\/|$)/.test(path)) {
+  // "checks" = the landlord's walkthrough reports and their photos (rendered by the backend).
+  if (!/^\/(?:api|callback|ready|share|checks)(?:\/|$)/.test(path)) {
     throw new Error("Unsupported backend path");
   }
   return path;

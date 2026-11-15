@@ -22,6 +22,8 @@ def test_vercel_config_routes_static_dashboard_and_backend_bridge():
     assert rewrites["/r/:token"] == "/report.html"
     assert rewrites["/api/:path*"] == "/api/proxy?path=/api/:path*"
     assert rewrites["/health"] == "/health.json"
+    assert rewrites["/tenants"] == "/dashboard.html"
+    assert rewrites["/checks/:path*"] == "/api/proxy?path=/checks/:path*"
     assert "/webhooks/:path*" not in rewrites
 
 
@@ -54,6 +56,9 @@ def test_vercel_build_generates_deployable_site(tmp_path):
         "health.json",
         "static/css/minimal.css",
         "static/js/runtime-config.js",
+        "static/img/mechus-logo.png",
+        "static/img/mechus-mark.png",
+        "static/img/favicon.png",
     ):
         assert (output / relative_path).is_file(), relative_path
 

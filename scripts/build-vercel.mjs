@@ -22,7 +22,7 @@ if (configuredOrigin) {
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(path.join(outputRoot, "static"), { recursive: true });
 
-for (const directory of ["css", "js", "vendor"]) {
+for (const directory of ["css", "js", "vendor", "img"]) {
   await cp(
     path.join(sourceRoot, directory),
     path.join(outputRoot, "static", directory),

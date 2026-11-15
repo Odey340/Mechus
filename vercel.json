@@ -12,19 +12,21 @@
   "rewrites": [
     { "source": "/", "destination": "/dashboard.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/tenants", "destination": "/dashboard.html" },
     { "source": "/properties", "destination": "/properties.html" },
     { "source": "/meetings", "destination": "/meetings.html" },
     { "source": "/welcome", "destination": "/welcome.html" },
     { "source": "/health", "destination": "/health.json" },
     { "source": "/r/:token", "destination": "/report.html" },
     { "source": "/api/:path*", "destination": "/api/proxy?path=/api/:path*" },
+    { "source": "/checks/:path*", "destination": "/api/proxy?path=/checks/:path*" },
     { "source": "/callback", "destination": "/api/proxy?path=/callback" },
     { "source": "/ready", "destination": "/api/proxy?path=/ready" },
     { "source": "/share/:path*", "destination": "/api/proxy?path=/share/:path*" }
   ],
   "headers": [
     {
-      "source": "/:page(dashboard|properties|meetings|welcome)",
+      "source": "/:page(dashboard|properties|meetings|welcome|tenants)",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     },
     {
@@ -34,6 +36,10 @@
     {
       "source": "/static/css/:path*",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/static/img/:path*",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
     },
     {
       "source": "/static/vendor/:path*",

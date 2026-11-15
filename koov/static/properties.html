@@ -1817,6 +1817,16 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
       return { meeting_id: "demo-meeting", message: "Mechus is joining the meeting." };
     }
     if (path === "/api/stop" && m === "POST") { if (DEMO_CALL) { DEMO_CALL.status = "stopped"; DEMO_CALL.active = false; } return { message: "Mechus left the meeting." }; }
+    // Tenants + call reports for the hosted demo (no backend, nothing is dialed).
+    const demoCheck = (result, findings, notShown) => ({ meeting_id: "demo-check", mode: "move_out", at: Date.now() / 1000 - 5400, call_status: "stopped", result, error: "", current: "Tour complete", rooms: [], not_shown: notShown, findings, report_url: "" });
+    if (path === "/api/estates/tenants") return { tenants: [
+      { id: "p_demo", unit: "Harbor Lofts 4B", address: "", tenant: { name: "Penelope Reyes", phone: "+15125550102" }, move_in: null, history: 1,
+        move_out: demoCheck("needs_review", [{ severity: "high", issue: "hole in the bedroom door", surface: "door" }, { severity: "medium", issue: "burn mark on the kitchen counter", surface: "counter" }], ["bathroom: tub or shower"]) },
+      { id: "p_demo2", unit: "Ithaca Court 2A", address: "", tenant: { name: "Joey Tribbiani", phone: "+15125550103" }, move_in: null, history: 1, move_out: demoCheck("passed", [], []) },
+      { id: "p_demo3", unit: "Ithaca Court 5C", address: "", tenant: { name: "Telemachus Odys", phone: "+15125550104" }, move_in: null, history: 0, move_out: null }] };
+    if (path === "/api/estates/checks") return { reports: [
+      { meeting_id: "demo-1", mode: "move_out", at: Date.now() / 1000 - 5400, result: "needs_review", report_url: "#/reports", headline: "Penelope Reyes's move-out check at Harbor Lofts 4B needs your review: 2 issues found.", counts: { areas: 12, ok: 9, issues: 2, not_shown: 1, not_reached: 0 }, property: { id: "p_demo", name: "Harbor Lofts 4B" }, tenant: "Penelope Reyes", landlord_phone: "" },
+      { meeting_id: "demo-2", mode: "move_out", at: Date.now() / 1000 - 90000, result: "passed", report_url: "#/reports", headline: "Joey Tribbiani passed the move-out check at Ithaca Court 2A.", counts: { areas: 12, ok: 12, issues: 0, not_shown: 0, not_reached: 0 }, property: { id: "p_demo2", name: "Ithaca Court 2A" }, tenant: "Joey Tribbiani", landlord_phone: "" }] };
     if (path === "/api/estates/status") return { connected: true, tenant: "mechus-demo", line_phone: "+15125550100", line_id: true, webhook_secret: true, last_webhook: { at: Date.now() / 1000 - 1800 }, ai_mode: "live", elevenlabs: true, facetime_missing: [], webhook_path: "/webhooks/chert", public_base_url: "https://mechus.example" };
     if (path === "/api/estates/overview") return { kpis: { properties: 2, open_issues: 1, pending_review: 1, chargeable_low: 350, chargeable_high: 1120, properties_trend: 100, chargeable_trend: -36.8 },
       activity: Array.from({ length: 30 }, (_, i) => ({ day_offset: i, events: [3, 6, 2, 9, 4, 3, 5][i % 7], findings: i === 1 ? 6 : 0 })),
