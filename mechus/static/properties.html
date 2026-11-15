@@ -313,7 +313,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
 
 /* ---------- tenants + call errors ---------- */
 .call-error { margin: 10px 0 0; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--red); background: var(--red-soft); color: var(--red); font-size: 13.5px; font-weight: 500; line-height: 1.45; min-height: 0; }
-.tenant-add { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 10px; align-items: end; }
+.tenant-add { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 10px; align-items: end; }
 .tenant-card { margin-top: 14px; }
 .tenant-card h2 { font-size: 17px !important; margin: 0; }
 .tenant-checks { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
@@ -1349,13 +1349,11 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     const name = el("input", { class: "input", placeholder: "Joey Tribbiani", autocomplete: "off", required: "" });
     const phone = el("input", { class: "input", placeholder: "+1 555 123 4567", autocomplete: "off", inputmode: "tel", required: "" });
     const unit = el("input", { class: "input", placeholder: "Apt 4B", autocomplete: "off", required: "" });
-    const landlord = el("input", { class: "input", placeholder: "Optional: +1 555 987 6543 or name@email.com", autocomplete: "off" });
     const add = el("button", { class: "btn btn-primary", type: "submit" }, "Add tenant");
     const form = el("form", { class: "tenant-add" },
       el("label", { class: "field" }, el("span", { text: "Tenant name" }), name),
       el("label", { class: "field" }, el("span", { text: "Phone (FaceTime)" }), phone),
-      el("label", { class: "field" }, el("span", { text: "Unit" }), unit),
-      el("label", { class: "field" }, el("span", { text: "Landlord phone or email (gets the report)" }), landlord), add);
+      el("label", { class: "field" }, el("span", { text: "Unit" }), unit), add);
     const fail = (text) => { note.textContent = text; note.classList.add("call-error"); note.setAttribute("role", "alert"); };
     const clear = () => { note.textContent = ""; note.classList.remove("call-error"); };
 
@@ -1411,8 +1409,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     form.onsubmit = async (event) => {
       event.preventDefault(); busy(add, true, "Adding…"); clear();
       try {
-        await api("/api/estates/properties", { method: "POST", body: { name: unit.value.trim(), tenant: { name: name.value.trim(), phone: phone.value.trim() },
-          landlord: landlord.value.trim() ? { phone: landlord.value.trim() } : {} } });
+        await api("/api/estates/properties", { method: "POST", body: { name: unit.value.trim(), tenant: { name: name.value.trim(), phone: phone.value.trim() } } });
         form.reset(); toast("Tenant added"); await load();
       } catch (e) { fail(e.message); }
       finally { busy(add, false); }
@@ -1655,13 +1652,6 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     const label = { passed: "Passed", needs_review: "Needs review", incomplete: "Incomplete", in_progress: "In progress", no_answer: "Did not connect" };
     const note = el("p", { class: "meeting-message", "aria-live": "polite" });
     const row = (r) => {
-      const send = el("button", { class: "btn btn-secondary btn-sm", type: "button" }, icon("chat", 14), "Send to landlord");
-      send.onclick = async () => {
-        busy(send, true, "Sending…"); note.textContent = ""; note.classList.remove("call-error");
-        try { const d = await api(`/api/estates/checks/${r.meeting_id}/send`, { method: "POST" }); toast("Report sent by " + String(d.channel || "message").replace("+", " and ").replace("imessage", "iMessage")); }
-        catch (e) { note.textContent = "Couldn't send the report: " + e.message; note.classList.add("call-error"); note.setAttribute("role", "alert"); toast(e.message, "err"); }
-        finally { busy(send, false); }
-      };
       const c = r.counts || {};
       return el("div", { class: "list-row", style: { alignItems: "center", flexWrap: "wrap" } },
         el("span", { class: "ico " + (tone[r.result] === "green" ? "blue" : "amber") }, icon("doc")),
@@ -1670,8 +1660,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
           el("div", { class: "s", text: `${c.ok || 0} of ${c.areas || 0} areas checked out · ${c.issues || 0} issue${c.issues === 1 ? "" : "s"} · ${ago(r.at)}` })),
         el("span", { class: "tag " + (tone[r.result] || ""), text: label[r.result] || "Unknown" }),
         el("a", { class: "btn btn-ghost btn-sm", href: r.report_url, target: "_blank", rel: "noopener", text: "Open" }),
-        r.report_url.startsWith("/checks/") ? el("a", { class: "btn btn-ghost btn-sm", href: r.report_url + "/report.pdf", download: "" }, icon("doc", 14), "PDF") : null,
-        send);
+        r.report_url.startsWith("/checks/") ? el("a", { class: "btn btn-primary btn-sm", href: apiUrl(r.report_url + "/report.pdf"), download: "" }, icon("doc", 14), "Download as PDF") : null);
     };
     rc(v, el("h1", { text: "Reports" }),
       el("p", { class: "muted", text: "One report per FaceTime check, with photos of what Mechus saw." }),
