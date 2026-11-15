@@ -135,6 +135,7 @@ def test_report_is_emailed_with_the_pdf_when_the_landlord_contact_is_an_email(mo
     monkeypatch.setenv("MECHUS_EMAIL_ENABLED", "1")
     monkeypatch.setenv("MECHUS_EMAIL_USERNAME", "mechus@example.com")
     monkeypatch.setenv("MECHUS_EMAIL_PASSWORD", "app password")
+    monkeypatch.delenv("MECHUS_REPORT_EMAIL", raising=False)
     prop = {"name": "Apt 9", "tenant": {"name": "Joey"}, "landlord": {"phone": "landlord@example.com"}}
     assert checks.deliver_to_landlord("p1", prop, CHECK) == "email"
     assert sent["to"] == ["landlord@example.com"] and sent["tls"] and sent["login"] == "mechus@example.com"
@@ -142,8 +143,18 @@ def test_report_is_emailed_with_the_pdf_when_the_landlord_contact_is_an_email(mo
     assert 'filename="mechus-move-out-Apt-9-' in sent["message"] and "application/pdf" in sent["message"]
 
 
+def test_report_email_setting_gets_every_report(monkeypatch):
+    sent = []
+    monkeypatch.setattr(checks, "email_report", lambda to, prop, check, url="": sent.append(to))
+    monkeypatch.setenv("MECHUS_REPORT_EMAIL", "owner@example.com")
+    assert checks.deliver_to_landlord("p1", {"name": "Apt 9", "landlord": {}}, CHECK) == "email"
+    assert checks.deliver_to_landlord("p1", {"name": "Apt 9", "landlord": {"phone": "l@example.com"}}, CHECK) == "email"
+    assert sent == ["owner@example.com", "owner@example.com", "l@example.com"]
+
+
 def test_delivery_errors_are_readable(monkeypatch):
     monkeypatch.delenv("MECHUS_EMAIL_ENABLED", raising=False)
+    monkeypatch.delenv("MECHUS_REPORT_EMAIL", raising=False)
     with pytest.raises(ValueError, match="landlord's phone number or email"):
         checks.deliver_to_landlord("p1", {"name": "Apt 9", "landlord": {}}, CHECK)
     with pytest.raises(RuntimeError, match="Email isn't set up"):

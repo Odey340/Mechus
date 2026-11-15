@@ -383,6 +383,12 @@ def render_pdf(prop: dict[str, Any], check: dict[str, Any]) -> bytes:
     return bytes(pdf.output())
 
 
+def report_email() -> str:
+    """Address that receives every report (MECHUS_REPORT_EMAIL), or ""."""
+    value = (os.environ.get("MECHUS_REPORT_EMAIL") or "").strip()
+    return value if re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value) else ""
+
+
 def email_configured() -> bool:
     return (os.environ.get("MECHUS_EMAIL_ENABLED", "").strip() == "1"
             and bool((os.environ.get("MECHUS_EMAIL_USERNAME") or "").strip())
@@ -425,11 +431,24 @@ def deliver_to_landlord(pid: str, prop: dict[str, Any], check: dict[str, Any]) -
     from mechus.estates import messaging
 
     contact = str((prop.get("landlord") or {}).get("phone") or "").strip()
-    if not contact:
+    # MECHUS_REPORT_EMAIL: an address that gets every report, whatever the tenant's landlord contact is.
+    always = report_email()
+    if not contact and not always:
         raise ValueError("Add the landlord's phone number or email to this tenant first (Details).")
     url = messaging.public_url(f"/checks/{check['meeting_id']}")
+    link = url if url.startswith("http") else ""
+    if always:
+        email_report(always, prop, check, link)
+        if not contact or contact.lower() == always.lower():
+            return "email"
     if "@" in contact:
-        email_report(contact, prop, check, url if url.startswith("http") else "")
+        email_report(contact, prop, check, link)
+        return "email"
+    if always:
+        try:
+            messaging.send_direct(pid, "landlord", summary_text(prop, check, url))
+        except Exception as exc:  # noqa: BLE001 - the email already went out
+            log.info("report emailed; iMessage to the landlord not sent: %s", exc)
         return "email"
     messaging.send_direct(pid, "landlord", summary_text(prop, check, url))
     return "imessage"
@@ -459,7 +478,7 @@ def notify_landlord_when_done(pid: str, meeting_id: str, find_check: Any, *, tim
         url = messaging.public_url(f"/checks/{meeting_id}")
         text = summary_text(prop, check, url)
         sent = False
-        if check.get("result") != "no_answer" and (prop.get("landlord") or {}).get("phone"):
+        if check.get("result") != "no_answer" and ((prop.get("landlord") or {}).get("phone") or report_email()):
             try:
                 channel = deliver_to_landlord(pid, prop, check)
                 sent = channel == "imessage"  # an iMessage is already on the timeline
