@@ -66,14 +66,6 @@ def test_vercel_build_generates_deployable_site(tmp_path):
     assert '"apiOrigin":"https://api.mechus.example"' in runtime
     assert not (output / ".env").exists()
 
-
-def test_vercel_build_uses_the_bridge_for_a_plain_http_backend(tmp_path):
-    env = os.environ.copy()
-    env.update({"MECHUS_API_ORIGIN": "http://203.0.113.7:5001", "MECHUS_VERCEL_OUTPUT_DIR": str(tmp_path / "site")})
-    subprocess.run(["node", "scripts/build-vercel.mjs"], cwd=ROOT, env=env, check=True, capture_output=True, text=True)
-    runtime = (tmp_path / "site" / "static/js/runtime-config.js").read_text(encoding="utf-8")
-    assert '"apiOrigin":""' in runtime
-
     dashboard = (output / "dashboard.html").read_text(encoding="utf-8")
     assert '<script src="/static/js/runtime-config.js"></script>' in dashboard
     assert "window.MECHUS_RUNTIME" in dashboard
@@ -105,3 +97,12 @@ proxy(request, response).catch(() => process.exit(1));
         check=True,
         capture_output=True,
     )
+
+
+
+def test_vercel_build_uses_the_bridge_for_a_plain_http_backend(tmp_path):
+    env = os.environ.copy()
+    env.update({"MECHUS_API_ORIGIN": "http://203.0.113.7:5001", "MECHUS_VERCEL_OUTPUT_DIR": str(tmp_path / "site")})
+    subprocess.run(["node", "scripts/build-vercel.mjs"], cwd=ROOT, env=env, check=True, capture_output=True, text=True)
+    runtime = (tmp_path / "site" / "static/js/runtime-config.js").read_text(encoding="utf-8")
+    assert '"apiOrigin":""' in runtime
