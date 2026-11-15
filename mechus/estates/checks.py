@@ -424,34 +424,61 @@ def email_report(to_addr: str, prop: dict[str, Any], check: dict[str, Any], url:
         server.sendmail(from_addr, [to_addr], msg.as_string())
 
 
+def report_phone() -> str:
+    """Phone number that receives every report by iMessage (MECHUS_REPORT_PHONE), or ""."""
+    digits = re.sub(r"[^\d+]", "", os.environ.get("MECHUS_REPORT_PHONE") or "")
+    if digits and not digits.startswith("+"):
+        digits = "+1" + digits if len(digits) == 10 else "+" + digits
+    return digits if re.fullmatch(r"\+\d{8,15}", digits) else ""
+
+
 def deliver_to_landlord(pid: str, prop: dict[str, Any], check: dict[str, Any]) -> str:
-    """Send the report to the landlord: by email when their contact is an email address
-    (PDF attached), otherwise by iMessage through Chert. Returns "email" or "imessage".
-    Raises with a readable message when that channel is not set up."""
+    """Send the report to everyone who should get it:
+
+    - MECHUS_REPORT_EMAIL (if set): email with the PDF attached
+    - MECHUS_REPORT_PHONE (if set): iMessage through Chert with the result and report link
+    - the tenant's landlord contact: email if it is an address, otherwise iMessage
+
+    Returns the channels that worked, e.g. "email", "imessage" or "email+imessage". Raises
+    with a readable message when there is nobody to send to, or nothing could be sent.
+    """
     from mechus.estates import messaging
 
     contact = str((prop.get("landlord") or {}).get("phone") or "").strip()
-    # MECHUS_REPORT_EMAIL: an address that gets every report, whatever the tenant's landlord contact is.
-    always = report_email()
-    if not contact and not always:
-        raise ValueError("Add the landlord's phone number or email to this tenant first (Details).")
     url = messaging.public_url(f"/checks/{check['meeting_id']}")
     link = url if url.startswith("http") else ""
-    if always:
-        email_report(always, prop, check, link)
-        if not contact or contact.lower() == always.lower():
-            return "email"
-    if "@" in contact:
-        email_report(contact, prop, check, link)
-        return "email"
-    if always:
+    text = summary_text(prop, check, link)
+
+    emails: list[str] = []
+    for addr in (report_email(), contact if "@" in contact else ""):
+        if addr and addr.lower() not in [e.lower() for e in emails]:
+            emails.append(addr)
+    always_phone = report_phone()
+    to_landlord_phone = bool(contact) and "@" not in contact
+    if not emails and not always_phone and not to_landlord_phone:
+        raise ValueError("Add the landlord's phone number or email to this tenant first (Details).")
+
+    done: list[str] = []
+    errors: list[Exception] = []
+
+    def attempt(channel: str, send: Any) -> None:
         try:
-            messaging.send_direct(pid, "landlord", summary_text(prop, check, url))
-        except Exception as exc:  # noqa: BLE001 - the email already went out
-            log.info("report emailed; iMessage to the landlord not sent: %s", exc)
-        return "email"
-    messaging.send_direct(pid, "landlord", summary_text(prop, check, url))
-    return "imessage"
+            send()
+            if channel not in done:
+                done.append(channel)
+        except Exception as exc:  # noqa: BLE001 - try the other recipients before giving up
+            log.info("report %s not sent by %s: %s", check.get("meeting_id"), channel, exc)
+            errors.append(exc)
+
+    for addr in emails:
+        attempt("email", lambda addr=addr: email_report(addr, prop, check, link))
+    if always_phone:
+        attempt("imessage", lambda: messaging.send_to_number(pid, always_phone, text))
+    if to_landlord_phone and re.sub(r"\D", "", contact)[-10:] != always_phone[-10:]:
+        attempt("imessage", lambda: messaging.send_direct(pid, "landlord", text))
+    if not done:
+        raise errors[0]
+    return "+".join(sorted(done))
 
 
 def notify_landlord_when_done(pid: str, meeting_id: str, find_check: Any, *, timeout_s: float = 3600.0) -> None:
@@ -478,11 +505,11 @@ def notify_landlord_when_done(pid: str, meeting_id: str, find_check: Any, *, tim
         url = messaging.public_url(f"/checks/{meeting_id}")
         text = summary_text(prop, check, url)
         sent = False
-        if check.get("result") != "no_answer" and ((prop.get("landlord") or {}).get("phone") or report_email()):
+        if check.get("result") != "no_answer" and ((prop.get("landlord") or {}).get("phone") or report_email() or report_phone()):
             try:
                 channel = deliver_to_landlord(pid, prop, check)
-                sent = channel == "imessage"  # an iMessage is already on the timeline
-                if channel == "email":
+                sent = "imessage" in channel  # an iMessage is already on the timeline
+                if "email" in channel:
                     text = f"Report emailed to the landlord. {text}"
             except Exception as exc:  # noqa: BLE001 - not configured, send failed: the report still exists
                 log.info("walkthrough report for %s not texted to the landlord: %s", meeting_id, exc)

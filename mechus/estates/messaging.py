@@ -339,6 +339,12 @@ def send_direct(pid: str, role: str, text: str, effect: str = "") -> dict[str, A
                  effect=effect, on_success="link_direct")
 
 
+def send_to_number(pid: str, phone: str, text: str) -> dict[str, Any]:
+    """iMessage a number that is not one of the property's contacts (e.g. MECHUS_REPORT_PHONE)."""
+    client()
+    return _send(pid, "direct", {"phone": phone, "text": text, "effect": ""}, text=text, kind="direct", to="report")
+
+
 def react(pid: str, event_id: str, reaction: str) -> dict[str, Any]:
     ev = next((e for e in store.list_events(pid, limit=5000) if e.get("id") == event_id), None)
     if not ev or not ev.get("message_id"):
