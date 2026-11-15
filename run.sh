@@ -2,7 +2,7 @@
 # One script to run Koov: local dev, Docker (Zoom), or deploy to VM.
 # Usage:
 #   ./run.sh              → show help
-#   ./run.sh local        → start API server locally (dev)
+#   ./run.sh local        → sart API server locally (dev)
 #   ./run.sh docker       → run Koov in Docker with Zoom SDK (Mac/Linux)
 #   ./run.sh deploy       → sync code to VM and restart (set DEPLOY_HOST first)
 #   ./run.sh vultr        → create a Vultr server (scripts/vultr_deploy.py) then deploy to it
