@@ -556,6 +556,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     try { res = await fetch(apiUrl(path), init); } catch { throw new Error("Can't reach the Mechus server"); }
     let data = {};
     try { data = await res.json(); } catch {}
+    // Hosted without a backend (no MECHUS_API_ORIGIN set): show the sample data instead of an error.
+    if (data.code === "backend_not_configured") {
+      const url = new URL(location.href);
+      url.searchParams.set("demo", "1");
+      location.replace(url.toString());
+      return new Promise(() => {});
+    }
     if (!res.ok || data.success === false) {
       const e = new Error(res.status === 401 ? "API key missing or wrong (Settings)" : (data.error || `HTTP ${res.status}`));
       e.code = data.code; e.status = res.status; throw e;
