@@ -8,7 +8,7 @@
 **Optimized**: `beam_size=1, best_of=1` (fast, slightly less accurate)
 
 ```python
-# In koov/stt.py, FasterWhisperTranscriber.transcribe_pcm16()
+# In mechus/stt.py, FasterWhisperTranscriber.transcribe_pcm16()
 segments, info = self._model.transcribe(
     audio,
     language=self._language,
@@ -31,7 +31,7 @@ segments, info = self._model.transcribe(
 **Optimized**: Reduce to `max_predict=60` for most, `100` for decisions
 
 ```python
-# In koov/responder.py, OllamaResponder.respond()
+# In mechus/responder.py, OllamaResponder.respond()
 max_predict = 100 if is_decision else 60  # Reduced from 150/80
 ```
 
@@ -45,7 +45,7 @@ max_predict = 100 if is_decision else 60  # Reduced from 150/80
 
 ```bash
 # Set in .env
-KOOV_WHISPER_MODEL=tiny.en  # or small.en
+MECHUS_WHISPER_MODEL=tiny.en  # or small.en
 ```
 
 **Impact**: 2-3x faster transcription
@@ -58,7 +58,7 @@ KOOV_WHISPER_MODEL=tiny.en  # or small.en
 
 ```bash
 # In .env
-KOOV_TRANSCRIPT_MODEL=  # Leave empty to disable
+MECHUS_TRANSCRIPT_MODEL=  # Leave empty to disable
 ```
 
 **Impact**: Eliminates extra LLM call per transcript chunk
@@ -72,7 +72,7 @@ KOOV_TRANSCRIPT_MODEL=  # Leave empty to disable
 **Optimized**: Parallel: STT + Context retrieval simultaneously
 
 ```python
-# In koov/agent.py, _run_wake_cycle()
+# In mechus/agent.py, _run_wake_cycle()
 import concurrent.futures
 
 # Start STT and context retrieval in parallel
@@ -97,7 +97,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
 **Optimized**: Stream LLM response, start TTS as soon as first words arrive
 
 ```python
-# In koov/responder.py
+# In mechus/responder.py
 body = {
     "model": self._model,
     "prompt": prompt,
@@ -145,7 +145,7 @@ def get_cached_response(self, question: str) -> str | None:
 **Optimized**: Pre-warm with dummy synthesis
 
 ```python
-# In KoovAgent.__init__()
+# In MechusAgent.__init__()
 # Pre-warm TTS
 try:
     self._tts.synthesize("test")  # Warm up
@@ -164,7 +164,7 @@ except Exception:
 **Optimized**: Use GPU with CUDA
 
 ```python
-# In koov/stt.py
+# In mechus/stt.py
 self._model = WhisperModel(
     model, 
     device="cuda",  # or "cuda:0"
@@ -196,7 +196,7 @@ ollama pull tinyllama              # ~150-400ms (lower quality)
 **Optimized**: Reduce context window
 
 ```python
-# In koov/responder.py
+# In mechus/responder.py
 memory = memory[-2000:]  # Reduced from 4000
 context = context[-1000:]  # Reduced from 2000
 ```
@@ -211,9 +211,9 @@ context = context[-1000:]  # Reduced from 2000
 
 ```bash
 # In .env
-KOOV_STT_BACKEND=deepgram
-KOOV_DEEPGRAM_API_KEY=your_key
-KOOV_DEEPGRAM_MODEL=nova-2
+MECHUS_STT_BACKEND=deepgram
+MECHUS_DEEPGRAM_API_KEY=your_key
+MECHUS_DEEPGRAM_MODEL=nova-2
 ```
 
 **Impact**: ~150-300ms STT latency (faster than local)
@@ -227,7 +227,7 @@ KOOV_DEEPGRAM_MODEL=nova-2
 **Optimized**: Skip context transcription, use only memory
 
 ```python
-# In koov/agent.py, _run_wake_cycle()
+# In mechus/agent.py, _run_wake_cycle()
 # Skip this block:
 # if needs_context and self._config.context_seconds > 0 and context_pcm16:
 #     context_text = self._stt.transcribe_pcm16(...)
@@ -243,7 +243,7 @@ context_text = ""  # Use only memory
 **Optimized**: Expand rule-based responder
 
 ```python
-# In koov/responder.py, RuleResponder.respond()
+# In mechus/responder.py, RuleResponder.respond()
 # Add more patterns for common questions
 if "action items" in request_l:
     return _find_action_items(combined_context)
@@ -262,8 +262,8 @@ if "decisions" in request_l:
 
 ```python
 # In config
-KOOV_MIN_REQUEST_SECONDS=0.4  # Reduced from 0.6
-KOOV_END_SILENCE_SECONDS=0.6   # Reduced from 0.8
+MECHUS_MIN_REQUEST_SECONDS=0.4  # Reduced from 0.6
+MECHUS_END_SILENCE_SECONDS=0.6   # Reduced from 0.8
 ```
 
 **Impact**: Faster wake word → response cycle
@@ -305,13 +305,13 @@ KOOV_END_SILENCE_SECONDS=0.6   # Reduced from 0.8
 
 ```bash
 # .env file
-KOOV_WHISPER_MODEL=tiny.en
-KOOV_WHISPER_COMPUTE_TYPE=int8
-KOOV_STT_BACKEND=faster-whisper
-KOOV_OLLAMA_MODEL=qwen2.5:1.5b-instruct
-KOOV_MAX_RESPONSE_WORDS=30
-KOOV_TRANSCRIPT_MODEL=  # Disabled
-KOOV_MEMORY_RECENT_CHARS=1000  # Reduced
+MECHUS_WHISPER_MODEL=tiny.en
+MECHUS_WHISPER_COMPUTE_TYPE=int8
+MECHUS_STT_BACKEND=faster-whisper
+MECHUS_OLLAMA_MODEL=qwen2.5:1.5b-instruct
+MECHUS_MAX_RESPONSE_WORDS=30
+MECHUS_TRANSCRIPT_MODEL=  # Disabled
+MECHUS_MEMORY_RECENT_CHARS=1000  # Reduced
 ```
 
 ## Monitoring

@@ -1,8 +1,8 @@
 # Tiger Data (TimescaleDB) integration
 
-Koov stores every meeting in **Tiger Data** (Tiger Cloud: Postgres + TimescaleDB). Each transcript line, decision/action-item snapshot and answer-latency measurement becomes time-series data you can query with standard SQL.
+Mechus stores every meeting in **Tiger Data** (Tiger Cloud: Postgres + TimescaleDB). Each transcript line, decision/action-item snapshot and answer-latency measurement becomes time-series data you can query with standard SQL.
 
-The local `koov_meetings/` store still powers live retrieval. Tiger Data is a **mirror** written on a background thread, so if the database is slow or down, Koov keeps talking.
+The local `mechus_meetings/` store still powers live retrieval. Tiger Data is a **mirror** written on a background thread, so if the database is slow or down, Mechus keeps talking.
 
 ## Setup (about 5 minutes)
 
@@ -16,24 +16,24 @@ The local `koov_meetings/` store still powers live retrieval. Tiger Data is a **
    ```
    python scripts/tiger_init.py --demo
    ```
-   Koov also creates the schema automatically on its first write.
+   Mechus also creates the schema automatically on its first write.
 
 ## What gets stored
 
 | Object | Type | Contents |
 |---|---|---|
-| `koov_transcript_chunks` | hypertable (segmented by `meeting_id`) | `ts, meeting_id, speaker_id, speaker_display, text, word_count, chunk_id, topic, tags, content_hash` |
-| `koov_meeting_snapshots` | hypertable | decision / action-item / open-question counts over time, plus the full JSON snapshot |
-| `koov_events` | hypertable (segmented by `kind`) | `koov_response` = wake-to-answer latency in ms, with the intent and wake source |
-| `koov_speaker_activity_1m` | continuous aggregate (real-time) | words and lines per speaker per minute |
+| `mechus_transcript_chunks` | hypertable (segmented by `meeting_id`) | `ts, meeting_id, speaker_id, speaker_display, text, word_count, chunk_id, topic, tags, content_hash` |
+| `mechus_meeting_snapshots` | hypertable | decision / action-item / open-question counts over time, plus the full JSON snapshot |
+| `mechus_events` | hypertable (segmented by `kind`) | `mechus_response` = wake-to-answer latency in ms, with the intent and wake source |
+| `mechus_speaker_activity_1m` | continuous aggregate (real-time) | words and lines per speaker per minute |
 
-Every hypertable gets a columnstore (compression) policy after 7 days, so long meeting histories take far less space. Set `KOOV_TIGER_RETENTION_DAYS=90` to drop raw transcript lines after N days.
+Every hypertable gets a columnstore (compression) policy after 7 days, so long meeting histories take far less space. Set `MECHUS_TIGER_RETENTION_DAYS=90` to drop raw transcript lines after N days.
 
 When available, the [TimescaleDB Toolkit](https://mlh.link/tigerdata-toolkit) is enabled automatically. Latency stats then use `percentile_agg` / `approx_percentile` / `stats_agg`, with a plain Postgres fallback.
 
 ## API
 
-All routes respect `KOOV_API_KEY`.
+All routes respect `MECHUS_API_KEY`.
 
 | Route | Returns |
 |---|---|
@@ -48,16 +48,16 @@ All routes respect `KOOV_API_KEY`.
 -- Who dominated the meeting?
 SELECT speaker_id, sum(word_count) AS words,
        round(100.0 * sum(word_count) / sum(sum(word_count)) OVER (), 1) AS share_pct
-FROM koov_transcript_chunks WHERE meeting_id = 'MEETING_ID'
+FROM mechus_transcript_chunks WHERE meeting_id = 'MEETING_ID'
 GROUP BY speaker_id ORDER BY words DESC;
 
 -- Conversation energy per 5 minutes
 SELECT time_bucket('5 minutes', ts) AS t, sum(word_count) AS words
-FROM koov_transcript_chunks WHERE meeting_id = 'MEETING_ID' GROUP BY t ORDER BY t;
+FROM mechus_transcript_chunks WHERE meeting_id = 'MEETING_ID' GROUP BY t ORDER BY t;
 
--- How fast does Koov answer (Toolkit)?
+-- How fast does Mechus answer (Toolkit)?
 SELECT approx_percentile(0.95, percentile_agg(value_ms)) AS p95_ms
-FROM koov_events WHERE kind = 'koov_response' AND ts > now() - INTERVAL '1 day';
+FROM mechus_events WHERE kind = 'mechus_response' AND ts > now() - INTERVAL '1 day';
 ```
 
 More ideas: [Tiger Data tutorials](https://mlh.link/tigerdata-tutorials).

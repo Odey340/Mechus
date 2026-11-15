@@ -4,34 +4,34 @@ Use this page to narrow down which flow you’re using and what to verify.
 
 ---
 
-## "Koov API is ready to use" but I can't use it
+## "Mechus API is ready to use" but I can't use it
 
-Something says Koov is ready (e.g. Zoom Marketplace, dashboard, or a health check), but when you try to use it nothing works. Here's what "ready" usually means and what you still have to do.
+Something says Mechus is ready (e.g. Zoom Marketplace, dashboard, or a health check), but when you try to use it nothing works. Here's what "ready" usually means and what you still have to do.
 
-### If the message is from the Koov API (e.g. `/ready` or dashboard "API ready")
+### If the message is from the Mechus API (e.g. `/ready` or dashboard "API ready")
 
 **"Ready" only means the API process is running.** It does **not** mean a meeting is active or that Zoom is connected.
 
-To actually use Koov you must:
+To actually use Mechus you must:
 
 1. **Start a meeting from the dashboard** (or have a meeting ID/link).
-2. **Trigger Koov to join** that meeting:
-   - **Zoom SDK:** Dashboard (or you) calls `POST /api/join-meeting` with `meeting_link` and optional `meeting_id` / `user_id`. Koov (bot) joins the meeting; the **host must allow recording** when Zoom prompts.
-   - **RTMS:** Dashboard calls `POST /api/set-meeting-for-rtms` with the same meeting link, then **you join that meeting with your Zoom App** (the one you created in the Marketplace). Zoom sends a webhook and Koov connects.
+2. **Trigger Mechus to join** that meeting:
+   - **Zoom SDK:** Dashboard (or you) calls `POST /api/join-meeting` with `meeting_link` and optional `meeting_id` / `user_id`. Mechus (bot) joins the meeting; the **host must allow recording** when Zoom prompts.
+   - **RTMS:** Dashboard calls `POST /api/set-meeting-for-rtms` with the same meeting link, then **you join that meeting with your Zoom App** (the one you created in the Marketplace). Zoom sends a webhook and Mechus connects.
 3. **Use the right app type:** Zoom SDK flow needs a **Meeting SDK** app (Client ID/Secret in `.env`). RTMS flow needs a **General App** with RTMS enabled for your account and webhook configured.
 
 **Quick checks:**
 
-- **Dashboard:** Did you click "Start meeting" / "Join with Koov" (or equivalent) after creating the meeting? Ready only means the backend is up; you must start the session for that meeting.
+- **Dashboard:** Did you click "Start meeting" / "Join with Mechus" (or equivalent) after creating the meeting? Ready only means the backend is up; you must start the session for that meeting.
 - **Zoom SDK:** After join, check `GET /api/status?meeting_id=YOUR_MEETING_ID`. If `zoom_frames_received` is 0, the bot isn't getting audio (host allow recording, or run on Linux if you're on Mac Docker). See [§ 3 – Zoom SDK](#3-zoom-sdk-flow-not-working).
 - **RTMS:** Are you joining the meeting **with the Zoom App** (not just the normal Zoom client)? Is the webhook URL reachable from the internet (no localhost)? See [§ 2 – RTMS](#2-rtms-flow-not-working).
 
 ### If the message is from Zoom Marketplace ("App added" / "Ready to use")
 
-That only means the app is installed on your Zoom account. It does **not** start Koov or join any meeting.
+That only means the app is installed on your Zoom account. It does **not** start Mechus or join any meeting.
 
-- **For RTMS:** You still need to (1) run Koov (e.g. Docker RTMS stack), (2) have the dashboard call `POST /api/set-meeting-for-rtms` with the meeting link, (3) **join the meeting using that Zoom App** so Zoom sends the RTMS webhook. "Ready to use" in Marketplace does not trigger any of that.
-- **For Zoom SDK (bot join):** You need a **Meeting SDK** app (not only a General App). Put its Client ID and Secret in Koov's `.env`, then start Koov and use the dashboard (or API) to call `POST /api/join-meeting` with the meeting link. The bot will join; host must allow recording.
+- **For RTMS:** You still need to (1) run Mechus (e.g. Docker RTMS stack), (2) have the dashboard call `POST /api/set-meeting-for-rtms` with the meeting link, (3) **join the meeting using that Zoom App** so Zoom sends the RTMS webhook. "Ready to use" in Marketplace does not trigger any of that.
+- **For Zoom SDK (bot join):** You need a **Meeting SDK** app (not only a General App). Put its Client ID and Secret in Mechus's `.env`, then start Mechus and use the dashboard (or API) to call `POST /api/join-meeting` with the meeting link. The bot will join; host must allow recording.
 
 If you're not sure which flow you're using, see [§ 1](#1-which-flow-are-you-using) below.
 
@@ -48,7 +48,7 @@ If you're not sure which flow you're using, see [§ 1](#1-which-flow-are-you-usi
 
 ## 2. RTMS flow not working
 
-**Expected:** User pastes link in dashboard → dashboard calls `POST /api/set-meeting-for-rtms` → user joins that meeting **with your Zoom App** → Zoom sends webhook → Koov connects (RTMS = mic, optional bot = voice).
+**Expected:** User pastes link in dashboard → dashboard calls `POST /api/set-meeting-for-rtms` → user joins that meeting **with your Zoom App** → Zoom sends webhook → Mechus connects (RTMS = mic, optional bot = voice).
 
 ### Check A: Webhook reachable
 
@@ -91,7 +91,7 @@ Use a **real** Zoom link (meeting number 9–11 digits). Then the user joins **t
 ### Logs (RTMS)
 
 ```bash
-docker logs koovdemo-rtms-1 -f
+docker logs mechusdemo-rtms-1 -f
 ```
 
 Look for: `[RTMS] Webhook received`, `[RTMS] Joined stream`, `RTMS audio: first frame received`, or `[RTMS] Join failed`.
@@ -100,7 +100,7 @@ Look for: `[RTMS] Webhook received`, `[RTMS] Joined stream`, `RTMS audio: first 
 
 ## 3. Zoom SDK flow not working
 
-**Expected:** You call `POST /api/join-meeting` with a Zoom link → Koov (bot) joins the meeting → host allows recording → bot hears and can speak.
+**Expected:** You call `POST /api/join-meeting` with a Zoom link → Mechus (bot) joins the meeting → host allows recording → bot hears and can speak.
 
 ### Check A: Real meeting link
 
@@ -108,7 +108,7 @@ Use a real Zoom link, e.g. `https://zoom.us/j/123456789012?pwd=xxxx`. Meeting nu
 
 ### Check B: Host allows recording
 
-When the bot joins, Zoom may show the **host** “Allow recording?”. If the host doesn’t click **Allow**, the bot will **not** receive audio. See [KOOV_HEAR_ME.md](KOOV_HEAR_ME.md).
+When the bot joins, Zoom may show the **host** “Allow recording?”. If the host doesn’t click **Allow**, the bot will **not** receive audio. See [MECHUS_HEAR_ME.md](MECHUS_HEAR_ME.md).
 
 ### Check C: Status API
 
@@ -126,10 +126,10 @@ Use the `meeting_id` from the join response. Check:
 ### Check D: Logs (Zoom SDK)
 
 ```bash
-docker logs koovdemo-koov-1 -f
+docker logs mechusdemo-mechus-1 -f
 ```
 
-Look for: `Zoom audio: first frame received`, `CanStartRawRecording`, `No Zoom audio frames after 30s`. See [KOOV_HEAR_ME.md](KOOV_HEAR_ME.md).
+Look for: `Zoom audio: first frame received`, `CanStartRawRecording`, `No Zoom audio frames after 30s`. See [MECHUS_HEAR_ME.md](MECHUS_HEAR_ME.md).
 
 ---
 
@@ -139,8 +139,8 @@ Look for: `Zoom audio: first frame received`, `CanStartRawRecording`, `No Zoom a
 |------|--------|
 | Health (API) | `curl http://localhost:5001/health` |
 | RTMS webhook test | `curl -X POST https://YOUR_NGROK_OR_DOMAIN/webhook -H "Content-Type: application/json" -d '{"event":"test"}'` |
-| Koov (Zoom SDK) logs | `docker logs koovdemo-koov-1 -f` |
-| RTMS logs | `docker logs koovdemo-rtms-1 -f` |
+| Mechus (Zoom SDK) logs | `docker logs mechusdemo-mechus-1 -f` |
+| RTMS logs | `docker logs mechusdemo-rtms-1 -f` |
 | Status for a meeting | `curl "http://localhost:5001/api/status?meeting_id=ID"` |
 
 If you describe what you ran (which compose, which API call, what you see in logs), we can narrow it down further.

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 Meeting simulation runner: prints one line at a time so you can speak/paste
-into the meeting. Mimics real cadence (pauses, wait for Koov) without dumping
+into the meeting. Mimics real cadence (pauses, wait for Mechus) without dumping
 the whole transcript.
 
 Usage:
-  python scripts/run_meeting_simulation.py              # 3s pause between lines, Enter to continue on Koov lines
+  python scripts/run_meeting_simulation.py              # 3s pause between lines, Enter to continue on Mechus lines
   python scripts/run_meeting_simulation.py --pause 5   # 5 second pause
   python scripts/run_meeting_simulation.py --no-auto   # Always press Enter to advance (no auto pause)
   python scripts/run_meeting_simulation.py --chaotic   # Chaotic / stress-test simulation
@@ -21,37 +21,37 @@ import time
 PRODUCT_LAUNCH_SCRIPT: list[tuple[str, str, bool]] = [
     ("Alex", "Alright everyone, thanks for joining. The goal today is to finalize the launch plan for the beta release.", False),
     ("Sarah", "Yeah, engineering is mostly done with the core features, but we still need to decide the rollout date.", False),
-    ("Mike", "Koov, can you start taking notes for this meeting?", True),
+    ("Mike", "Mechus, can you start taking notes for this meeting?", True),
     ("Alex", "Okay so first topic is the launch timeline. Originally we said mid-July.", False),
     ("Sarah", "Engineering would actually prefer July 25th. That gives us time for one more QA cycle.", False),
     ("Mike", "From marketing's side July 25th works. That gives us two weeks to prepare the campaign.", False),
     ("Alex", "Alright let's lock it in then. The beta launch date will be July 25th.", False),
-    ("Sarah", "Koov, what did we just decide?", True),
+    ("Sarah", "Mechus, what did we just decide?", True),
     ("Mike", "I'll handle the launch announcement blog post.", False),
     ("Sarah", "Engineering will finish QA by July 20th.", False),
     ("Alex", "I'll coordinate the beta user invitations.", False),
-    ("Alex", "Koov, can you list the action items so far?", True),
+    ("Alex", "Mechus, can you list the action items so far?", True),
     ("Sarah", "One risk is that the payment integration hasn't been fully tested yet.", False),
     ("Mike", "Another concern is whether the onboarding flow is clear enough for new users.", False),
-    ("Mike", "Koov, have any risks been mentioned so far?", True),
+    ("Mike", "Mechus, have any risks been mentioned so far?", True),
     ("Alex", "Alright quick recap before we end.", False),
     ("Alex", "Launch date July 25th, engineering finishes QA by the 20th, marketing prepares the announcement, and we monitor those two risks.", False),
-    ("Sarah", "Koov, give us a quick recap of the meeting.", True),
+    ("Sarah", "Mechus, give us a quick recap of the meeting.", True),
 ]
 
 # Chaotic / stress-test: interruptions, incomplete sentences, general knowledge, corrections
 CHAOTIC_SCRIPT: list[tuple[str, str, bool]] = [
     ("Alex", "So we're thinking Q3 for the—", False),
-    ("Sarah", "Wait sorry, Koov, are you there?", True),
+    ("Sarah", "Wait sorry, Mechus, are you there?", True),
     ("Mike", "I thought we said Q2 last week.", False),
     ("Alex", "We did but then engineering said—", False),
-    ("Sarah", "Koov, what did we decide about the timeline?", True),
-    ("Mike", "Actually can we backtrack. Koov, what's the difference between a beta and an alpha release?", True),
+    ("Sarah", "Mechus, what did we decide about the timeline?", True),
+    ("Mike", "Actually can we backtrack. Mechus, what's the difference between a beta and an alpha release?", True),
     ("Alex", "So to be clear the date is June 15 now.", False),
-    ("Sarah", "Yeah June 15. Koov, can you give us the action items?", True),
+    ("Sarah", "Yeah June 15. Mechus, can you give us the action items?", True),
     ("Mike", "I'll do the blog post.", False),
-    ("Alex", "And I'll do the invites. Koov, quick one — what is two plus two?", True),
-    ("Sarah", "We're getting off track. Koov, recap what we decided today.", True),
+    ("Alex", "And I'll do the invites. Mechus, quick one — what is two plus two?", True),
+    ("Sarah", "We're getting off track. Mechus, recap what we decided today.", True),
 ]
 
 
@@ -86,11 +86,11 @@ def main() -> None:
     print(f"  Speak or paste each line into the meeting. {'Enter to advance.' if args.no_auto else f'Auto-advance in {pause}s (or press Enter now).'}")
     print(f"{'='*60}\n")
 
-    for i, (speaker, line, wait_for_koov) in enumerate(script, 1):
+    for i, (speaker, line, wait_for_mechus) in enumerate(script, 1):
         print(f"  [{i}/{len(script)}] {speaker}:")
         print(f"      {line}")
-        if wait_for_koov:
-            print("      >>> Wait for Koov to respond, then press Enter.")
+        if wait_for_mechus:
+            print("      >>> Wait for Mechus to respond, then press Enter.")
             print()
             try:
                 input("  [Enter] ").strip()

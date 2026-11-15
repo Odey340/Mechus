@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from koov.zoom_tokens import (
+from mechus.zoom_tokens import (
     fetch_local_recording_token,
     fetch_zak_token,
     is_likely_external_zoom_link,
@@ -35,8 +35,8 @@ def test_resolve_zoom_join_tokens_fetches_missing(monkeypatch) -> None:
       assert oauth == "oauth"
       return "zak-tok"
 
-  monkeypatch.setattr("koov.zoom_tokens.fetch_local_recording_token", _fake_rec)
-  monkeypatch.setattr("koov.zoom_tokens.fetch_zak_token", _fake_zak)
+  monkeypatch.setattr("mechus.zoom_tokens.fetch_local_recording_token", _fake_rec)
+  monkeypatch.setattr("mechus.zoom_tokens.fetch_zak_token", _fake_zak)
   rec, zak, warnings, errors = resolve_zoom_join_tokens(
       meeting_number=94310946611,
       oauth_access_token="oauth",
@@ -48,8 +48,8 @@ def test_resolve_zoom_join_tokens_fetches_missing(monkeypatch) -> None:
 
 
 def test_resolve_zoom_join_tokens_zak_failure_is_error(monkeypatch) -> None:
-  monkeypatch.setattr("koov.zoom_tokens.fetch_local_recording_token", lambda *a, **k: None)
-  monkeypatch.setattr("koov.zoom_tokens.fetch_zak_token", lambda *a, **k: None)
+  monkeypatch.setattr("mechus.zoom_tokens.fetch_local_recording_token", lambda *a, **k: None)
+  monkeypatch.setattr("mechus.zoom_tokens.fetch_zak_token", lambda *a, **k: None)
   rec, zak, warnings, errors = resolve_zoom_join_tokens(
       meeting_number=123,
       oauth_access_token="oauth",

@@ -1,15 +1,15 @@
 # Dashboard Status Polling Guide
 
-This guide shows how to poll the Koov API status and update your dashboard from "Joining" to "Active" when Koov is actually working.
+This guide shows how to poll the Mechus API status and update your dashboard from "Joining" to "Active" when Mechus is actually working.
 
 ## Status Flow
 
 ```
-"joining" → Koov API called, meeting opening
+"joining" → Mechus API called, meeting opening
     ↓
-"active" → Koov is listening and processing audio/transcripts
+"active" → Mechus is listening and processing audio/transcripts
     ↓
-"stopped" → Koov session ended
+"stopped" → Mechus session ended
 ```
 
 ## Updated API Status Response
@@ -54,14 +54,14 @@ export async function startMeeting(meetingId: string) {
     .update({ status: 'joining' })
     .eq('id', meetingId);
   
-  // 3. Call Koov API
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
-  const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+  // 3. Call Mechus API
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
+  const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       meeting_link: meeting.meeting_link,
-      display_name: 'Koov',
+      display_name: 'Mechus',
     }),
   });
   
@@ -70,16 +70,16 @@ export async function startMeeting(meetingId: string) {
       .from('meetings')
       .update({ status: 'failed' })
       .eq('id', meetingId);
-    throw new Error('Failed to start Koov');
+    throw new Error('Failed to start Mechus');
   }
   
   // 4. Poll for status updates
-  await pollKoovStatus(meetingId, koovApiUrl);
+  await pollMechusStatus(meetingId, mechusApiUrl);
   
   return { success: true };
 }
 
-async function pollKoovStatus(meetingId: string, koovApiUrl: string) {
+async function pollMechusStatus(meetingId: string, mechusApiUrl: string) {
   const supabase = createClient();
   const maxAttempts = 30; // Poll for up to 60 seconds (2s intervals)
   let attempts = 0;
@@ -88,10 +88,10 @@ async function pollKoovStatus(meetingId: string, koovApiUrl: string) {
     attempts++;
     
     try {
-      const response = await fetch(`${koovApiUrl}/api/status`);
+      const response = await fetch(`${mechusApiUrl}/api/status`);
       const status = await response.json();
       
-      // Update Supabase based on Koov status
+      // Update Supabase based on Mechus status
       const statusMap: Record<string, string> = {
         'joining': 'joining',
         'active': 'live',  // or 'active' if that's your status
@@ -106,8 +106,8 @@ async function pollKoovStatus(meetingId: string, koovApiUrl: string) {
         .update({ 
           status: supabaseStatus,
           // Optionally store additional info
-          koov_status: status.status,
-          koov_transcript_chunks: status.transcript_chunks,
+          mechus_status: status.status,
+          mechus_transcript_chunks: status.transcript_chunks,
         })
         .eq('id', meetingId);
       
@@ -128,7 +128,7 @@ async function pollKoovStatus(meetingId: string, koovApiUrl: string) {
       }
       
     } catch (error) {
-      console.error('Error polling Koov status:', error);
+      console.error('Error polling Mechus status:', error);
       // Continue polling on error (might be temporary)
       if (attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -146,12 +146,12 @@ async function pollKoovStatus(meetingId: string, koovApiUrl: string) {
 Create a hook that polls status:
 
 ```typescript
-// hooks/useKoovStatus.ts
+// hooks/useMechusStatus.ts
 'use client';
 
 import { useEffect, useState } from 'react';
 
-interface KoovStatus {
+interface MechusStatus {
   active: boolean;
   status: 'joining' | 'active' | 'stopped' | 'error';
   meeting_link?: string;
@@ -159,18 +159,18 @@ interface KoovStatus {
   uptime_seconds?: number;
 }
 
-export function useKoovStatus(meetingId: string, enabled: boolean = true) {
-  const [status, setStatus] = useState<KoovStatus | null>(null);
+export function useMechusStatus(meetingId: string, enabled: boolean = true) {
+  const [status, setStatus] = useState<MechusStatus | null>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     if (!enabled) return;
     
-    const koovApiUrl = process.env.NEXT_PUBLIC_KOOV_API_URL || 'http://127.0.0.1:5000';
+    const mechusApiUrl = process.env.NEXT_PUBLIC_MECHUS_API_URL || 'http://127.0.0.1:5000';
     
     const fetchStatus = async () => {
       try {
-        const response = await fetch(`${koovApiUrl}/api/status`);
+        const response = await fetch(`${mechusApiUrl}/api/status`);
         const data = await response.json();
         setStatus(data);
         
@@ -182,12 +182,12 @@ export function useKoovStatus(meetingId: string, enabled: boolean = true) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
               status: data.status === 'active' ? 'live' : 'ended',
-              koov_status: data.status,
+              mechus_status: data.status,
             }),
           });
         }
       } catch (error) {
-        console.error('Failed to fetch Koov status:', error);
+        console.error('Failed to fetch Mechus status:', error);
       } finally {
         setLoading(false);
       }
@@ -211,10 +211,10 @@ Use in your component:
 // components/MeetingDetails.tsx
 'use client';
 
-import { useKoovStatus } from '@/hooks/useKoovStatus';
+import { useMechusStatus } from '@/hooks/useMechusStatus';
 
 export function MeetingDetails({ meetingId }: { meetingId: string }) {
-  const { status, loading } = useKoovStatus(meetingId, true);
+  const { status, loading } = useMechusStatus(meetingId, true);
   
   const displayStatus = status?.status === 'active' ? 'Active' : 
                        status?.status === 'joining' ? 'Joining' : 
@@ -225,7 +225,7 @@ export function MeetingDetails({ meetingId }: { meetingId: string }) {
       <div>Status: {displayStatus}</div>
       {status?.status === 'active' && (
         <div>
-          <p>Koov is listening and processing</p>
+          <p>Mechus is listening and processing</p>
           <p>Transcript chunks: {status.transcript_chunks || 0}</p>
           <p>Uptime: {Math.floor(status.uptime_seconds || 0)}s</p>
         </div>
@@ -249,15 +249,15 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const meetingId = params.id;
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   const supabase = createClient();
   
   try {
-    // Get Koov status
-    const response = await fetch(`${koovApiUrl}/api/status`);
-    const koovStatus = await response.json();
+    // Get Mechus status
+    const response = await fetch(`${mechusApiUrl}/api/status`);
+    const mechusStatus = await response.json();
     
-    // Map Koov status to Supabase status
+    // Map Mechus status to Supabase status
     const statusMap: Record<string, string> = {
       'joining': 'joining',
       'active': 'live',
@@ -265,22 +265,22 @@ export async function GET(
       'error': 'failed',
     };
     
-    const supabaseStatus = statusMap[koovStatus.status] || 'joining';
+    const supabaseStatus = statusMap[mechusStatus.status] || 'joining';
     
     // Update Supabase
     await supabase
       .from('meetings')
       .update({
         status: supabaseStatus,
-        koov_status: koovStatus.status,
-        koov_transcript_chunks: koovStatus.transcript_chunks,
+        mechus_status: mechusStatus.status,
+        mechus_transcript_chunks: mechusStatus.transcript_chunks,
       })
       .eq('id', meetingId);
     
     return NextResponse.json({
       success: true,
       status: supabaseStatus,
-      koov: koovStatus,
+      mechus: mechusStatus,
     });
     
   } catch (error) {
@@ -307,31 +307,31 @@ useEffect(() => {
 
 ## Status Mapping
 
-Map Koov API status to your dashboard status:
+Map Mechus API status to your dashboard status:
 
-| Koov API Status | `koov_presence` | Dashboard Status | Description |
+| Mechus API Status | `mechus_presence` | Dashboard Status | Description |
 |----------------|-----------------|------------------|-------------|
 | `joining` | `connecting` or `waiting_room` | `joining` | SDK connecting or in Zoom waiting room |
-| `active` | `in_call` | `live` | Koov is in the meeting (`bot_in_call: true`) |
-| `stopped` | `left` | `ended` | Koov session ended |
+| `active` | `in_call` | `live` | Mechus is in the meeting (`bot_in_call: true`) |
+| `stopped` | `left` | `ended` | Mechus session ended |
 | `error` | `failed` | `failed` | Join failed — show `failure_reason` / `worker_error` |
 
-**Important:** Poll `GET /api/status?meeting_id=<koov_meeting_id>` (the `meeting_id` returned from join). Do **not** mark the meeting `live` when join returns `success: true` — wait until `koov_presence === "in_call"` or `status === "active"`. For org Zoom links (`osu.zoom.us`, etc.), pass `zoom_access_token` in the join body or join fails with error 8 and never reaches the waiting room.
+**Important:** Poll `GET /api/status?meeting_id=<mechus_meeting_id>` (the `meeting_id` returned from join). Do **not** mark the meeting `live` when join returns `success: true` — wait until `mechus_presence === "in_call"` or `status === "active"`. For org Zoom links (`osu.zoom.us`, etc.), pass `zoom_access_token` in the join body or join fails with error 8 and never reaches the waiting room.
 
 ## When Status Changes to "Active"
 
 The status changes to "active" when:
-- ✅ Koov's audio input is running (listening)
+- ✅ Mechus's audio input is running (listening)
 - ✅ Agent thread is alive
 - ✅ At least 5 seconds have passed (initialization time)
 
-You can also check `transcript_chunks > 0` to confirm Koov is actually processing audio.
+You can also check `transcript_chunks > 0` to confirm Mechus is actually processing audio.
 
 ## Example: Complete Flow
 
 1. User clicks "Start Meeting"
 2. Dashboard updates status to `joining`
-3. Dashboard calls Koov API `/api/join-meeting`
+3. Dashboard calls Mechus API `/api/join-meeting`
 4. Dashboard starts polling `/api/status` every 2 seconds
 5. When status becomes `active`, update dashboard to `live` or `active`
 6. Continue polling to show transcript chunks and activity

@@ -6,7 +6,7 @@
   "functions": {
     "api/proxy.js": {
       "maxDuration": 60,
-      "excludeFiles": "{.env,.env.*,*.pem,*.key,.venv/**,tests/**,docs/**,koov_notes/**,models/**,**/*.pyc}"
+      "excludeFiles": "{.env,.env.*,*.pem,*.key,.venv/**,tests/**,docs/**,mechus_notes/**,models/**,**/*.pyc}"
     }
   },
   "rewrites": [

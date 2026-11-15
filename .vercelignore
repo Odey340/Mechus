@@ -6,7 +6,7 @@
 .pytest_cache
 __pycache__
 *.pyc
-koov_notes
+mechus_notes
 models
 tests
 evals

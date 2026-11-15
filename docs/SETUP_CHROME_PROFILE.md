@@ -12,10 +12,10 @@ To enable full automation (including audio), you need to set up a Chrome profile
 
 Add to your `.env`:
 ```bash
-KOOV_SHOW_BROWSER=true
+MECHUS_SHOW_BROWSER=true
 ```
 
-**Run Koov and join a test meeting:**
+**Run Mechus and join a test meeting:**
 1. Start API server
 2. Join a test meeting from dashboard
 3. Browser will open (visible)
@@ -30,7 +30,7 @@ KOOV_SHOW_BROWSER=true
 
 Change `.env`:
 ```bash
-KOOV_SHOW_BROWSER=false
+MECHUS_SHOW_BROWSER=false
 ```
 
 Now browser runs invisibly but uses the saved audio settings.
@@ -44,9 +44,9 @@ Now browser runs invisibly but uses the saved audio settings.
 
 ## Profile Location
 
-Koov creates a Chrome profile at:
+Mechus creates a Chrome profile at:
 ```
-~/.koov-chrome-profile
+~/.mechus-chrome-profile
 ```
 
 This profile stores:
@@ -59,17 +59,17 @@ This profile stores:
 If you want to use a different profile:
 
 ```bash
-KOOV_CHROME_PROFILE_PATH=/path/to/your/profile
+MECHUS_CHROME_PROFILE_PATH=/path/to/your/profile
 ```
 
 ## Troubleshooting
 
 **Audio not working:**
-1. Set `KOOV_SHOW_BROWSER=true`
+1. Set `MECHUS_SHOW_BROWSER=true`
 2. Join a test meeting
 3. Verify audio devices are set correctly
 4. Chrome will save the settings
-5. Set `KOOV_SHOW_BROWSER=false` again
+5. Set `MECHUS_SHOW_BROWSER=false` again
 
 **Settings not saving:**
 - Make sure you actually join the meeting (not just open the link)

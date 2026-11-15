@@ -8,11 +8,11 @@ import json
 import os
 from pathlib import Path
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.meeting_chapters import append_chapter, ChapterRecord
-from koov.meeting_store import StoredChunk
-from koov.meeting_summary import build_summary_evidence_text
-from koov.retrieval import retrieve_for_question
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.meeting_chapters import append_chapter, ChapterRecord
+from mechus.meeting_store import StoredChunk
+from mechus.meeting_summary import build_summary_evidence_text
+from mechus.retrieval import retrieve_for_question
 
 
 def _ingest(engine: ContextIntegrityEngine, lines: list[tuple[str, str]]) -> None:
@@ -65,9 +65,9 @@ def test_recap_includes_chapter_block_when_present(tmp_path: Path) -> None:
         ],
     )
 
-    old = os.environ.get("KOOV_MEETING_STORE_DIR")
+    old = os.environ.get("MECHUS_MEETING_STORE_DIR")
     try:
-        os.environ["KOOV_MEETING_STORE_DIR"] = base
+        os.environ["MECHUS_MEETING_STORE_DIR"] = base
         b2 = retrieve_for_question(
             "recap the meeting",
             context_engine=eng,
@@ -76,9 +76,9 @@ def test_recap_includes_chapter_block_when_present(tmp_path: Path) -> None:
         )
     finally:
         if old is None:
-            os.environ.pop("KOOV_MEETING_STORE_DIR", None)
+            os.environ.pop("MECHUS_MEETING_STORE_DIR", None)
         else:
-            os.environ["KOOV_MEETING_STORE_DIR"] = old
+            os.environ["MECHUS_MEETING_STORE_DIR"] = old
 
     assert "Rolling chapter" in b2.formatted_context or "chapter" in b2.formatted_context.lower()
     assert "API" in b2.formatted_context or "rollout" in b2.formatted_context.lower()

@@ -1,15 +1,15 @@
 # Dashboard Integration Example
 
-This file shows how to integrate the Koov API server with your Next.js dashboard.
+This file shows how to integrate the Mechus API server with your Next.js dashboard.
 
-## Update `triggerKoovSessionStart` Function
+## Update `triggerMechusSessionStart` Function
 
 Replace the placeholder function in your dashboard code with this implementation:
 
 ```typescript
 // lib/meetings/actions.ts or similar
-async function triggerKoovSessionStart(meeting: any): Promise<void> {
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+async function triggerMechusSessionStart(meeting: any): Promise<void> {
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   const meetingLink = meeting.meeting_link;
   
   if (!meetingLink) {
@@ -17,14 +17,14 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
   }
   
   try {
-    const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+    const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         meeting_link: meetingLink,
-        display_name: 'Koov',
+        display_name: 'Mechus',
       }),
     });
     
@@ -34,9 +34,9 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
     }
     
     const data = await response.json();
-    console.log('Koov session started:', data);
+    console.log('Mechus session started:', data);
   } catch (error) {
-    console.error('Failed to start Koov session:', error);
+    console.error('Failed to start Mechus session:', error);
     throw error;
   }
 }
@@ -44,10 +44,10 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
 
 ## Create API Route (Optional)
 
-If you prefer to call the Koov API through your Next.js backend:
+If you prefer to call the Mechus API through your Next.js backend:
 
 ```typescript
-// app/api/koov/join/route.ts
+// app/api/mechus/join/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -62,16 +62,16 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+    const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
     
-    const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+    const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         meeting_link,
-        display_name: display_name || 'Koov',
+        display_name: display_name || 'Mechus',
       }),
     });
     
@@ -83,33 +83,33 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error calling Koov API:', error);
+    console.error('Error calling Mechus API:', error);
     return NextResponse.json(
-      { error: 'Failed to start Koov session' },
+      { error: 'Failed to start Mechus session' },
       { status: 500 }
     );
   }
 }
 ```
 
-Then update `triggerKoovSessionStart`:
+Then update `triggerMechusSessionStart`:
 
 ```typescript
-async function triggerKoovSessionStart(meeting: any): Promise<void> {
+async function triggerMechusSessionStart(meeting: any): Promise<void> {
   const meetingLink = meeting.meeting_link;
   
   if (!meetingLink) {
     throw new Error('Meeting link is required');
   }
   
-  const response = await fetch('/api/koov/join', {
+  const response = await fetch('/api/mechus/join', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       meeting_link: meetingLink,
-      display_name: 'Koov',
+      display_name: 'Mechus',
     }),
   });
   
@@ -125,7 +125,7 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
 Add to your `.env.local` (Next.js):
 
 ```bash
-KOOV_API_URL=http://127.0.0.1:5000
+MECHUS_API_URL=http://127.0.0.1:5000
 ```
 
 ## Status Monitoring
@@ -133,24 +133,24 @@ KOOV_API_URL=http://127.0.0.1:5000
 You can also add status monitoring to your dashboard:
 
 ```typescript
-// hooks/useKoovStatus.ts
+// hooks/useMechusStatus.ts
 'use client';
 
 import { useEffect, useState } from 'react';
 
-export function useKoovStatus() {
+export function useMechusStatus() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const koovApiUrl = process.env.NEXT_PUBLIC_KOOV_API_URL || 'http://127.0.0.1:5000';
-        const response = await fetch(`${koovApiUrl}/api/status`);
+        const mechusApiUrl = process.env.NEXT_PUBLIC_MECHUS_API_URL || 'http://127.0.0.1:5000';
+        const response = await fetch(`${mechusApiUrl}/api/status`);
         const data = await response.json();
         setStatus(data);
       } catch (error) {
-        console.error('Failed to fetch Koov status:', error);
+        console.error('Failed to fetch Mechus status:', error);
       } finally {
         setLoading(false);
       }
@@ -172,13 +172,13 @@ export function useKoovStatus() {
 // components/MeetingControl.tsx
 'use client';
 
-import { useKoovStatus } from '@/hooks/useKoovStatus';
+import { useMechusStatus } from '@/hooks/useMechusStatus';
 
 export function MeetingControl({ meetingLink }: { meetingLink: string }) {
-  const { status, loading } = useKoovStatus();
+  const { status, loading } = useMechusStatus();
   
   const handleStart = async () => {
-    const response = await fetch('/api/koov/join', {
+    const response = await fetch('/api/mechus/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ meeting_link: meetingLink }),
@@ -187,19 +187,19 @@ export function MeetingControl({ meetingLink }: { meetingLink: string }) {
   };
   
   const handleStop = async () => {
-    const koovApiUrl = process.env.NEXT_PUBLIC_KOOV_API_URL || 'http://127.0.0.1:5000';
-    await fetch(`${koovApiUrl}/api/stop`, { method: 'POST' });
+    const mechusApiUrl = process.env.NEXT_PUBLIC_MECHUS_API_URL || 'http://127.0.0.1:5000';
+    await fetch(`${mechusApiUrl}/api/stop`, { method: 'POST' });
   };
   
   return (
     <div>
       {status?.active ? (
         <div>
-          <p>Koov is active: {status.status}</p>
-          <button onClick={handleStop}>Stop Koov</button>
+          <p>Mechus is active: {status.status}</p>
+          <button onClick={handleStop}>Stop Mechus</button>
         </div>
       ) : (
-        <button onClick={handleStart}>Start Koov</button>
+        <button onClick={handleStart}>Start Mechus</button>
       )}
     </div>
   );
@@ -208,10 +208,10 @@ export function MeetingControl({ meetingLink }: { meetingLink: string }) {
 
 ## Important Notes
 
-1. **CORS**: The Koov API server has CORS enabled, but if you're accessing from a different origin, you may need to configure it.
+1. **CORS**: The Mechus API server has CORS enabled, but if you're accessing from a different origin, you may need to configure it.
 
-2. **Error Handling**: Always handle errors gracefully. The Koov API may not be running, or there might be network issues.
+2. **Error Handling**: Always handle errors gracefully. The Mechus API may not be running, or there might be network issues.
 
 3. **Status Polling**: Consider using WebSockets or Server-Sent Events for real-time status updates instead of polling.
 
-4. **Security**: In production, consider adding authentication to the Koov API server or running it behind a reverse proxy.
+4. **Security**: In production, consider adding authentication to the Mechus API server or running it behind a reverse proxy.

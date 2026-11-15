@@ -1,31 +1,31 @@
-# Step-by-Step: Connect Dashboard to Koov
+# Step-by-Step: Connect Dashboard to Mechus
 
-This guide walks you through connecting your dashboard (in a different repo) to the Koov API server.
+This guide walks you through connecting your dashboard (in a different repo) to the Mechus API server.
 
 ## Prerequisites
 
-- ✅ Koov repo is set up and working
+- ✅ Mechus repo is set up and working
 - ✅ Dashboard repo is set up and working
-- ✅ Both repos are on the same machine (or Koov API is accessible from dashboard)
+- ✅ Both repos are on the same machine (or Mechus API is accessible from dashboard)
 
-## Step 1: Install Dependencies in Koov Repo
+## Step 1: Install Dependencies in Mechus Repo
 
-In your **Koov repo** (`koovdemo`):
+In your **Mechus repo** (`mechusdemo`):
 
 ```bash
-cd /path/to/koovdemo
+cd /path/to/mechusdemo
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
 This installs Flask and Flask-CORS needed for the API server.
 
-## Step 2: Start the Koov API Server
+## Step 2: Start the Mechus API Server
 
-In your **Koov repo**, start the API server:
+In your **Mechus repo**, start the API server:
 
 ```bash
-cd /path/to/koovdemo
+cd /path/to/mechusdemo
 source .venv/bin/activate
 export PYTHONPATH="$PWD"
 python3 scripts/start_api_server.py
@@ -33,7 +33,7 @@ python3 scripts/start_api_server.py
 
 You should see:
 ```
-Starting Koov API server on 127.0.0.1:5000
+Starting Mechus API server on 127.0.0.1:5000
  * Running on http://127.0.0.1:5000
 ```
 
@@ -49,13 +49,13 @@ curl http://127.0.0.1:5000/health
 
 You should get:
 ```json
-{"status":"ok","service":"koov-api"}
+{"status":"ok","service":"mechus-api"}
 ```
 
 ## Step 4: Find Your Dashboard's Meeting Start Function
 
 In your **dashboard repo**, find where meetings are started. Look for:
-- `triggerKoovSessionStart` function
+- `triggerMechusSessionStart` function
 - Meeting start button/action
 - API route that handles meeting creation/start
 
@@ -66,13 +66,13 @@ Common locations:
 
 ## Step 5: Update Your Dashboard Code
 
-### Option A: If you have a `triggerKoovSessionStart` function
+### Option A: If you have a `triggerMechusSessionStart` function
 
 Replace it with this:
 
 ```typescript
-async function triggerKoovSessionStart(meeting: any): Promise<void> {
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+async function triggerMechusSessionStart(meeting: any): Promise<void> {
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   const meetingLink = meeting.meeting_link;
   
   if (!meetingLink) {
@@ -80,14 +80,14 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
   }
   
   try {
-    const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+    const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         meeting_link: meetingLink,
-        display_name: 'Koov',
+        display_name: 'Mechus',
       }),
     });
     
@@ -97,9 +97,9 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
     }
     
     const data = await response.json();
-    console.log('Koov session started:', data);
+    console.log('Mechus session started:', data);
   } catch (error) {
-    console.error('Failed to start Koov session:', error);
+    console.error('Failed to start Mechus session:', error);
     throw error;
   }
 }
@@ -110,27 +110,27 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
 Add this code where you handle meeting start:
 
 ```typescript
-// After creating/updating the meeting in Supabase, call Koov API
-const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+// After creating/updating the meeting in Supabase, call Mechus API
+const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
 
-const koovResponse = await fetch(`${koovApiUrl}/api/join-meeting`, {
+const mechusResponse = await fetch(`${mechusApiUrl}/api/join-meeting`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     meeting_link: meeting.meeting_link, // or wherever you store the link
-    display_name: 'Koov',
+    display_name: 'Mechus',
   }),
 });
 
-if (!koovResponse.ok) {
-  const error = await koovResponse.json();
-  console.error('Koov API error:', error);
+if (!mechusResponse.ok) {
+  const error = await mechusResponse.json();
+  console.error('Mechus API error:', error);
   // Handle error (maybe update meeting status to 'failed')
 } else {
-  const koovData = await koovResponse.json();
-  console.log('Koov started successfully:', koovData);
+  const mechusData = await mechusResponse.json();
+  console.log('Mechus started successfully:', mechusData);
 }
 ```
 
@@ -138,7 +138,7 @@ if (!koovResponse.ok) {
 
 Create a new file in your dashboard repo:
 
-**File:** `app/api/koov/join/route.ts`
+**File:** `app/api/mechus/join/route.ts`
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
@@ -155,17 +155,17 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Call Koov API Server
-    const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+    // Call Mechus API Server
+    const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
     
-    const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+    const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         meeting_link,
-        display_name: display_name || 'Koov',
+        display_name: display_name || 'Mechus',
       }),
     });
     
@@ -177,9 +177,9 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error calling Koov API:', error);
+    console.error('Error calling Mechus API:', error);
     return NextResponse.json(
-      { error: 'Failed to start Koov session' },
+      { error: 'Failed to start Mechus session' },
       { status: 500 }
     );
   }
@@ -190,12 +190,12 @@ Then in your meeting start function, call this route:
 
 ```typescript
 // In your meeting start function
-const response = await fetch('/api/koov/join', {
+const response = await fetch('/api/mechus/join', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     meeting_link: meeting.meeting_link,
-    display_name: 'Koov',
+    display_name: 'Mechus',
   }),
 });
 ```
@@ -205,27 +205,27 @@ const response = await fetch('/api/koov/join', {
 In your **dashboard repo**, add to `.env.local`:
 
 ```bash
-KOOV_API_URL=http://127.0.0.1:5000
+MECHUS_API_URL=http://127.0.0.1:5000
 ```
 
-If your dashboard and Koov are on different machines, use the actual IP:
+If your dashboard and Mechus are on different machines, use the actual IP:
 ```bash
-KOOV_API_URL=http://192.168.1.100:5000  # Replace with Koov machine's IP
+MECHUS_API_URL=http://192.168.1.100:5000  # Replace with Mechus machine's IP
 ```
 
 ## Step 7: Update Your Frontend Component
 
-Find where users paste the meeting link and add a button/action to start Koov.
+Find where users paste the meeting link and add a button/action to start Mechus.
 
 Example component:
 
 ```typescript
-// components/StartKoovButton.tsx
+// components/StartMechusButton.tsx
 'use client';
 
 import { useState } from 'react';
 
-export function StartKoovButton({ meetingLink }: { meetingLink: string }) {
+export function StartMechusButton({ meetingLink }: { meetingLink: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -236,23 +236,23 @@ export function StartKoovButton({ meetingLink }: { meetingLink: string }) {
     setSuccess(false);
     
     try {
-      const response = await fetch('/api/koov/join', {
+      const response = await fetch('/api/mechus/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           meeting_link: meetingLink,
-          display_name: 'Koov',
+          display_name: 'Mechus',
         }),
       });
       
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to start Koov');
+        throw new Error(data.error || 'Failed to start Mechus');
       }
       
       setSuccess(true);
-      console.log('Koov started:', data);
+      console.log('Mechus started:', data);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -268,14 +268,14 @@ export function StartKoovButton({ meetingLink }: { meetingLink: string }) {
         disabled={loading || !meetingLink}
         className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
       >
-        {loading ? 'Starting Koov...' : 'Start Koov Meeting'}
+        {loading ? 'Starting Mechus...' : 'Start Mechus Meeting'}
       </button>
       {error && (
         <p className="text-red-500 mt-2 text-sm">{error}</p>
       )}
       {success && (
         <p className="text-green-500 mt-2 text-sm">
-          Koov is joining the meeting!
+          Mechus is joining the meeting!
         </p>
       )}
     </div>
@@ -285,53 +285,53 @@ export function StartKoovButton({ meetingLink }: { meetingLink: string }) {
 
 ## Step 8: Test the Integration
 
-1. **Make sure Koov API server is running** (Step 2)
+1. **Make sure Mechus API server is running** (Step 2)
 2. **Start your dashboard** (`npm run dev` or similar)
 3. **Paste a meeting link** in your dashboard
-4. **Click "Start Koov"** (or whatever button you created)
+4. **Click "Start Mechus"** (or whatever button you created)
 5. **Check:**
    - Meeting should open in your browser
-   - Koov should start listening (check the Koov API server terminal)
-   - You should see "Koov dormant. Wake phrase: computer" in the terminal
+   - Mechus should start listening (check the Mechus API server terminal)
+   - You should see "Mechus dormant. Wake phrase: computer" in the terminal
 
 ## Step 9: Verify It Works
 
-1. **Check Koov API server terminal** - Should show:
+1. **Check Mechus API server terminal** - Should show:
    ```
    Opening meeting link: https://zoom.us/j/...
-   Koov dormant. Wake phrase: computer
+   Mechus dormant. Wake phrase: computer
    ```
 
 2. **Check browser** - Meeting should open automatically
 
-3. **Test wake word** - Say "computer" in the meeting and Koov should respond
+3. **Test wake word** - Say "computer" in the meeting and Mechus should respond
 
 ## Troubleshooting
 
 ### "Connection refused" error
-- ✅ Make sure Koov API server is running (Step 2)
+- ✅ Make sure Mechus API server is running (Step 2)
 - ✅ Check the port: `lsof -i :5000`
-- ✅ Verify `KOOV_API_URL` in dashboard `.env.local`
+- ✅ Verify `MECHUS_API_URL` in dashboard `.env.local`
 
-### Meeting opens but Koov doesn't start
-- ✅ Check Koov API server terminal for errors
-- ✅ Verify `.env` file in Koov repo has correct audio device settings
+### Meeting opens but Mechus doesn't start
+- ✅ Check Mechus API server terminal for errors
+- ✅ Verify `.env` file in Mechus repo has correct audio device settings
 - ✅ Check that audio devices are configured (see `SETUP_MACOS.txt`)
 
 ### CORS errors
-- ✅ Koov API has CORS enabled by default
+- ✅ Mechus API has CORS enabled by default
 - ✅ If issues persist, check browser console for specific error
 
 ### Different machines
-- ✅ Use the actual IP address in `KOOV_API_URL`
+- ✅ Use the actual IP address in `MECHUS_API_URL`
 - ✅ Make sure firewall allows port 5000
-- ✅ Test connectivity: `curl http://KOOV_IP:5000/health` from dashboard machine
+- ✅ Test connectivity: `curl http://MECHUS_IP:5000/health` from dashboard machine
 
 ## Quick Checklist
 
-- [ ] Koov API server is running
-- [ ] Dashboard has `KOOV_API_URL` in `.env.local`
-- [ ] Dashboard code calls `/api/koov/join` or Koov API directly
+- [ ] Mechus API server is running
+- [ ] Dashboard has `MECHUS_API_URL` in `.env.local`
+- [ ] Dashboard code calls `/api/mechus/join` or Mechus API directly
 - [ ] Meeting link is passed correctly
 - [ ] Test with a real meeting link
 
@@ -340,4 +340,4 @@ export function StartKoovButton({ meetingLink }: { meetingLink: string }) {
 Once it's working:
 - Add status monitoring (see `SUPABASE_INTEGRATION.md`)
 - Add error handling and user feedback
-- Consider running Koov API as a service (see `MEETING_AUTOMATION.md`)
+- Consider running Mechus API as a service (see `MEETING_AUTOMATION.md`)

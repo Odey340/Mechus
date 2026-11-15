@@ -8,9 +8,9 @@ import urllib.error
 import pytest
 from PIL import Image, ImageDraw
 
-from koov import facetime_vision as fv
-from koov.facetime_control import enqueue_vision_request, vision_request_status
-from koov.facetime_vision import (
+from mechus import facetime_vision as fv
+from mechus.facetime_control import enqueue_vision_request, vision_request_status
+from mechus.facetime_vision import (
     VisionResult,
     VoiceVisionBridge,
     analyze_image,
@@ -174,14 +174,14 @@ def test_analyze_image_malformed_responses(monkeypatch, body):
 
 
 def test_analyze_image_requires_key():
-    with pytest.raises(RuntimeError, match="KOOV_OPENAI_API_KEY"):
+    with pytest.raises(RuntimeError, match="MECHUS_OPENAI_API_KEY"):
         analyze_image(b"x", "q", api_key=" ", model="m")
 
 
 def test_vision_env_defaults(monkeypatch):
-    monkeypatch.delenv("KOOV_OPENAI_VISION_MODEL", raising=False)
-    monkeypatch.setenv("KOOV_OPENAI_RESPONSE_MODEL", "text-only-model")
-    monkeypatch.setenv("KOOV_FT_VISION_DETAIL", "bogus")
+    monkeypatch.delenv("MECHUS_OPENAI_VISION_MODEL", raising=False)
+    monkeypatch.setenv("MECHUS_OPENAI_RESPONSE_MODEL", "text-only-model")
+    monkeypatch.setenv("MECHUS_FT_VISION_DETAIL", "bogus")
     assert fv.vision_model_from_env() == fv.DEFAULT_VISION_MODEL
     assert fv.vision_detail_from_env() == "auto"
 

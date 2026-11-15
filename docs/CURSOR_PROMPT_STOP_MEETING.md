@@ -1,24 +1,24 @@
-# Cursor Prompt: Stop Koov When Meeting Ends
+# Cursor Prompt: Stop Mechus When Meeting Ends
 
 Copy and paste this into Cursor for your dashboard repo:
 
 ---
 
-I need to stop Koov when a user clicks "End Meeting" or "Cancel Meeting" in the dashboard.
+I need to stop Mechus when a user clicks "End Meeting" or "Cancel Meeting" in the dashboard.
 
 **Current situation:**
 - Users can end meetings in the dashboard
-- But Koov keeps running on the server
-- I need Koov to stop when the meeting is ended
+- But Mechus keeps running on the server
+- I need Mechus to stop when the meeting is ended
 
 **What I need:**
 
 1. When user clicks "End Meeting" or "Cancel Meeting":
-   - Call Koov API: `POST http://127.0.0.1:5000/api/stop`
+   - Call Mechus API: `POST http://127.0.0.1:5000/api/stop`
    - Update Supabase meeting status to `ended`
    - Show user feedback
 
-2. The Koov API stop endpoint:
+2. The Mechus API stop endpoint:
    ```
    POST http://127.0.0.1:5000/api/stop
    ```
@@ -27,7 +27,7 @@ I need to stop Koov when a user clicks "End Meeting" or "Cancel Meeting" in the 
    ```json
    {
      "success": true,
-     "message": "Koov session stopped",
+     "message": "Mechus session stopped",
      "meeting_link": "https://..."
    }
    ```
@@ -52,11 +52,11 @@ async function endMeeting(meetingId: string) {
     })
     .eq('id', meetingId);
   
-  // 2. Stop Koov session
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+  // 2. Stop Mechus session
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   
   try {
-    const response = await fetch(`${koovApiUrl}/api/stop`, {
+    const response = await fetch(`${mechusApiUrl}/api/stop`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,13 +66,13 @@ async function endMeeting(meetingId: string) {
     const data = await response.json();
     
     if (!response.ok) {
-      console.error('Failed to stop Koov:', data.error);
+      console.error('Failed to stop Mechus:', data.error);
       // Don't throw - meeting is already ended in Supabase
     } else {
-      console.log('Koov stopped successfully:', data);
+      console.log('Mechus stopped successfully:', data);
     }
   } catch (error) {
-    console.error('Error stopping Koov:', error);
+    console.error('Error stopping Mechus:', error);
     // Don't throw - meeting is already ended in Supabase
   }
   
@@ -93,7 +93,7 @@ export async function POST(
 ) {
   const meetingId = params.id;
   const supabase = createClient();
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   
   try {
     // 1. Update Supabase
@@ -109,8 +109,8 @@ export async function POST(
       throw updateError;
     }
     
-    // 2. Stop Koov session
-    const koovResponse = await fetch(`${koovApiUrl}/api/stop`, {
+    // 2. Stop Mechus session
+    const mechusResponse = await fetch(`${mechusApiUrl}/api/stop`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -120,17 +120,17 @@ export async function POST(
       }),
     });
     
-    const koovData = await koovResponse.json();
+    const mechusData = await mechusResponse.json();
     
-    if (!koovResponse.ok) {
-      console.error('Koov stop failed:', koovData.error);
+    if (!mechusResponse.ok) {
+      console.error('Mechus stop failed:', mechusData.error);
       // Still return success since meeting is ended in Supabase
     }
     
     return NextResponse.json({
       success: true,
       meeting_id: meetingId,
-      koov_stopped: koovResponse.ok,
+      mechus_stopped: mechusResponse.ok,
     });
     
   } catch (error) {
@@ -175,7 +175,7 @@ export function EndMeetingButton({ meetingId }: { meetingId: string }) {
   const router = useRouter();
   
   const handleEnd = async () => {
-    if (!confirm('Are you sure you want to end this meeting? Koov will stop.')) {
+    if (!confirm('Are you sure you want to end this meeting? Mechus will stop.')) {
       return;
     }
     
@@ -217,16 +217,16 @@ export function EndMeetingButton({ meetingId }: { meetingId: string }) {
 
 **Please:**
 1. Find where meetings are ended in my codebase (look for "End Meeting" or "Cancel Meeting" buttons/functions)
-2. Add call to Koov API `/api/stop` endpoint
+2. Add call to Mechus API `/api/stop` endpoint
 3. Update Supabase meeting status to `ended`
-4. Handle errors gracefully (meeting should still end even if Koov stop fails)
+4. Handle errors gracefully (meeting should still end even if Mechus stop fails)
 5. Show user feedback (loading state, success/error messages)
 6. Show me what files were changed
 
 **Key requirements:**
 - Call `POST http://127.0.0.1:5000/api/stop` when meeting ends
 - Update Supabase status to `ended`
-- Don't fail if Koov stop fails (meeting should still end)
+- Don't fail if Mechus stop fails (meeting should still end)
 - Provide user feedback
 
 ---

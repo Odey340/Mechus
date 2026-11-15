@@ -1,19 +1,19 @@
-# Incident Management and Response Policy – Koov
+# Incident Management and Response Policy – Mechus
 
-This document defines how we identify, assess, contain, and recover from security and privacy incidents involving the Koov application. It supports Zoom App Beta compliance and operational readiness.
+This document defines how we identify, assess, contain, and recover from security and privacy incidents involving the Mechus application. It supports Zoom App Beta compliance and operational readiness.
 
 ---
 
 ## 1. Purpose and Scope
 
 - **Purpose:** To ensure a consistent, timely response to security and privacy incidents, minimise impact, and support communication and post-incident improvement.
-- **Scope:** Applies to incidents affecting Koov (application, API, deployment), related infrastructure, and any processing of meeting/transcript/voice data. Includes unauthorised access, data exposure, availability failures, and abuse of the service or Zoom integration.
+- **Scope:** Applies to incidents affecting Mechus (application, API, deployment), related infrastructure, and any processing of meeting/transcript/voice data. Includes unauthorised access, data exposure, availability failures, and abuse of the service or Zoom integration.
 
 ---
 
 ## 2. Definitions
 
-- **Security incident:** An event that could compromise the confidentiality, integrity, or availability of Koov or related data (e.g. breach, malware, unauthorised access, abuse).
+- **Security incident:** An event that could compromise the confidentiality, integrity, or availability of Mechus or related data (e.g. breach, malware, unauthorised access, abuse).
 - **Privacy incident:** An event that could lead to unauthorised access to or disclosure of personal or meeting data (e.g. logging of PII at scale, accidental exposure, misuse).
 - **Severity:** Incidents are classified (e.g. Critical, High, Medium, Low) based on impact and scope; classification drives response timing and escalation.
 

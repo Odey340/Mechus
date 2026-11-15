@@ -70,9 +70,9 @@ def _follow(path: str, kind_filter: str | None) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Live Koov transcript viewer")
+    parser = argparse.ArgumentParser(description="Live Mechus transcript viewer")
     parser.add_argument("--path", help="Path to a session .jsonl file")
-    parser.add_argument("--root", default="koov_notes", help="Notes directory")
+    parser.add_argument("--root", default="mechus_notes", help="Notes directory")
     parser.add_argument("--tail", type=int, default=20, help="Show last N entries")
     parser.add_argument("--kind", default="transcript", help="Filter by kind (default: transcript)")
     parser.add_argument("--no-follow", action="store_true", help="Do not follow live updates")

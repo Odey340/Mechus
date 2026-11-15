@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from koov.command_router import route
-from koov.intent_classifier import INTENT_PRESENCE_CHECK
+from mechus.command_router import route
+from mechus.intent_classifier import INTENT_PRESENCE_CHECK
 
 
 def test_wake_only_presence_stays_silent() -> None:
-    """Bare wake ('koov' / 'hey koov' alone) must not speak until a question follows."""
+    """Bare wake ('mechus' / 'hey mechus' alone) must not speak until a question follows."""
     r = route(INTENT_PRESENCE_CHECK, "", responder_fn=None)
     assert r.is_instant is True
     assert r.response.strip() == ""

@@ -28,14 +28,14 @@ def _agent_class():
             read=lambda *args, **kwargs: (np.zeros((0,), dtype=np.float32), 16000)
         )
 
-    from koov.agent import KoovAgent
+    from mechus.agent import MechusAgent
 
-    return KoovAgent
+    return MechusAgent
 
 
 def _make_streaming_agent(*, chunk_delay_s: float = 0.35):
-    KoovAgent = _agent_class()
-    agent = object.__new__(KoovAgent)
+    MechusAgent = _agent_class()
+    agent = object.__new__(MechusAgent)
     agent._config = types.SimpleNamespace(
         tts_output_gain=1.0,
         tts_fade_in_ms=0.0,
@@ -73,7 +73,7 @@ def _make_streaming_agent(*, chunk_delay_s: float = 0.35):
 
         def play_blocking(self, audio_f32, sample_rate_hz: int, gain: float = 1.0) -> None:
             # Silence tail played after streaming so the last phoneme is not
-            # clipped (KoovAgent._play_phrase_end_tail).
+            # clipped (MechusAgent._play_phrase_end_tail).
             return
 
         def wait(self) -> None:
@@ -104,7 +104,7 @@ def test_streaming_keeps_opener_alive_until_first_chunk() -> None:
 
     agent._play_streaming_phrase_smooth(
         tts,
-        "Hello from Koov.",
+        "Hello from Mechus.",
         opener_stop_evt=stop_evt,
         opener_thread=opener_th,
     )
@@ -116,8 +116,8 @@ def test_streaming_keeps_opener_alive_until_first_chunk() -> None:
 
 
 def test_release_wake_opener_bridge_sets_stop_and_joins() -> None:
-    KoovAgent = _agent_class()
-    agent = object.__new__(KoovAgent)
+    MechusAgent = _agent_class()
+    agent = object.__new__(MechusAgent)
     agent._wake_opener_thread = None
     agent._wait_audio_output_idle = MagicMock()
 

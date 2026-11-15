@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Set up Koov's Tiger Data schema and (optionally) load a demo meeting.
+Set up Mechus's Tiger Data schema and (optionally) load a demo meeting.
 
   1. Create a free Tiger Cloud service (mlh.link/tigerdata-quickstart) and download its connection file.
   2. In .env:  TIGER_DATABASE_URL=postgres://tsdbadmin:<PASSWORD>@<HOST>:<PORT>/tsdb?sslmode=require
@@ -20,8 +20,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
-from koov.envfile import load_env_file  # noqa: E402
-from koov import tiger_store  # noqa: E402
+from mechus.envfile import load_env_file  # noqa: E402
+from mechus import tiger_store  # noqa: E402
 
 DEMO = [
     ("alex", "Alex", "Okay let's kick off the HackUTA standup, where are we on the Zoom bot?", "status"),
@@ -55,7 +55,7 @@ def main() -> None:
     for i, (spk, name, text, topic) in enumerate(DEMO):
         ts = t0 + i * 75
         sink.record_chunk(meeting_id, spk, text, ts, chunk_id=i, topic=topic, speaker_display=name)
-        sink.record_event(meeting_id, "koov_response", 650 + 90 * i, {"intent": "demo"}, ts=ts + 5)
+        sink.record_event(meeting_id, "mechus_response", 650 + 90 * i, {"intent": "demo"}, ts=ts + 5)
     sink.record_snapshot(meeting_id, {
         "meeting_id": meeting_id,
         "updated_at": t0 + 500,

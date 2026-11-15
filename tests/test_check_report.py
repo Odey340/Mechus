@@ -5,8 +5,8 @@ import json
 import pytest
 from PIL import Image
 
-from koov.estates import checks, store
-from koov.inspection import Inspector, LocalInspectionStore
+from mechus.estates import checks, store
+from mechus.inspection import Inspector, LocalInspectionStore
 
 CRACK = {"surface": "counter", "issue": "burn mark on the counter", "severity": "high",
          "box": [100, 100, 600, 600], "say": "There's a burn mark on that counter."}
@@ -24,10 +24,10 @@ def _reply(findings=()):
 
 @pytest.fixture
 def env(monkeypatch, tmp_path):
-    monkeypatch.setenv("KOOV_ESTATES_DIR", str(tmp_path / "estates"))
-    monkeypatch.setenv("KOOV_NOTES_DIR", str(tmp_path / "notes"))
+    monkeypatch.setenv("MECHUS_ESTATES_DIR", str(tmp_path / "estates"))
+    monkeypatch.setenv("MECHUS_NOTES_DIR", str(tmp_path / "notes"))
     (tmp_path / "notes").mkdir()
-    from koov import api_server
+    from mechus import api_server
 
     monkeypatch.setattr(api_server, "_API_KEY", "secret")  # the report must still be reachable
     return api_server.app.test_client(), tmp_path / "notes"

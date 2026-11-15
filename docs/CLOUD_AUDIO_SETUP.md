@@ -1,4 +1,4 @@
-# How Koov Works in the Cloud
+# How Mechus Works in the Cloud
 
 ## The Challenge
 
@@ -13,14 +13,14 @@ In the cloud:
 
 ### Current Setup (Local)
 ```
-Meeting → Browser → BlackHole → Koov listens
-Koov speaks → BlackHole → Browser → Meeting
+Meeting → Browser → BlackHole → Mechus listens
+Mechus speaks → BlackHole → Browser → Meeting
 ```
 
 ### Cloud Setup
 ```
-Meeting → Browser (in cloud) → Virtual Audio → Koov listens
-Koov speaks → Virtual Audio → Browser (in cloud) → Meeting
+Meeting → Browser (in cloud) → Virtual Audio → Mechus listens
+Mechus speaks → Virtual Audio → Browser (in cloud) → Meeting
 ```
 
 ## Solution: Virtual Audio + Browser Automation
@@ -31,8 +31,8 @@ On the cloud server, we create virtual audio devices:
 
 ```bash
 # Create virtual audio sinks
-pactl load-module module-null-sink sink_name=koov_input
-pactl load-module module-null-sink sink_name=koov_output
+pactl load-module module-null-sink sink_name=mechus_input
+pactl load-module module-null-sink sink_name=mechus_output
 ```
 
 ### 2. Browser Automation (Same as Local)
@@ -45,8 +45,8 @@ pactl load-module module-null-sink sink_name=koov_output
 ### 3. Audio Flow in Cloud
 
 ```
-Meeting Audio → Browser → PulseAudio (koov_input) → Koov processes
-Koov Response → PulseAudio (koov_output) → Browser → Meeting
+Meeting Audio → Browser → PulseAudio (mechus_input) → Mechus processes
+Mechus Response → PulseAudio (mechus_output) → Browser → Meeting
 ```
 
 ## Setup for Cloud Deployment
@@ -58,20 +58,20 @@ Koov Response → PulseAudio (koov_output) → Browser → Meeting
 sudo apt install -y pulseaudio pulseaudio-utils
 
 # Create virtual audio devices
-pactl load-module module-null-sink sink_name=koov_input
-pactl load-module module-null-sink sink_name=koov_output
+pactl load-module module-null-sink sink_name=mechus_input
+pactl load-module module-null-sink sink_name=mechus_output
 
 # Make persistent (add to /etc/pulse/default.pa)
-echo 'load-module module-null-sink sink_name=koov_input' | sudo tee -a /etc/pulse/default.pa
-echo 'load-module module-null-sink sink_name=koov_output' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_input' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_output' | sudo tee -a /etc/pulse/default.pa
 ```
 
-### Step 2: Configure Koov
+### Step 2: Configure Mechus
 
 In `.env` on cloud server:
 ```bash
-KOOV_INPUT_DEVICE=koov_input
-KOOV_OUTPUT_DEVICE=koov_output
+MECHUS_INPUT_DEVICE=mechus_input
+MECHUS_OUTPUT_DEVICE=mechus_output
 ```
 
 ### Step 3: Set Up Chrome Profile (One-Time)
@@ -80,7 +80,7 @@ KOOV_OUTPUT_DEVICE=koov_output
 
 1. **First, show browser for setup:**
    ```bash
-   export KOOV_SHOW_BROWSER=true
+   export MECHUS_SHOW_BROWSER=true
    ```
 
 2. **Join a test meeting:**
@@ -90,7 +90,7 @@ KOOV_OUTPUT_DEVICE=koov_output
 
 3. **Hide browser:**
    ```bash
-   export KOOV_SHOW_BROWSER=false
+   export MECHUS_SHOW_BROWSER=false
    ```
 
 ### Step 4: Use Xvfb for Headless Display (Recommended)
@@ -122,18 +122,18 @@ sudo apt update
 sudo apt install -y pulseaudio pulseaudio-utils xvfb
 
 # 2. Create virtual audio devices
-pactl load-module module-null-sink sink_name=koov_input
-pactl load-module module-null-sink sink_name=koov_output
+pactl load-module module-null-sink sink_name=mechus_input
+pactl load-module module-null-sink sink_name=mechus_output
 
 # 3. Make persistent
-echo 'load-module module-null-sink sink_name=koov_input' | sudo tee -a /etc/pulse/default.pa
-echo 'load-module module-null-sink sink_name=koov_output' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_input' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_output' | sudo tee -a /etc/pulse/default.pa
 
 # 4. Start PulseAudio
 pulseaudio --start
 
 # 5. Verify audio devices
-pactl list sinks | grep -A 5 koov
+pactl list sinks | grep -A 5 mechus
 
 # 6. Set up Xvfb for headless display
 export DISPLAY=:99
@@ -148,8 +148,8 @@ Xvfb :99 -screen 0 1024x768x24 &
 2. **Browser opens** (headless, via Xvfb)
 3. **Auto-clicks Join** (Selenium automation)
 4. **Audio flows** through virtual PulseAudio devices
-5. **Koov processes** audio from virtual device
-6. **Koov responds** through virtual device to browser
+5. **Mechus processes** audio from virtual device
+6. **Mechus responds** through virtual device to browser
 7. **Browser sends** audio to meeting
 
 ### Audio Device Flow
@@ -158,14 +158,14 @@ Xvfb :99 -screen 0 1024x768x24 &
 Meeting Platform (Zoom/Meet)
     ↓ (audio stream)
 Browser (headless, in cloud)
-    ↓ (selects koov_input as microphone)
-PulseAudio Virtual Sink (koov_input)
+    ↓ (selects mechus_input as microphone)
+PulseAudio Virtual Sink (mechus_input)
     ↓
-Koov Agent (listens)
+Mechus Agent (listens)
     ↓ (processes, generates response)
-Koov Agent (speaks)
+Mechus Agent (speaks)
     ↓
-PulseAudio Virtual Sink (koov_output)
+PulseAudio Virtual Sink (mechus_output)
     ↓ (browser selects as speaker)
 Browser
     ↓ (sends to meeting)
@@ -207,16 +207,16 @@ Meeting Platform
 
 ```bash
 # Audio devices (virtual)
-KOOV_INPUT_DEVICE=koov_input
-KOOV_OUTPUT_DEVICE=koov_output
+MECHUS_INPUT_DEVICE=mechus_input
+MECHUS_OUTPUT_DEVICE=mechus_output
 
 # Browser
-KOOV_SHOW_BROWSER=false  # Always headless in cloud
+MECHUS_SHOW_BROWSER=false  # Always headless in cloud
 DISPLAY=:99  # Xvfb virtual display
 
 # API Server
-KOOV_API_HOST=0.0.0.0  # Listen on all interfaces
-KOOV_API_PORT=5000
+MECHUS_API_HOST=0.0.0.0  # Listen on all interfaces
+MECHUS_API_PORT=5000
 ```
 
 ## Troubleshooting Cloud Audio
@@ -224,7 +224,7 @@ KOOV_API_PORT=5000
 **Audio not working:**
 ```bash
 # Check virtual audio devices exist
-pactl list sinks | grep koov
+pactl list sinks | grep mechus
 
 # Check PulseAudio is running
 pulseaudio --check

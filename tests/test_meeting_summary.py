@@ -7,7 +7,7 @@ Covers:
 - generated_at ISO format
 - merge_final_report_into_summary
 - _fallback_summary_from_state (action items / decisions / open questions)
-- list_past_meetings via KoovAgent.list_past_meetings
+- list_past_meetings via MechusAgent.list_past_meetings
 - Sample meeting scenario (product launch + hiring discussion)
 """
 
@@ -21,7 +21,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from koov.meeting_summary import (
+from mechus.meeting_summary import (
     _dedupe_strings,
     _even_time_sample,
     _fallback_summary_from_state,
@@ -38,7 +38,7 @@ from koov.meeting_summary import (
     read_final_summary,
     write_final_summary,
 )
-from koov.meeting_store import StoredChunk
+from mechus.meeting_store import StoredChunk
 
 
 # ---------------------------------------------------------------------------
@@ -600,8 +600,8 @@ class TestFullSampleMeetingPipeline:
         assert loaded["open_questions"]
 
     def test_list_past_meetings_returns_title(self, tmp_path) -> None:
-        """KoovAgent.list_past_meetings should expose the title field."""
-        from koov.agent import KoovAgent
+        """MechusAgent.list_past_meetings should expose the title field."""
+        from mechus.agent import MechusAgent
 
         # Write two sample summaries
         for i, title in enumerate(["Q3 Roadmap Review", "Hiring Kickoff"], start=1):
@@ -616,8 +616,8 @@ class TestFullSampleMeetingPipeline:
             }
             write_final_summary(mid, summary, base_dir=str(tmp_path))
 
-        with patch.dict(os.environ, {"KOOV_MEETING_STORE_DIR": str(tmp_path)}):
-            meetings = KoovAgent.list_past_meetings()
+        with patch.dict(os.environ, {"MECHUS_MEETING_STORE_DIR": str(tmp_path)}):
+            meetings = MechusAgent.list_past_meetings()
 
         assert len(meetings) == 2
         titles = {m.get("title") for m in meetings}
@@ -625,7 +625,7 @@ class TestFullSampleMeetingPipeline:
         assert "Hiring Kickoff" in titles
 
     def test_list_past_meetings_excludes_current(self, tmp_path) -> None:
-        from koov.agent import KoovAgent
+        from mechus.agent import MechusAgent
 
         for i in range(3):
             mid = f"meeting-{i:03d}"
@@ -639,8 +639,8 @@ class TestFullSampleMeetingPipeline:
             }
             write_final_summary(mid, summary, base_dir=str(tmp_path))
 
-        with patch.dict(os.environ, {"KOOV_MEETING_STORE_DIR": str(tmp_path)}):
-            meetings = KoovAgent.list_past_meetings(exclude_meeting_id="meeting-001")
+        with patch.dict(os.environ, {"MECHUS_MEETING_STORE_DIR": str(tmp_path)}):
+            meetings = MechusAgent.list_past_meetings(exclude_meeting_id="meeting-001")
 
         ids = {m["meeting_id"] for m in meetings}
         assert "meeting-001" not in ids
@@ -656,7 +656,7 @@ class TestFullSampleMeetingPipeline:
             mode="state",
         )
         result["interactions"] = [
-            {"user_query": "What did we decide?", "koov_response": "July 15 launch.", "ts": time.time()}
+            {"user_query": "What did we decide?", "mechus_response": "July 15 launch.", "ts": time.time()}
         ]
         write_final_summary(meeting_id, result, base_dir=str(tmp_path))
         loaded = read_final_summary(meeting_id, base_dir=str(tmp_path))
@@ -887,9 +887,9 @@ class TestNormalizeQuestions:
 
 
 class TestJunkActionItems:
-    def test_koov_qa_not_action_items(self) -> None:
+    def test_mechus_qa_not_action_items(self) -> None:
         out = _normalize_action_items([
-            {"owner": "Sahasra", "task": "ask Koov to tell more about the solar system"},
+            {"owner": "Sahasra", "task": "ask Mechus to tell more about the solar system"},
             {"owner": "Sahasra", "task": "clarify audio issues"},
             {"owner": "Priya", "task": "send the pricing deck to Sarah"},
         ])

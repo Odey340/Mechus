@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import unittest
 
-from koov.command_router import _HELP_REPLIES
-from koov.dialog_memory import (
+from mechus.command_router import _HELP_REPLIES
+from mechus.dialog_memory import (
     is_interrupt_request,
     is_lone_proper_name,
     is_repeat_request,
     is_transcript_backchannel,
     qualifies_as_transcript_followup_without_wake,
 )
-from koov.wake_detector import (
+from mechus.wake_detector import (
     detect_wake,
     is_false_address_use,
     is_incomplete_transcript_command,
@@ -26,7 +26,7 @@ from koov.wake_detector import (
     line_has_explicit_wake_token,
     strip_wake_phrase_last,
 )
-from koov.intent_classifier import (
+from mechus.intent_classifier import (
     INTENT_GENERAL,
     INTENT_GREETING,
     INTENT_HELP,
@@ -36,7 +36,7 @@ from koov.intent_classifier import (
     classify_pipeline_intent,
     _is_presence_check,
 )
-_WAKE = ("hey computer", "computer", "koov")
+_WAKE = ("hey computer", "computer", "mechus")
 
 
 def _qualifies_as_transcript_followup(raw_speech: str) -> bool:
@@ -125,7 +125,7 @@ class TestIncompleteTranscriptCommands(unittest.TestCase):
         self.assertTrue(is_incomplete_transcript_command("can you"))
         self.assertFalse(
             qualifies_as_directed_transcript_wake(
-                normalize_for_wake("hey koov can you"),
+                normalize_for_wake("hey mechus can you"),
                 _WAKE,
                 max_dist=2,
                 max_leading_words_before_wake=4,
@@ -136,7 +136,7 @@ class TestIncompleteTranscriptCommands(unittest.TestCase):
         self.assertFalse(is_incomplete_transcript_command("can you hear me"))
         self.assertTrue(
             qualifies_as_directed_transcript_wake(
-                normalize_for_wake("koov can you hear me"),
+                normalize_for_wake("mechus can you hear me"),
                 _WAKE,
                 max_dist=2,
                 max_leading_words_before_wake=2,
@@ -147,7 +147,7 @@ class TestIncompleteTranscriptCommands(unittest.TestCase):
         self.assertTrue(is_incomplete_transcript_command("can you tell me a little bit more"))
         self.assertFalse(
             qualifies_as_directed_transcript_wake(
-                normalize_for_wake("hey kuv can you tell me a little bit more"),
+                normalize_for_wake("hey mekkus can you tell me a little bit more"),
                 _WAKE,
                 max_dist=2,
                 max_leading_words_before_wake=4,
@@ -179,13 +179,13 @@ class TestRepeatRequest(unittest.TestCase):
         self.assertTrue(_qualifies_as_transcript_followup("repeat that"))
 
     def test_summarize_meeting_requires_wake(self) -> None:
-        from koov.dialog_memory import qualifies_as_transcript_followup_without_wake
+        from mechus.dialog_memory import qualifies_as_transcript_followup_without_wake
 
         self.assertFalse(qualifies_as_transcript_followup_without_wake("summarize the meeting"))
         self.assertFalse(_qualifies_as_transcript_followup("summarize the meeting"))
 
     def test_what_are_those_not_wakeless_followup(self) -> None:
-        from koov.dialog_memory import qualifies_as_transcript_followup_without_wake
+        from mechus.dialog_memory import qualifies_as_transcript_followup_without_wake
 
         self.assertFalse(qualifies_as_transcript_followup_without_wake("what are those"))
         self.assertFalse(
@@ -197,7 +197,7 @@ class TestRepeatRequest(unittest.TestCase):
     def test_repeat_with_wake_qualifies_directed(self) -> None:
         self.assertTrue(
             qualifies_as_directed_transcript_wake(
-                normalize_for_wake("hey koov can you repeat that"),
+                normalize_for_wake("hey mechus can you repeat that"),
                 _WAKE,
                 max_dist=2,
                 max_leading_words_before_wake=4,
@@ -229,7 +229,7 @@ class TestRepeatRequest(unittest.TestCase):
         self.assertTrue(is_incomplete_transcript_command("talk to me about"))
         self.assertFalse(
             qualifies_as_directed_transcript_wake(
-                normalize_for_wake("koov talk to me about"),
+                normalize_for_wake("mechus talk to me about"),
                 _WAKE,
                 max_dist=2,
                 max_leading_words_before_wake=2,
@@ -262,7 +262,7 @@ class TestRepeatRequest(unittest.TestCase):
             )
 
     def test_generic_room_questions_not_followup(self) -> None:
-        """Humans asking each other must not wake Koov without the wake phrase."""
+        """Humans asking each other must not wake Mechus without the wake phrase."""
         for line in (
             "what's the deadline for the project?",
             "how do we deploy to production?",
@@ -278,7 +278,7 @@ class TestRepeatRequest(unittest.TestCase):
         self.assertTrue(_qualifies_as_transcript_followup("how big is it?"))
         self.assertTrue(_qualifies_as_transcript_followup("what about that?"))
 
-    def test_directed_tell_me_followup_after_koov(self) -> None:
+    def test_directed_tell_me_followup_after_mechus(self) -> None:
         self.assertTrue(
             _qualifies_as_transcript_followup("tell me about the solar system")
         )
@@ -369,7 +369,7 @@ class TestTranscriptWakeQualifyScope(unittest.TestCase):
 
 
 class TestMeetingActionWakeAllowed(unittest.TestCase):
-    """Mirror of KoovAgent._meeting_action_wake_allowed to lock in 'when to talk' rules."""
+    """Mirror of MechusAgent._meeting_action_wake_allowed to lock in 'when to talk' rules."""
 
     HESITATION = frozenset({
         "wait", "hold on", "hang on", "one sec", "one second", "one moment",
@@ -413,7 +413,7 @@ class TestMeetingActionWakeAllowed(unittest.TestCase):
         self.assertTrue(self._allow("computer can you hear me"))
 
     def test_bare_wake_only_blocked(self) -> None:
-        for line in ("koov", "hey koov", "Koov", "Hey koov"):
+        for line in ("mechus", "hey mechus", "Mechus", "Hey mechus"):
             self.assertFalse(self._allow(line), msg=line)
 
     def test_real_question_allowed(self) -> None:
@@ -440,45 +440,45 @@ class TestMeetingActionWakeAllowed(unittest.TestCase):
 
 
 class TestTranscriptWakeSttAliases(unittest.TestCase):
-    _KOov_ONLY = ("koov",)
+    _Mechus_ONLY = ("mechus",)
 
-    def test_kuv_detects_koov_wake(self) -> None:
-        n = normalize_for_wake("kuv can you recap the meeting")
+    def test_kuv_detects_mechus_wake(self) -> None:
+        n = normalize_for_wake("mekkus can you recap the meeting")
         self.assertTrue(detect_wake(n, _WAKE, max_dist=2))
-        # Production uses MAX_DIST=1; kuv is 2 fuzzy edits from koov — alias path.
-        self.assertTrue(detect_wake(n, ("koov",), max_dist=1))
+        # Production uses MAX_DIST=1; mekkus is 2 fuzzy edits from mechus — alias path.
+        self.assertTrue(detect_wake(n, ("mechus",), max_dist=1))
 
-    def test_hoov_detects_koov_wake(self) -> None:
-        n = normalize_for_wake("hoov can you hear me")
+    def test_hoov_detects_mechus_wake(self) -> None:
+        n = normalize_for_wake("mechis can you hear me")
         self.assertTrue(detect_wake(n, _WAKE, max_dist=2))
-        self.assertTrue(detect_wake(n, ("koov",), max_dist=1))
+        self.assertTrue(detect_wake(n, ("mechus",), max_dist=1))
 
-    def test_common_stt_mishears_qualify_with_koov_only_phrase(self) -> None:
-        """Aliases + fuzzy matcher — no extra tokens in KOOV_WAKE_PHRASE."""
+    def test_common_stt_mishears_qualify_with_mechus_only_phrase(self) -> None:
+        """Aliases + fuzzy matcher — no extra tokens in MECHUS_WAKE_PHRASE."""
         for raw in (
-            "coov can you recap the meeting",
-            "koop what did we decide",
-            "kuv summarize action items",
-            "hoov can you hear me",
+            "meckus can you recap the meeting",
+            "mekus what did we decide",
+            "mekkus summarize action items",
+            "mechis can you hear me",
         ):
             n = normalize_for_wake(raw)
             with self.subTest(raw=raw):
                 self.assertTrue(
                     qualifies_as_directed_transcript_wake(
-                        n, self._KOov_ONLY, max_dist=2, max_leading_words_before_wake=10
+                        n, self._Mechus_ONLY, max_dist=2, max_leading_words_before_wake=10
                     ),
                     msg=raw,
                 )
 
     def test_kuv_qualifies_at_production_max_dist_one(self) -> None:
-        """Regression: Zoom STT 'kuv' must wake at KOOV_WAKE_TRANSCRIPT_MAX_DIST=1."""
-        n = normalize_for_wake("hey kuv whats the weather in india right now")
+        """Regression: Zoom STT 'mekkus' must wake at MECHUS_WAKE_TRANSCRIPT_MAX_DIST=1."""
+        n = normalize_for_wake("hey mekkus whats the weather in india right now")
         self.assertTrue(
             qualifies_as_directed_transcript_wake(
-                n, self._KOov_ONLY, max_dist=1, max_leading_words_before_wake=10
+                n, self._Mechus_ONLY, max_dist=1, max_leading_words_before_wake=10
             )
         )
-        self.assertTrue(line_has_explicit_wake_token(n, self._KOov_ONLY, max_dist=1))
+        self.assertTrue(line_has_explicit_wake_token(n, self._Mechus_ONLY, max_dist=1))
 
     def test_opinion_question_qualifies_after_computer(self) -> None:
         n = normalize_for_wake("computer whats your opinion on drake")
@@ -492,16 +492,16 @@ class TestTranscriptWakeSttAliases(unittest.TestCase):
 class TestPitchProductMentionGuard(unittest.TestCase):
     def test_pitch_lines_are_product_mentions(self) -> None:
         for line in (
-            "and these is allows for koop to be the intelligence layer for every meeting that you join",
-            "does does koov give you right it can help you manage your multi speaker flow",
-            "advantage that koov gives you as being efficient",
+            "and these is allows for mechus to be the intelligence layer for every meeting that you join",
+            "does does mechus give you right it can help you manage your multi speaker flow",
+            "advantage that mechus gives you as being efficient",
         ):
             self.assertTrue(is_product_mention_use(normalize_for_wake(line)), msg=line)
 
     def test_pitch_does_not_qualify_directed_wake(self) -> None:
         for line in (
-            "and these is allows for koop to be the intelligence layer for every meeting that you join",
-            "does does koov give you right it can help you manage your multi speaker flow",
+            "and these is allows for mechus to be the intelligence layer for every meeting that you join",
+            "does does mechus give you right it can help you manage your multi speaker flow",
         ):
             self.assertFalse(
                 qualifies_as_directed_transcript_wake(
@@ -565,7 +565,7 @@ class TestPitchProductMentionGuard(unittest.TestCase):
     def test_meta_discussion_suppressed(self) -> None:
         self.assertTrue(
             is_meta_wake_discussion(
-                normalize_for_wake("say computer bro not koov")
+                normalize_for_wake("say computer bro not mechus")
             )
         )
 
@@ -591,7 +591,7 @@ class TestPitchProductMentionGuard(unittest.TestCase):
             )
         )
 
-    def test_cool_does_not_fuzzy_wake_koov(self) -> None:
+    def test_cool_does_not_fuzzy_wake_mechus(self) -> None:
         line = "we should do a cool love me edit you know like the grok edits"
         n = normalize_for_wake(line)
         self.assertFalse(detect_wake(n, _WAKE, max_dist=2))
@@ -602,33 +602,23 @@ class TestPitchProductMentionGuard(unittest.TestCase):
             )
         )
 
-    def test_hey_cool_mishear_expands_to_koov_wake(self) -> None:
-        n = normalize_for_wake("hey cool tell me about the solar system")
-        self.assertIn("koov", n)
-        self.assertNotIn(" cool ", f" {n} ")
-        self.assertTrue(
-            qualifies_as_directed_transcript_wake(
-                n, ("koov",), max_dist=1, max_leading_words_before_wake=4
-            )
-        )
-
     def test_thats_cool_not_wake(self) -> None:
         n = normalize_for_wake("yeah that's cool")
         self.assertIn("cool", n)
-        self.assertFalse(detect_wake(n, ("koov",), max_dist=1))
+        self.assertFalse(detect_wake(n, ("mechus",), max_dist=1))
 
     def test_computer_on_line_counts_as_explicit_wake(self) -> None:
         n = normalize_for_wake("computer what is the difference between glasses")
         self.assertTrue(line_has_explicit_wake_token(n, _WAKE, max_dist=2))
 
-    def test_know_does_not_fuzzy_wake_koov_at_dist_one(self) -> None:
+    def test_know_does_not_fuzzy_wake_mechus_at_dist_one(self) -> None:
         n = normalize_for_wake("you know how we talked about the budget")
-        self.assertFalse(detect_wake(n, ("koov",), max_dist=1))
-        self.assertFalse(line_has_explicit_wake_token(n, ("koov",), max_dist=1))
+        self.assertFalse(detect_wake(n, ("mechus",), max_dist=1))
+        self.assertFalse(line_has_explicit_wake_token(n, ("mechus",), max_dist=1))
 
-    def test_coov_still_wakes_koov_at_dist_one(self) -> None:
-        n = normalize_for_wake("hey coov summarize the meeting")
-        self.assertTrue(detect_wake(n, ("koov",), max_dist=1))
+    def test_coov_still_wakes_mechus_at_dist_one(self) -> None:
+        n = normalize_for_wake("hey meckus summarize the meeting")
+        self.assertTrue(detect_wake(n, ("mechus",), max_dist=1))
 
 
 class TestStopIntentWithQuestion(unittest.TestCase):

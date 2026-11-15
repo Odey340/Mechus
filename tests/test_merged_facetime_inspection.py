@@ -5,19 +5,19 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from koov.chert_client import ChertConfig, classify_destination, mint_livekit_token
-from koov.inspection import Finding, LocalInspectionStore, list_findings, parse_findings
+from mechus.chert_client import ChertConfig, classify_destination, mint_livekit_token
+from mechus.inspection import Finding, LocalInspectionStore, list_findings, parse_findings
 
 
 def test_chert_config_accepts_existing_dashboard_env_names() -> None:
     env = {
-        "KOOV_CHERT_FACETIME_API_KEY": "api-key",
-        "KOOV_CHERT_PROJECT_ID": "project-1",
-        "KOOV_CHERT_FACETIME_LINE_ID": "line-1",
-        "KOOV_CHERT_FACETIME_BASE_URL": "https://chert.example/api/",
-        "KOOV_LIVEKIT_URL": "wss://livekit.example",
-        "KOOV_LIVEKIT_API_KEY": "lk-key",
-        "KOOV_LIVEKIT_API_SECRET": "lk-secret",
+        "MECHUS_CHERT_FACETIME_API_KEY": "api-key",
+        "MECHUS_CHERT_PROJECT_ID": "project-1",
+        "MECHUS_CHERT_FACETIME_LINE_ID": "line-1",
+        "MECHUS_CHERT_FACETIME_BASE_URL": "https://chert.example/api/",
+        "MECHUS_LIVEKIT_URL": "wss://livekit.example",
+        "MECHUS_LIVEKIT_API_KEY": "lk-key",
+        "MECHUS_LIVEKIT_API_SECRET": "lk-secret",
     }
     with patch.dict("os.environ", env, clear=True):
         config = ChertConfig.from_env()

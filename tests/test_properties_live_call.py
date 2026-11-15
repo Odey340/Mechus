@@ -1,14 +1,14 @@
 """The properties dashboard's FaceTime button starts the live Mechus call worker."""
 import pytest
 
-from koov import chert_client
-from koov.chert import facetime as ft
-from koov.estates import messaging, store
+from mechus import chert_client
+from mechus.chert import facetime as ft
+from mechus.estates import messaging, store
 
 CHERT_ENV = (
     "CHERT_API_KEY", "CHERT_PROJECT_ID", "CHERT_LINE_ID", "LIVEKIT_URL", "LIVEKIT_API_KEY", "LIVEKIT_API_SECRET",
-    "KOOV_CHERT_FACETIME_API_KEY", "KOOV_CHERT_PROJECT_ID", "KOOV_CHERT_FACETIME_LINE_ID", "KOOV_CHERT_LINE_ID",
-    "KOOV_CHERT_API_KEY", "KOOV_LIVEKIT_URL", "KOOV_LIVEKIT_API_KEY", "KOOV_LIVEKIT_API_SECRET",
+    "MECHUS_CHERT_FACETIME_API_KEY", "MECHUS_CHERT_PROJECT_ID", "MECHUS_CHERT_FACETIME_LINE_ID", "MECHUS_CHERT_LINE_ID",
+    "MECHUS_CHERT_API_KEY", "MECHUS_LIVEKIT_URL", "MECHUS_LIVEKIT_API_KEY", "MECHUS_LIVEKIT_API_SECRET",
 )
 
 
@@ -16,7 +16,7 @@ CHERT_ENV = (
 def env(monkeypatch, tmp_path):
     for name in CHERT_ENV:
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("KOOV_ESTATES_DIR", str(tmp_path / "estates"))
+    monkeypatch.setenv("MECHUS_ESTATES_DIR", str(tmp_path / "estates"))
     return monkeypatch
 
 
@@ -34,13 +34,13 @@ def test_dashboard_accepts_the_call_workers_env_names(env):
 
 
 def test_call_worker_accepts_the_dashboards_env_names(env):
-    env.setenv("KOOV_CHERT_FACETIME_API_KEY", "k")
-    env.setenv("KOOV_CHERT_PROJECT_ID", "p")
-    env.setenv("KOOV_CHERT_FACETIME_LINE_ID", "facetime-line")
-    env.setenv("KOOV_CHERT_LINE_ID", "imessage-line")
-    env.setenv("KOOV_LIVEKIT_URL", "wss://x")
-    env.setenv("KOOV_LIVEKIT_API_KEY", "lk")
-    env.setenv("KOOV_LIVEKIT_API_SECRET", "ls")
+    env.setenv("MECHUS_CHERT_FACETIME_API_KEY", "k")
+    env.setenv("MECHUS_CHERT_PROJECT_ID", "p")
+    env.setenv("MECHUS_CHERT_FACETIME_LINE_ID", "facetime-line")
+    env.setenv("MECHUS_CHERT_LINE_ID", "imessage-line")
+    env.setenv("MECHUS_LIVEKIT_URL", "wss://x")
+    env.setenv("MECHUS_LIVEKIT_API_KEY", "lk")
+    env.setenv("MECHUS_LIVEKIT_API_SECRET", "ls")
     cfg = chert_client.ChertConfig.from_env()
     assert cfg.missing() == []
     assert cfg.line_id == "facetime-line"  # not the iMessage line
@@ -89,8 +89,8 @@ def test_not_configured_and_bad_mode_are_refused_before_any_call(env):
 
 
 def test_imessage_questions_are_addressed_to_mechus(env):
-    from koov.estates import ai
+    from mechus.estates import ai
 
-    env.setenv("KOOV_ESTATES_FAKE_AI", "1")
-    assert ai.classify_message("Mechus, what did we agree about the oven?", has_media=False, role="tenant")["addressed_to_koov"] is True
-    assert ai.classify_message("Koov, what did we agree about the oven?", has_media=False, role="tenant")["addressed_to_koov"] is False
+    env.setenv("MECHUS_ESTATES_FAKE_AI", "1")
+    assert ai.classify_message("Mechus, what did we agree about the oven?", has_media=False, role="tenant")["addressed_to_mechus"] is True
+    assert ai.classify_message("Everyone, what did we agree about the oven?", has_media=False, role="tenant")["addressed_to_mechus"] is False

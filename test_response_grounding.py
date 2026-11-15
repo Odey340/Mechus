@@ -4,15 +4,15 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock
 
-from koov.intent import INTENT_GENERAL, INTENT_RECAP, classify_intent
-from koov.responder import (
+from mechus.intent import INTENT_GENERAL, INTENT_RECAP, classify_intent
+from mechus.responder import (
     HybridResponder,
     OpenAIResponder,
     ResponseInput,
     RuleResponder,
     pack_grounding_prompt_blocks,
 )
-from koov.retrieval import retrieve_for_question
+from mechus.retrieval import retrieve_for_question
 
 
 class TestPackGroundingPromptBlocks(unittest.TestCase):
@@ -82,9 +82,9 @@ class TestOpenAIGreetingUsesUtteranceIntent(unittest.TestCase):
     def test_greeting_short_circuit_ignores_wrong_bundle_intent(self) -> None:
         oa = OpenAIResponder(api_key="sk-test", max_response_words=1)
         inp = ResponseInput(
-            wake_phrase="koov",
-            wake_phrases=("koov",),
-            request_text="Wait sorry, Koov, are you there?",
+            wake_phrase="mechus",
+            wake_phrases=("mechus",),
+            request_text="Wait sorry, Mechus, are you there?",
             intent=INTENT_GENERAL,
         )
         out = oa.respond(inp)
@@ -105,8 +105,8 @@ class TestHybridPlaceholderFallback(unittest.TestCase):
         rules = RuleResponder(max_response_words=80)
         hybrid = HybridResponder(primary=FakePrimary(), fallback=rules)
         inp = ResponseInput(
-            wake_phrase="koov",
-            wake_phrases=("koov",),
+            wake_phrase="mechus",
+            wake_phrases=("mechus",),
             request_text="recap",
             context_text="Alex: We chose Tuesday.",
             memory_text="",

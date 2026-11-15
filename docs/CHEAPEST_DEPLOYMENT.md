@@ -1,6 +1,6 @@
-# Cheapest Way to Deploy Koov
+# Cheapest Way to Deploy Mechus
 
-This guide shows the absolute cheapest options for deploying Koov to the cloud.
+This guide shows the absolute cheapest options for deploying Mechus to the cloud.
 
 ## Cheapest Options Ranked
 
@@ -79,12 +79,12 @@ Follow steps 3-12 from `DEPLOY_AWS.md`, but note:
 **Optimizations for Free Tier:**
 ```bash
 # Use lighter models
-KOOV_WHISPER_MODEL=tiny.en  # Instead of base.en
-KOOV_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15  # Keep small
+MECHUS_WHISPER_MODEL=tiny.en  # Instead of base.en
+MECHUS_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15  # Keep small
 
 # Reduce memory usage
-KOOV_MEMORY_MAX_CHARS=10000  # Instead of 20000
-KOOV_MEMORY_RECENT_CHARS=2000  # Instead of 4000
+MECHUS_MEMORY_MAX_CHARS=10000  # Instead of 20000
+MECHUS_MEMORY_RECENT_CHARS=2000  # Instead of 4000
 ```
 
 ### 4. Monitor Free Tier Usage
@@ -117,7 +117,7 @@ If you want to skip free tier limitations:
    - **Plan:** Basic - $6/month (1 vCPU, 1 GB RAM)
    - **Datacenter:** Closest to you
    - **Authentication:** SSH keys (recommended)
-   - **Hostname:** koov-api
+   - **Hostname:** mechus-api
 
 3. **Create Droplet**
 
@@ -176,7 +176,7 @@ ssh -i your-key.pem ubuntu@your-ec2-ip
 # 3. Quick setup
 sudo apt update && sudo apt install -y python3.11 python3-pip git nodejs
 git clone your-repo
-cd koovdemo
+cd mechusdemo
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

@@ -1,6 +1,6 @@
 import pytest
 
-from koov.facetime_camera import (
+from mechus.facetime_camera import (
     FaceTimeCameraController,
     classify_camera_button,
     pick_camera_toggle,
@@ -54,7 +54,7 @@ def test_pick_toggle_reports_missing():
 class FakeDriver:
     """Minimal scripted WebDriver: answers by recognizing which script ran."""
 
-    def __init__(self, *, labels, selection="", controls=None, menu_hit="Koov Virtual Camera 1"):
+    def __init__(self, *, labels, selection="", controls=None, menu_hit="Mechus Virtual Camera 1"):
         self.labels = labels
         self.selection = selection
         self.controls = controls if controls is not None else [{"i": 0, "label": "Turn Camera On"}]
@@ -66,7 +66,7 @@ class FakeDriver:
         return list(self.labels)
 
     def execute_script(self, script, *args):
-        if "data-koov-cam-idx\"=" in script or "querySelector('[data-koov-cam-idx" in script:
+        if "data-mechus-cam-idx\"=" in script or "querySelector('[data-mechus-cam-idx" in script:
             idx = args[0]
             self.clicked.append(idx)
             # Toggling flips every control's reported state.
@@ -74,7 +74,7 @@ class FakeDriver:
                 low = c["label"].lower()
                 c["label"] = "Turn Camera Off" if "on" in low.split()[-1:] else "Turn Camera On"
             return True
-        if "setAttribute('data-koov-cam-idx'" in script:
+        if "setAttribute('data-mechus-cam-idx'" in script:
             return [dict(c) for c in self.controls]
         if "const value = root.querySelector('.value')" in script:
             return self.selection
@@ -93,33 +93,33 @@ def test_select_reports_not_enumerated():
     assert not state.selected
 
 
-def test_select_single_koov_camera_needs_no_menu():
-    state = FaceTimeCameraController(FakeDriver(labels=["Koov Virtual Camera 1"])).select()
+def test_select_single_mechus_camera_needs_no_menu():
+    state = FaceTimeCameraController(FakeDriver(labels=["Mechus Virtual Camera 1"])).select()
     assert state.selected and state.enumerated and not state.error_code
 
 
 def test_select_via_menu_when_multiple_cameras():
-    driver = FakeDriver(labels=["Other Cam", "Koov Virtual Camera 1"], selection="Other Cam")
+    driver = FakeDriver(labels=["Other Cam", "Mechus Virtual Camera 1"], selection="Other Cam")
     state = FaceTimeCameraController(driver).select()
     assert state.selected, state
 
 
 def test_select_fails_when_selector_hidden():
-    driver = FakeDriver(labels=["Other Cam", "Koov Virtual Camera 1"], selection="Other Cam")
+    driver = FakeDriver(labels=["Other Cam", "Mechus Virtual Camera 1"], selection="Other Cam")
     driver.selector_visible = False
     state = FaceTimeCameraController(driver).select()
     assert state.error_code == "camera_selector_failed"
 
 
 def test_set_enabled_turns_camera_on_and_verifies():
-    driver = FakeDriver(labels=["Koov Virtual Camera 1"])
+    driver = FakeDriver(labels=["Mechus Virtual Camera 1"])
     state = FaceTimeCameraController(driver).set_enabled(True)
     assert driver.clicked == [0]
     assert state.enabled and not state.error_code
 
 
 def test_set_enabled_is_noop_when_already_in_state():
-    driver = FakeDriver(labels=["Koov Virtual Camera 1"], controls=[{"i": 0, "label": "Turn Camera Off"}])
+    driver = FakeDriver(labels=["Mechus Virtual Camera 1"], controls=[{"i": 0, "label": "Turn Camera Off"}])
     state = FaceTimeCameraController(driver).set_enabled(True)
     assert driver.clicked == []
     assert state.enabled
@@ -127,7 +127,7 @@ def test_set_enabled_is_noop_when_already_in_state():
 
 def test_set_enabled_refuses_ambiguous_toggle():
     driver = FakeDriver(
-        labels=["Koov Virtual Camera 1"],
+        labels=["Mechus Virtual Camera 1"],
         controls=[{"i": 0, "label": "Turn Camera Off"}, {"i": 1, "label": "Turn Camera On"}],
     )
     state = FaceTimeCameraController(driver).set_enabled(False)

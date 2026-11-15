@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 
-from koov.audio import apply_f32_linear_fade_ends, truncate_f32_to_max_duration
+from mechus.audio import apply_f32_linear_fade_ends, truncate_f32_to_max_duration
 
 
 class TestTruncateNatural(unittest.TestCase):

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from koov.llm_stream import (
+from mechus.llm_stream import (
     SentenceBoundaryEmitter,
     SpokenJsonStreamer,
     parse_openai_sse_deltas,

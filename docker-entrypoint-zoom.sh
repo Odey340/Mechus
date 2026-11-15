@@ -18,19 +18,19 @@ _start_pulse() {
 
     # Stock default.pa loads udev/hardware modules that fail in Docker (no /dev/snd, no udev).
     # Use a minimal script: protocol socket + null sink/source only.
-    _pa_cfg="${XDG_RUNTIME_DIR}/koov-pulse.pa"
+    _pa_cfg="${XDG_RUNTIME_DIR}/mechus-pulse.pa"
     cat > "$_pa_cfg" <<'EOF'
 load-module module-native-protocol-unix auth-anonymous=1
-load-module module-null-sink sink_name=koov_null sink_properties=device.description=Koov-Virtual-Out
-load-module module-null-source source_name=koov_null_source source_properties=device.description=Koov-Virtual-In
-set-default-sink koov_null
-set-default-source koov_null_source
+load-module module-null-sink sink_name=mechus_null sink_properties=device.description=Mechus-Virtual-Out
+load-module module-null-source source_name=mechus_null_source source_properties=device.description=Mechus-Virtual-In
+set-default-sink mechus_null
+set-default-source mechus_null_source
 EOF
 
-    _pa_err="${XDG_RUNTIME_DIR}/koov-pulse.err"
+    _pa_err="${XDG_RUNTIME_DIR}/mechus-pulse.err"
     : > "$_pa_err"
     if ! pulseaudio -D -n -F "$_pa_cfg" --exit-idle-time=-1 --log-level=warn 2>>"$_pa_err"; then
-        echo "[Koov] pulseaudio -D failed; last messages:"
+        echo "[Mechus] pulseaudio -D failed; last messages:"
         tail -n 20 "$_pa_err" 2>/dev/null || true
     fi
 
@@ -40,12 +40,12 @@ EOF
     done
 
     if _pa_running; then
-        pactl set-default-sink   koov_null        2>/dev/null || true
-        pactl set-default-source koov_null_source 2>/dev/null || true
-        echo "[Koov] PulseAudio running — virtual null sink ready (no sound hardware needed)"
+        pactl set-default-sink   mechus_null        2>/dev/null || true
+        pactl set-default-source mechus_null_source 2>/dev/null || true
+        echo "[Mechus] PulseAudio running — virtual null sink ready (no sound hardware needed)"
     else
-        echo "[Koov] WARNING: PulseAudio did not start; Zoom raw-audio callbacks may not fire"
-        echo "[Koov] PulseAudio stderr (if any):"
+        echo "[Mechus] WARNING: PulseAudio did not start; Zoom raw-audio callbacks may not fire"
+        echo "[Mechus] PulseAudio stderr (if any):"
         cat "$_pa_err" 2>/dev/null || true
     fi
 }
@@ -65,6 +65,6 @@ if command -v pulseaudio >/dev/null 2>&1; then
         exec "$@"
     fi
 else
-    echo "[Koov] WARNING: pulseaudio not found; ALSA will use dummy PCM fallback"
+    echo "[Mechus] WARNING: pulseaudio not found; ALSA will use dummy PCM fallback"
     exec "$@"
 fi

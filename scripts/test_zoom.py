@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Test Zoom integration: link parsing and API flow (join → status → transcript → stop).
-Run with Koov API up (e.g. Docker): KOOV_API_URL=http://localhost:5001 python3 scripts/test_zoom.py
-Uses only stdlib so it runs without installing koov deps (e.g. sounddevice).
+Run with Mechus API up (e.g. Docker): MECHUS_API_URL=http://localhost:5001 python3 scripts/test_zoom.py
+Uses only stdlib so it runs without installing mechus deps (e.g. sounddevice).
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def parse_zoom_link(link: str) -> tuple[Optional[int], Optional[str]]:
 
 
 def main() -> None:
-    base = os.environ.get("KOOV_API_URL", "http://localhost:5001").rstrip("/")
+    base = os.environ.get("MECHUS_API_URL", "http://localhost:5001").rstrip("/")
     meeting_id = "zoom-test-" + str(hash(base) % 10**6)
 
     print("=== 1. Zoom link parsing (unit) ===")
@@ -66,7 +66,7 @@ def main() -> None:
         "meeting_link": zoom_link,
         "join_backend": "external",
         "meeting_id": meeting_id,
-        "display_name": "KoovTest",
+        "display_name": "MechusTest",
     }
 
     # Join

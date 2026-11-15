@@ -15,7 +15,7 @@ Dev: Right. So maybe we stick with the old one for phase one.
 Sam: Actually ignore what I said earlier. Let's stay on the old API until batch is ready.
 Lina: So we're not switching to the new API?
 Sam: Not for now. Old API, phase one. New when batch ships.
-Koov, what did we decide about the API?
+Mechus, what did we decide about the API?
 Dev: Budget question. Did we ever get a number from finance?
 Omar: They mentioned something like forty. Or was it fifty.
 Lina: I have forty in my notes. Sam you had fifty.
@@ -31,7 +31,7 @@ Sam: Let's table the security review for now. We'll pick it up after the pilot.
 Dev: So security review is postponed.
 Omar: And data retention?
 Sam: We'll decide later. Too many unknowns.
-Koov, what are the action items?
+Mechus, what are the action items?
 Lina: So just to be clear we're on old API and migration timeline is TBD.
 Sam: Pretty much. Omar you're checking with infra for March.
 Omar: I'll reach out today.
@@ -57,7 +57,7 @@ Omar: So runbook Lina, vendor comparison Lina, migration doc Dev, infra check me
 Lina: I didn't commit to a date. I said I'd handle it.
 Sam: Can we have runbook by end of next week.
 Lina: I'll try. I've got the vendor thing too.
-Koov, what questions are still open?
+Mechus, what questions are still open?
 Dev: We still need to figure out who runs the pilot.
 Sam: Good point. That's still open.
 Omar: And the forty vs fifty from finance.
@@ -75,12 +75,12 @@ Sam: Legal is handling it. We just need to give them a date when we have one.
 Dev: So timeline is still the big open item. And pilot owner.
 Omar: And budget. Forty or fifty changes a lot.
 Sam: I'll get the number. Friday.
-Koov, what are we even doing?
+Mechus, what are we even doing?
 Dev: We're trying to lock migration scope and owners. That's what we're doing.
 Lina: And decisions. API, tier, what's postponed.
 Omar: Right. So. Old API, standard tier for pilot, security and data retention and pricing tier postponed. Runbook and vendor comp with Lina, migration doc Dev, infra and pilot maybe me.
 Sam: And budget from me by Friday. Good.
-Koov, what did we decide about the API again?
+Mechus, what did we decide about the API again?
 Dev: I'm still worried we're going to regret staying on old API.
 Sam: We've been over this. Old API until batch is ready.
 Omar: What if batch slips. Then we're stuck.
@@ -96,7 +96,7 @@ Lina: What about the kickoff. Do we need a separate meeting for that.
 Dev: Probably. Or we could do it async. Open question I guess.
 Omar: I'd say we need one sync before we start. Who sets that up.
 Sam: We can figure that out. Add it to the list. Open items: pilot owner, budget, kickoff owner, timeline.
-Koov, give us a quick recap.
+Mechus, give us a quick recap.
 Omar: One more thing. Actually ignore what I said earlier about running the pilot. I might be in another project.
 Sam: So pilot owner is open again.
 Lina: Great.

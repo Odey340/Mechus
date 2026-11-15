@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run Koov in Docker with Zoom SDK (Koov joins the meeting and gets audio in the container).
+# Run Mechus in Docker with Zoom SDK (Mechus joins the meeting and gets audio in the container).
 # Usage: ./docker-compose-zoom.sh up -d --build   or   ./docker-compose-zoom.sh up --build
 # Requires ZOOM_APP_CLIENT_ID and ZOOM_APP_CLIENT_SECRET in .env.
 

@@ -6,7 +6,7 @@ The right metric is **cost per simultaneous meeting**, not "cheapest server." A 
 
 ## What determines how many meetings one server can run
 
-A Koov bot server uses resources for:
+A Mechus bot server uses resources for:
 
 1. Zoom SDK bot process  
 2. Audio buffering and streaming  
@@ -33,7 +33,7 @@ So one server can realistically handle **multiple meetings**.
 
 ---
 
-## Current Koov AI stack (variable costs)
+## Current Mechus AI stack (variable costs)
 
 The **server** runs Zoom SDK + audio buffering. The **variable cost per meeting** comes from external APIs:
 
@@ -119,7 +119,7 @@ To push **15+ meetings** on a similar-sized server, separate:
 ```
 Zoom Meeting
       ↓
-Koov Bot Server (Zoom SDK, audio buffers)
+Mechus Bot Server (Zoom SDK, audio buffers)
       ↓
 Audio stream
       ↓
@@ -134,7 +134,7 @@ Then one server is mostly I/O and Zoom SDK; CPU/RAM per meeting drop, so you can
 
 ---
 
-## Recommended starting point for Koov
+## Recommended starting point for Mechus
 
 | Phase   | Server       | Specs           | Cost     | Capacity   |
 |---------|--------------|-----------------|----------|------------|
@@ -166,5 +166,5 @@ Multiple bot containers/processes run on **one** server; load balancer uses stic
 - **30–50 bots per server (dumb bot + scheduler + host agent):** [SCALABLE_BOT_ARCHITECTURE.md](SCALABLE_BOT_ARCHITECTURE.md) — required reading if you want high concurrency without burning money or random bot deaths.  
 - **Provisioning and security:** [PRODUCTION.md](PRODUCTION.md)  
 - **Multiple meetings in one API:** [MULTIPLE_MEETINGS_SETUP.md](MULTIPLE_MEETINGS_SETUP.md)  
-- **Zoom SDK on Linux:** [KOOV_HEAR_ME.md](KOOV_HEAR_ME.md), [AUDIO_WITHOUT_RTMS.md](AUDIO_WITHOUT_RTMS.md)  
+- **Zoom SDK on Linux:** [MECHUS_HEAR_ME.md](MECHUS_HEAR_ME.md), [AUDIO_WITHOUT_RTMS.md](AUDIO_WITHOUT_RTMS.md)  
 - **Low-cost but low-capacity options (e.g. 1–2 meetings):** [CHEAPEST_DEPLOYMENT.md](CHEAPEST_DEPLOYMENT.md) — use when you only need a single bot; for multiple meetings, cost per meeting is better with the sizing above.

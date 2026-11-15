@@ -1,4 +1,4 @@
-# Override to run Koov with Zoom SDK (join without browser).
+# Override to run Mechus with Zoom SDK (join without browser).
 # Usage (from repo root, Mac or Linux):
 #   docker compose -f docker-compose.yml -f docker-compose.zoom.yml up -d --build --force-recreate
 # Set ZOOM_APP_CLIENT_ID and ZOOM_APP_CLIENT_SECRET in .env (Zoom Meeting SDK app).
@@ -9,119 +9,119 @@
 # If you DO have /dev/snd on the host and want real audio pass-through, uncomment the devices/group_add lines.
 
 services:
-  koov:
-    image: koov-zoom
+  mechus:
+    image: mechus-zoom
     platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile.zoom
       # platforms (linux/amd64) omitted for docker-compose v1 compatibility on some hosts; add back if using "docker compose" (v2)
     environment:
-      - KOOV_JOIN_BACKEND=zoom_sdk
-      - KOOV_VOSK_MODEL_PATH=/app/models/vosk-model-small-en-us-0.15
-      # Wake word: "koov" only. STT mishears (kuv, coov, koop, hoov) match via fuzzy
+      - MECHUS_JOIN_BACKEND=zoom_sdk
+      - MECHUS_VOSK_MODEL_PATH=/app/models/vosk-model-small-en-us-0.15
+      # Wake word: "mechus" only. STT mishears (kuv, coov, koop, hoov) match via fuzzy
       # Levenshtein in wake_detector.py — do not add bare "koo"/"coop" (false wakes).
-      - KOOV_WAKE_PHRASE=hey mechus,mechus
+      - MECHUS_WAKE_PHRASE=hey mechus,mechus
       # Fast time-to-first-audio: cached opener ack + gapless extend bridge during LLM.
-      - KOOV_LOW_LATENCY=1
-      - KOOV_WAKE_OPENER=1
-      - KOOV_WAKE_OPENER_MAX_AUDIO_S=0.45
-      - KOOV_WAKE_OPENER_EXTEND_CAP_S=18
-      - KOOV_THINKING_PREROLL=1
-      - KOOV_THINKING_PREROLL_TRANSCRIPT_STT=0
-      - KOOV_THINKING_PREROLL_TRANSCRIPT_ST_MAX_S=0.45
-      - KOOV_MIN_SILENCE_BEFORE_SPEAKING_TRANSCRIPT_ST_S=0
-      # Barge-in: any "Koov, …" or natural interrupt ("wait", "wrong") cuts a long reply.
-      - KOOV_TRANSCRIPT_BARGE_IN=1
-      - KOOV_TRANSCRIPT_BARGE_IN_STOP_ONLY=0
-      - KOOV_TTS_INTERRUPT_GRACE_MS=900
-      - KOOV_TTS_PHRASE_PAUSE_SCALE=1.45
-      - KOOV_TTS_PHRASE_MAX_CHARS=100
-      - KOOV_WAKE_SPOKEN_MAX_WORDS=18
-      - KOOV_WAKE_SPOKEN_MAX_CHARS=110
-      - KOOV_MAX_RESPONSE_WORDS=55
-      - KOOV_INTERRUPT_ON_SPEECH=0
-      - KOOV_INTERRUPT_ON_SPEECH_ZOOM=0
-      - KOOV_POST_TTS_TRANSCRIPT_WAKE_MUTE_S=0.8
-      - KOOV_WAKE_COOLDOWN_TRANSCRIPT_STT_S=1.0
-      - KOOV_WAKE_TRANSCRIPT_MAX_DIST=2
-      - KOOV_WAKE_TRANSCRIPT_MAX_LEADING_WORDS=8
-      - KOOV_FOLLOWUP_WINDOW_S=22
-      - KOOV_CONVERSATIONAL=0
+      - MECHUS_LOW_LATENCY=1
+      - MECHUS_WAKE_OPENER=1
+      - MECHUS_WAKE_OPENER_MAX_AUDIO_S=0.45
+      - MECHUS_WAKE_OPENER_EXTEND_CAP_S=18
+      - MECHUS_THINKING_PREROLL=1
+      - MECHUS_THINKING_PREROLL_TRANSCRIPT_STT=0
+      - MECHUS_THINKING_PREROLL_TRANSCRIPT_ST_MAX_S=0.45
+      - MECHUS_MIN_SILENCE_BEFORE_SPEAKING_TRANSCRIPT_ST_S=0
+      # Barge-in: any "Mechus, …" or natural interrupt ("wait", "wrong") cuts a long reply.
+      - MECHUS_TRANSCRIPT_BARGE_IN=1
+      - MECHUS_TRANSCRIPT_BARGE_IN_STOP_ONLY=0
+      - MECHUS_TTS_INTERRUPT_GRACE_MS=900
+      - MECHUS_TTS_PHRASE_PAUSE_SCALE=1.45
+      - MECHUS_TTS_PHRASE_MAX_CHARS=100
+      - MECHUS_WAKE_SPOKEN_MAX_WORDS=18
+      - MECHUS_WAKE_SPOKEN_MAX_CHARS=110
+      - MECHUS_MAX_RESPONSE_WORDS=55
+      - MECHUS_INTERRUPT_ON_SPEECH=0
+      - MECHUS_INTERRUPT_ON_SPEECH_ZOOM=0
+      - MECHUS_POST_TTS_TRANSCRIPT_WAKE_MUTE_S=0.8
+      - MECHUS_WAKE_COOLDOWN_TRANSCRIPT_STT_S=1.0
+      - MECHUS_WAKE_TRANSCRIPT_MAX_DIST=2
+      - MECHUS_WAKE_TRANSCRIPT_MAX_LEADING_WORDS=8
+      - MECHUS_FOLLOWUP_WINDOW_S=22
+      - MECHUS_CONVERSATIONAL=0
 
       # ── STT ──
-      # Batch HTTP scribe_v2 (reliable on Zoom); realtime WebSocket optional via KOOV_ELEVEN_STT_REALTIME=1.
-      - KOOV_STT_BACKEND=elevenlabs
-      - KOOV_ELEVEN_STT_REALTIME=0
-      - KOOV_ELEVEN_STT_MODEL=scribe_v2
+      # Batch HTTP scribe_v2 (reliable on Zoom); realtime WebSocket optional via MECHUS_ELEVEN_STT_REALTIME=1.
+      - MECHUS_STT_BACKEND=elevenlabs
+      - MECHUS_ELEVEN_STT_REALTIME=0
+      - MECHUS_ELEVEN_STT_MODEL=scribe_v2
 
       # ── TTS (ElevenLabs) — Flash v2.5 for live agents (~75ms); v3 is expressive but slower ──
-      - KOOV_ELEVEN_MODEL_ID=eleven_flash_v2_5
-      - KOOV_ELEVEN_AUDIO_TAGS=0
-      - KOOV_ELEVEN_TTS_LATENCY_OPT=2
-      - KOOV_ELEVEN_TTS_STREAM=1
-      - KOOV_ELEVEN_TTS_SPEED=0.90
-      - KOOV_ELEVEN_TTS_STYLE=0.38
-      - KOOV_ELEVEN_TTS_STABILITY=0.55
-      - KOOV_MIN_SILENCE_BEFORE_SPEAKING_INSTANT_S=0
+      - MECHUS_ELEVEN_MODEL_ID=eleven_flash_v2_5
+      - MECHUS_ELEVEN_AUDIO_TAGS=0
+      - MECHUS_ELEVEN_TTS_LATENCY_OPT=2
+      - MECHUS_ELEVEN_TTS_STREAM=1
+      - MECHUS_ELEVEN_TTS_SPEED=0.90
+      - MECHUS_ELEVEN_TTS_STYLE=0.38
+      - MECHUS_ELEVEN_TTS_STABILITY=0.55
+      - MECHUS_MIN_SILENCE_BEFORE_SPEAKING_INSTANT_S=0
 
       # ── Recording mode: record_next waits for speech to START after wake ──
       # In one_shot mode the pre-roll seed ends recording after 0.5s silence, cutting off commands.
-      # In record_next mode Koov waits up to REQUEST_WAIT_SECONDS for live speech, then records fully.
-      - KOOV_REQUEST_MODE=record_next
+      # In record_next mode Mechus waits up to REQUEST_WAIT_SECONDS for live speech, then records fully.
+      - MECHUS_REQUEST_MODE=record_next
 
       # ── Timing ──
-      - KOOV_WAKE_COOLDOWN_S=3.0 # 3s cooldown between wake triggers
-      - KOOV_END_SILENCE_SECONDS=1.0 # 1s silence to end recording (allows brief mid-command pauses)
-      - KOOV_MIN_SILENCE_BEFORE_SPEAKING_S=0.2
-      - KOOV_REQUEST_WAIT_SECONDS=5.0 # wait up to 5s for speech to start after wake word
+      - MECHUS_WAKE_COOLDOWN_S=3.0 # 3s cooldown between wake triggers
+      - MECHUS_END_SILENCE_SECONDS=1.0 # 1s silence to end recording (allows brief mid-command pauses)
+      - MECHUS_MIN_SILENCE_BEFORE_SPEAKING_S=0.2
+      - MECHUS_REQUEST_WAIT_SECONDS=5.0 # wait up to 5s for speech to start after wake word
 
-      # ── Authentication: set KOOV_API_KEY on the host (or in .env) to require an API key ──
+      # ── Authentication: set MECHUS_API_KEY on the host (or in .env) to require an API key ──
       # Clients send the key as: X-API-Key: <key>  OR  Authorization: Bearer <key>
       # Leave unset (empty) to run without auth (dev/private networks only).
-      - KOOV_API_KEY=${KOOV_API_KEY:-}
+      - MECHUS_API_KEY=${MECHUS_API_KEY:-}
       # FaceTime generated virtual-camera pool. Devices are passed to sibling
       # workers by the host Docker daemon; this API container does not mount them.
-      - KOOV_FT_CAMERA_FEATURE=${KOOV_FT_CAMERA_FEATURE:-0}
-      - KOOV_FT_CAMERA_REQUIRED=${KOOV_FT_CAMERA_REQUIRED:-0}
-      - KOOV_FT_VIDEO_DEVICES=${KOOV_FT_VIDEO_DEVICES:-}
-      - KOOV_FT_VIDEO_WIDTH=${KOOV_FT_VIDEO_WIDTH:-640}
-      - KOOV_FT_VIDEO_HEIGHT=${KOOV_FT_VIDEO_HEIGHT:-360}
-      - KOOV_FT_VIDEO_FPS=${KOOV_FT_VIDEO_FPS:-12}
-      - KOOV_FT_CAMERA_AUTO_ON=${KOOV_FT_CAMERA_AUTO_ON:-0}
-      - KOOV_FT_CAMERA_DEFAULT_MODE=${KOOV_FT_CAMERA_DEFAULT_MODE:-avatar}
-      - KOOV_FT_VISION_ENABLED=${KOOV_FT_VISION_ENABLED:-0}
-      - KOOV_OPENAI_VISION_MODEL=${KOOV_OPENAI_VISION_MODEL:-}
-      - KOOV_FT_VISION_MAX_REQUESTS_PER_MINUTE=${KOOV_FT_VISION_MAX_REQUESTS_PER_MINUTE:-3}
-      - KOOV_FT_VISION_DETAIL=${KOOV_FT_VISION_DETAIL:-auto}
+      - MECHUS_FT_CAMERA_FEATURE=${MECHUS_FT_CAMERA_FEATURE:-0}
+      - MECHUS_FT_CAMERA_REQUIRED=${MECHUS_FT_CAMERA_REQUIRED:-0}
+      - MECHUS_FT_VIDEO_DEVICES=${MECHUS_FT_VIDEO_DEVICES:-}
+      - MECHUS_FT_VIDEO_WIDTH=${MECHUS_FT_VIDEO_WIDTH:-640}
+      - MECHUS_FT_VIDEO_HEIGHT=${MECHUS_FT_VIDEO_HEIGHT:-360}
+      - MECHUS_FT_VIDEO_FPS=${MECHUS_FT_VIDEO_FPS:-12}
+      - MECHUS_FT_CAMERA_AUTO_ON=${MECHUS_FT_CAMERA_AUTO_ON:-0}
+      - MECHUS_FT_CAMERA_DEFAULT_MODE=${MECHUS_FT_CAMERA_DEFAULT_MODE:-avatar}
+      - MECHUS_FT_VISION_ENABLED=${MECHUS_FT_VISION_ENABLED:-0}
+      - MECHUS_OPENAI_VISION_MODEL=${MECHUS_OPENAI_VISION_MODEL:-}
+      - MECHUS_FT_VISION_MAX_REQUESTS_PER_MINUTE=${MECHUS_FT_VISION_MAX_REQUESTS_PER_MINUTE:-3}
+      - MECHUS_FT_VISION_DETAIL=${MECHUS_FT_VISION_DETAIL:-auto}
 
       # ── LLM: required for recap/summary/action-item questions ──
-      # Set KOOV_OPENAI_API_KEY in .env or the host environment.
-      # If the key is absent, Koov falls back to rule-based answers only.
-      - KOOV_LLM_BACKEND=${KOOV_LLM_BACKEND:-openai}
-      - KOOV_OPENAI_API_KEY=${KOOV_OPENAI_API_KEY:-}
-      - KOOV_OPENAI_CHAT_MODEL=${KOOV_OPENAI_CHAT_MODEL:-gpt-4o-mini}
+      # Set MECHUS_OPENAI_API_KEY in .env or the host environment.
+      # If the key is absent, Mechus falls back to rule-based answers only.
+      - MECHUS_LLM_BACKEND=${MECHUS_LLM_BACKEND:-openai}
+      - MECHUS_OPENAI_API_KEY=${MECHUS_OPENAI_API_KEY:-}
+      - MECHUS_OPENAI_CHAT_MODEL=${MECHUS_OPENAI_CHAT_MODEL:-gpt-4o-mini}
 
       # ── TTS (ElevenLabs voice) ──
-      - KOOV_ELEVEN_API_KEY=${KOOV_ELEVEN_API_KEY:-}
-      - KOOV_ELEVEN_VOICE_ID=${KOOV_ELEVEN_VOICE_ID:-}
-      # Match Zoom virtual mic (32 kHz) so Koov does not resample 16 kHz TTS twice (clearer, less CPU).
-      - KOOV_ELEVEN_OUTPUT_FORMAT=${KOOV_ELEVEN_OUTPUT_FORMAT:-pcm_32000}
+      - MECHUS_ELEVEN_API_KEY=${MECHUS_ELEVEN_API_KEY:-}
+      - MECHUS_ELEVEN_VOICE_ID=${MECHUS_ELEVEN_VOICE_ID:-}
+      # Match Zoom virtual mic (32 kHz) so Mechus does not resample 16 kHz TTS twice (clearer, less CPU).
+      - MECHUS_ELEVEN_OUTPUT_FORMAT=${MECHUS_ELEVEN_OUTPUT_FORMAT:-pcm_32000}
 
       # PulseAudio socket path (user-mode PA inside the container; no host PA needed)
       - PULSE_SERVER=unix:${XDG_RUNTIME_DIR:-/tmp/pulse-runtime}/pulse/native
       # Host absolute path for `docker run -v` from inside this container (set by scripts/restart-on-server.sh).
-      - KOOV_NOTES_HOST_PATH=${KOOV_NOTES_HOST_PATH:-}
-      - KOOV_NOTES_DIR=/app/koov_notes
+      - MECHUS_NOTES_HOST_PATH=${MECHUS_NOTES_HOST_PATH:-}
+      - MECHUS_NOTES_DIR=/app/mechus_notes
       # Meeting store on the shared notes host path so the API reads the SAME
-      # final_summary.json that worker containers write (under /notes/koov_meetings).
+      # final_summary.json that worker containers write (under /notes/mechus_meetings).
       # This is what lets the dashboard receive the end-of-meeting summary and powers
       # cross-meeting memory (same link → remember last time).
-      - KOOV_MEETING_STORE_DIR=${KOOV_MEETING_STORE_DIR:-/app/koov_notes/koov_meetings}
+      - MECHUS_MEETING_STORE_DIR=${MECHUS_MEETING_STORE_DIR:-/app/mechus_notes/mechus_meetings}
     volumes:
       # Persist transcripts on a **host path** (not a named volume) so FaceTime workers spawned via
       # `docker run -v <hostPath>:/notes` mount the same directory as this API container.
-      - ${KOOV_HOST_NOTES_DIR:-./koov_notes}:/app/koov_notes
+      - ${MECHUS_HOST_NOTES_DIR:-./mechus_notes}:/app/mechus_notes
       # FaceTime worker mode (`join_backend=facetime_web`) spawns sibling containers from api_server.
       # Requires Docker CLI inside the image + host docker.sock + permission to access the socket.
       - /var/run/docker.sock:/var/run/docker.sock

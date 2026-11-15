@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.retrieval import retrieve_for_question
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.retrieval import retrieve_for_question
 
 
-@patch("koov.retrieval.classify_intent", return_value="general_query")
+@patch("mechus.retrieval.classify_intent", return_value="general_query")
 def test_general_retrieval_prefers_recent_chunks(mock_ci: MagicMock) -> None:
     eng = ContextIntegrityEngine(meeting_id="recency")
     eng.ingest_chunk("Early topic Innichen weather in India.", speaker_id="A", timestamp=1.0)
@@ -21,7 +21,7 @@ def test_general_retrieval_prefers_recent_chunks(mock_ci: MagicMock) -> None:
         memory=MagicMock(retrieve=MagicMock(return_value="")),
         max_chars=4000,
         dialog_last_user="weather in Chennai",
-        dialog_last_koov="It is sunny in Chennai.",
+        dialog_last_mechus="It is sunny in Chennai.",
     )
 
     ctx = b.formatted_context.lower()
@@ -30,7 +30,7 @@ def test_general_retrieval_prefers_recent_chunks(mock_ci: MagicMock) -> None:
     mock_ci.assert_called_once()
 
 
-@patch("koov.retrieval.classify_intent", return_value="general_query")
+@patch("mechus.retrieval.classify_intent", return_value="general_query")
 def test_last_ten_seconds_uses_recent_window(mock_ci: MagicMock) -> None:
     eng = ContextIntegrityEngine(meeting_id="ten_sec")
     eng.ingest_chunk("Old weather in India.", speaker_id="A", timestamp=1.0)
@@ -51,7 +51,7 @@ def test_last_ten_seconds_uses_recent_window(mock_ci: MagicMock) -> None:
     assert "weather" not in ctx or "india" not in ctx
 
 
-@patch("koov.retrieval.classify_intent", return_value="general_query")
+@patch("mechus.retrieval.classify_intent", return_value="general_query")
 def test_followup_includes_current_exchange(mock_ci: MagicMock) -> None:
     eng = ContextIntegrityEngine(meeting_id="exchange")
     eng.ingest_chunk("Some meeting line.", speaker_id="A", timestamp=1.0)
@@ -64,7 +64,7 @@ def test_followup_includes_current_exchange(mock_ci: MagicMock) -> None:
         max_chars=4000,
         retrieval_extra_meta={"wake_source": "transcript_followup"},
         dialog_last_user="what's the weather in Chennai",
-        dialog_last_koov="Sunny in Chennai with outage warnings.",
+        dialog_last_mechus="Sunny in Chennai with outage warnings.",
     )
 
     assert "Current exchange" in b.formatted_context

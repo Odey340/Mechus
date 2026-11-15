@@ -9,7 +9,7 @@ Let's debug step by step to find the issue.
 curl http://127.0.0.1:5000/health
 ```
 
-**Expected:** `{"status":"ok","service":"koov-api"}`
+**Expected:** `{"status":"ok","service":"mechus-api"}`
 
 **If this fails:**
 - API server is not running
@@ -21,7 +21,7 @@ curl http://127.0.0.1:5000/health
 
 **What you should see:**
 ```
-Starting Koov API server on 127.0.0.1:5000
+Starting Mechus API server on 127.0.0.1:5000
  * Running on http://127.0.0.1:5000
 ```
 
@@ -45,7 +45,7 @@ curl -X POST http://127.0.0.1:5000/api/join-meeting \
 ```json
 {
   "success": true,
-  "message": "Koov is joining the meeting",
+  "message": "Mechus is joining the meeting",
   "status": "starting",
   "meeting_link": "https://meet.google.com/test-123"
 }
@@ -54,7 +54,7 @@ curl -X POST http://127.0.0.1:5000/api/join-meeting \
 **Check the API server terminal** - you should see:
 ```
 Opening meeting link: https://meet.google.com/test-123
-Koov dormant. Wake phrase: computer
+Mechus dormant. Wake phrase: computer
 ```
 
 ## Step 4: Check for Common Issues
@@ -67,8 +67,8 @@ Koov dormant. Wake phrase: computer
 
 **Fix:**
 ```bash
-# Make sure you're in the koovdemo directory
-cd /Users/gurujaya/Documents/Coding/Visual\ Studio\ Code/koovdemo
+# Make sure you're in the mechusdemo directory
+cd /Users/gurujaya/Documents/Coding/Visual\ Studio\ Code/mechusdemo
 
 # Activate virtual environment
 source .venv/bin/activate
@@ -94,7 +94,7 @@ Address already in use
 lsof -i :5000
 
 # Kill it or use a different port
-export KOOV_API_PORT=5001
+export MECHUS_API_PORT=5001
 python3 scripts/start_api_server.py
 ```
 
@@ -106,20 +106,20 @@ python3 scripts/start_api_server.py
 
 **Fix:**
 1. Make sure API server is running
-2. Check `KOOV_API_URL` in dashboard `.env.local`:
+2. Check `MECHUS_API_URL` in dashboard `.env.local`:
    ```
-   KOOV_API_URL=http://127.0.0.1:5000
+   MECHUS_API_URL=http://127.0.0.1:5000
    ```
 3. If dashboard is on different machine, use actual IP:
    ```
-   KOOV_API_URL=http://192.168.1.100:5000
+   MECHUS_API_URL=http://192.168.1.100:5000
    ```
 
-### Issue D: Meeting Opens But Koov Doesn't Start
+### Issue D: Meeting Opens But Mechus Doesn't Start
 
 **Symptoms:**
 - Meeting opens in browser
-- But no "Koov dormant" message in logs
+- But no "Mechus dormant" message in logs
 - Status shows "stopped" or "error"
 
 **Check:**
@@ -127,8 +127,8 @@ python3 scripts/start_api_server.py
 2. Check `.env` file exists and has correct settings
 3. Verify audio devices are configured:
    ```
-   KOOV_INPUT_DEVICE=BlackHole 2ch
-   KOOV_OUTPUT_DEVICE=BlackHole 2ch
+   MECHUS_INPUT_DEVICE=BlackHole 2ch
+   MECHUS_OUTPUT_DEVICE=BlackHole 2ch
    ```
 
 ### Issue E: Signal Handler Error (Already Fixed)
@@ -140,7 +140,7 @@ ValueError: signal only works in main thread
 
 **Fix:** This should already be fixed. If you still see it:
 1. Stop the server (Ctrl+C)
-2. Pull latest code or verify the fix is in `koov/api_server.py`
+2. Pull latest code or verify the fix is in `mechus/api_server.py`
 3. Restart server
 
 ## Step 5: Check Dashboard Integration
@@ -167,26 +167,26 @@ ValueError: signal only works in main thread
 **Check `.env` file exists and has:**
 ```bash
 # Audio devices
-KOOV_INPUT_DEVICE=BlackHole 2ch
-KOOV_OUTPUT_DEVICE=BlackHole 2ch
+MECHUS_INPUT_DEVICE=BlackHole 2ch
+MECHUS_OUTPUT_DEVICE=BlackHole 2ch
 
 # Wake word
-KOOV_WAKE_PHRASE=computer
-KOOV_WAKE_BACKEND=vosk
-KOOV_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15
+MECHUS_WAKE_PHRASE=computer
+MECHUS_WAKE_BACKEND=vosk
+MECHUS_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15
 
 # STT
-KOOV_STT_BACKEND=faster-whisper
-KOOV_WHISPER_MODEL=base.en
+MECHUS_STT_BACKEND=faster-whisper
+MECHUS_WHISPER_MODEL=base.en
 
 # TTS (if using ElevenLabs)
-KOOV_TTS_BACKEND=elevenlabs
-KOOV_ELEVEN_API_KEY=your_key
-KOOV_ELEVEN_VOICE_ID=your_voice_id
+MECHUS_TTS_BACKEND=elevenlabs
+MECHUS_ELEVEN_API_KEY=your_key
+MECHUS_ELEVEN_VOICE_ID=your_voice_id
 
 # LLM (if using Ollama)
-KOOV_LLM_BACKEND=ollama
-KOOV_OLLAMA_MODEL=your_model
+MECHUS_LLM_BACKEND=ollama
+MECHUS_OLLAMA_MODEL=your_model
 ```
 
 ## Quick Diagnostic Script
@@ -195,7 +195,7 @@ Run this to check everything:
 
 ```bash
 #!/bin/bash
-echo "=== Koov Diagnostic ==="
+echo "=== Mechus Diagnostic ==="
 echo ""
 echo "1. Checking API server..."
 if curl -s http://127.0.0.1:5000/health > /dev/null; then
@@ -215,7 +215,7 @@ echo ""
 echo "3. Checking .env file..."
 if [ -f .env ]; then
   echo "✅ .env file exists"
-  if grep -q "KOOV_INPUT_DEVICE" .env; then
+  if grep -q "MECHUS_INPUT_DEVICE" .env; then
     echo "✅ Audio devices configured"
   else
     echo "⚠️  Audio devices not configured in .env"
@@ -263,9 +263,9 @@ If you see logs like:
 ```
 nanobind: leaked 15 instances!
 Worker (pid:19) was sent SIGSEGV!
-koovdemo_koov_1 exited with code 0
+mechusdemo_mechus_1 exited with code 0
 ```
 
 **What happened:** The container received SIGTERM (e.g. `docker stop`, closing the terminal, or VM reboot). The Zoom SDK’s Python bindings don’t tear down cleanly when the process is killed, so you get “nanobind leaked” and sometimes SIGSEGV during exit. The container has stopped.
 
-**What to do:** Restart the stack. From your Mac: `./run.sh deploy`. Or on the VM: `cd ~/koovdemo && docker-compose -f docker-compose.yml -f docker-compose.zoom.yml up -d`. The API will be back; the leak/SIGSEGV only occurs on shutdown, not during normal runs.
+**What to do:** Restart the stack. From your Mac: `./run.sh deploy`. Or on the VM: `cd ~/mechusdemo && docker-compose -f docker-compose.yml -f docker-compose.zoom.yml up -d`. The API will be back; the leak/SIGSEGV only occurs on shutdown, not during normal runs.

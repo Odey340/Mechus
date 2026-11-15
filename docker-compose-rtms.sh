@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run Koov + RTMS in Docker (API on 5001, RTMS webhook on 8080).
+# Run Mechus + RTMS in Docker (API on 5001, RTMS webhook on 8080).
 # Usage: ./docker-compose-rtms.sh up -d --build
 # Requires: ZM_RTMS_CLIENT, ZM_RTMS_SECRET (Zoom App). Optional: ZOOM_APP_CLIENT_ID/SECRET (Meeting SDK for TTS).
 # For webhooks to work locally: ngrok http 8080  ->  set Zoom App webhook to https://YOUR_NGROK_URL/webhook

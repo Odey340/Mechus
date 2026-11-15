@@ -1,4 +1,4 @@
-# Live follow-up evaluation (Koov)
+# Live follow-up evaluation (Mechus)
 
 Use this **after** automated tests pass (`pytest tests/`). Voice/STT adds noise; this pass confirms **user-visible** behavior.
 
@@ -6,7 +6,7 @@ Use this **after** automated tests pass (`pytest tests/`). Voice/STT adds noise;
 
 1. **Top retrieved context stays on-topic** — transcript snippets in the prompt match the thread (NIH, blockers, Sprint/H1B, etc.).
 2. **Vague follow-ups stop drifting** — “what about that?”, “the first one”, “same thing for H1B?” don’t jump to unrelated meeting content.
-3. **Answers feel continuous** — Koov refers to the prior turn naturally (optional: compare to a baseline build without dialog expansion).
+3. **Answers feel continuous** — Mechus refers to the prior turn naturally (optional: compare to a baseline build without dialog expansion).
 
 ## Suggested conversational checks (5–10 minutes)
 

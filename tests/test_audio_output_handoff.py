@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from koov.audio import AudioOutput
+from mechus.audio import AudioOutput
 
 
 class TestAudioOutputHandoff(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestAudioOutputHandoff(unittest.TestCase):
         with (
             patch.object(out, "_resolve_device", return_value="pulse"),
             patch.object(out, "_select_channels", return_value=1),
-            patch("koov.audio.sd.OutputStream", return_value=mock_stream) as mock_ctor,
+            patch("mechus.audio.sd.OutputStream", return_value=mock_stream) as mock_ctor,
         ):
             bridge = np.ones(160, dtype=np.float32) * 0.2
             out.play_streaming(
@@ -49,7 +49,7 @@ class TestAudioOutputHandoff(unittest.TestCase):
             with (
                 patch.object(out, "_resolve_device", return_value="pulse"),
                 patch.object(out, "_select_channels", return_value=1),
-                patch("koov.audio.sd.OutputStream") as mock_ctor,
+                patch("mechus.audio.sd.OutputStream") as mock_ctor,
             ):
                 inst = MagicMock()
                 mock_ctor.return_value = inst

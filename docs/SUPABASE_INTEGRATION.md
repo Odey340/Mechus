@@ -1,6 +1,6 @@
-# Supabase + Koov API Integration
+# Supabase + Mechus API Integration
 
-This guide shows how to integrate your Supabase-based dashboard with the Koov API server.
+This guide shows how to integrate your Supabase-based dashboard with the Mechus API server.
 
 ## Architecture Overview
 
@@ -13,16 +13,16 @@ This guide shows how to integrate your Supabase-based dashboard with the Koov AP
          │ HTTP Request                                                
          ▼                                                            
 ┌─────────────────┐                                                    
-│  Koov API Server │                                                    
-│  (Flask)        │────────▶ Starts Koov Agent ────▶ Joins Meeting
+│  Mechus API Server │                                                    
+│  (Flask)        │────────▶ Starts Mechus Agent ────▶ Joins Meeting
 └─────────────────┘                                                    
 ```
 
 **Key Points:**
 - **Dashboard** stores meetings in **Supabase** (your existing setup)
-- **Dashboard** calls **Koov API Server** when starting a meeting
-- **Koov API Server** doesn't need Supabase - it just needs the meeting link
-- **Dashboard** can update Supabase with Koov session status
+- **Dashboard** calls **Mechus API Server** when starting a meeting
+- **Mechus API Server** doesn't need Supabase - it just needs the meeting link
+- **Dashboard** can update Supabase with Mechus session status
 
 ## Complete Integration Example
 
@@ -65,34 +65,34 @@ export async function startMeeting(meetingId: string) {
     throw new Error('Failed to update meeting status');
   }
   
-  // 3. Call Koov API Server to start the session
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+  // 3. Call Mechus API Server to start the session
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   
   try {
-    const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+    const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         meeting_link: meeting.meeting_link,
-        display_name: 'Koov',
+        display_name: 'Mechus',
       }),
     });
     
-    const koovData = await response.json();
+    const mechusData = await response.json();
     
     if (!response.ok) {
-      // If Koov fails, update Supabase status to "failed"
+      // If Mechus fails, update Supabase status to "failed"
       await supabase
         .from('meetings')
         .update({
           status: 'failed',
-          error: koovData.error || 'Failed to start Koov session',
+          error: mechusData.error || 'Failed to start Mechus session',
         })
         .eq('id', meetingId);
       
-      throw new Error(koovData.error || 'Failed to start Koov session');
+      throw new Error(mechusData.error || 'Failed to start Mechus session');
     }
     
     // 4. Update Supabase with success status
@@ -100,14 +100,14 @@ export async function startMeeting(meetingId: string) {
       .from('meetings')
       .update({
         status: 'live', // or 'joining' if you want to wait for confirmation
-        koov_session_started_at: new Date().toISOString(),
+        mechus_session_started_at: new Date().toISOString(),
       })
       .eq('id', meetingId);
     
     return {
       success: true,
       meeting,
-      koov: koovData,
+      mechus: mechusData,
     };
     
   } catch (error) {
@@ -127,10 +127,10 @@ export async function startMeeting(meetingId: string) {
 
 ### 2. Create a Next.js API Route (Recommended)
 
-This keeps the Koov API URL server-side:
+This keeps the Mechus API URL server-side:
 
 ```typescript
-// app/api/meetings/[id]/start-koov/route.ts
+// app/api/meetings/[id]/start-mechus/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
@@ -172,33 +172,33 @@ export async function POST(
       })
       .eq('id', meetingId);
     
-    // Call Koov API
-    const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+    // Call Mechus API
+    const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
     
-    const koovResponse = await fetch(`${koovApiUrl}/api/join-meeting`, {
+    const mechusResponse = await fetch(`${mechusApiUrl}/api/join-meeting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         meeting_link: meeting.meeting_link,
-        display_name: 'Koov',
+        display_name: 'Mechus',
       }),
     });
     
-    const koovData = await koovResponse.json();
+    const mechusData = await mechusResponse.json();
     
-    if (!koovResponse.ok) {
+    if (!mechusResponse.ok) {
       // Update Supabase on failure
       await supabase
         .from('meetings')
         .update({
           status: 'failed',
-          error: koovData.error || 'Failed to start Koov',
+          error: mechusData.error || 'Failed to start Mechus',
         })
         .eq('id', meetingId);
       
-      return NextResponse.json(koovData, { status: koovResponse.status });
+      return NextResponse.json(mechusData, { status: mechusResponse.status });
     }
     
     // Update Supabase on success
@@ -206,18 +206,18 @@ export async function POST(
       .from('meetings')
       .update({
         status: 'live',
-        koov_session_started_at: new Date().toISOString(),
+        mechus_session_started_at: new Date().toISOString(),
       })
       .eq('id', meetingId);
     
     return NextResponse.json({
       success: true,
       meeting_id: meetingId,
-      koov: koovData,
+      mechus: mechusData,
     });
     
   } catch (error) {
-    console.error('Error starting Koov session:', error);
+    console.error('Error starting Mechus session:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -245,7 +245,7 @@ export function StartMeetingButton({ meetingId }: { meetingId: string }) {
     setError(null);
     
     try {
-      const response = await fetch(`/api/meetings/${meetingId}/start-koov`, {
+      const response = await fetch(`/api/meetings/${meetingId}/start-mechus`, {
         method: 'POST',
       });
       
@@ -272,7 +272,7 @@ export function StartMeetingButton({ meetingId }: { meetingId: string }) {
         disabled={loading}
         className="px-4 py-2 bg-blue-500 text-white rounded"
       >
-        {loading ? 'Starting...' : 'Start Koov Meeting'}
+        {loading ? 'Starting...' : 'Start Mechus Meeting'}
       </button>
       {error && (
         <p className="text-red-500 mt-2">{error}</p>
@@ -282,12 +282,12 @@ export function StartMeetingButton({ meetingId }: { meetingId: string }) {
 }
 ```
 
-### 4. Optional: Poll Koov Status and Update Supabase
+### 4. Optional: Poll Mechus Status and Update Supabase
 
-You can periodically check Koov status and sync it to Supabase:
+You can periodically check Mechus status and sync it to Supabase:
 
 ```typescript
-// app/api/meetings/[id]/sync-koov-status/route.ts
+// app/api/meetings/[id]/sync-mechus-status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
@@ -296,15 +296,15 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const meetingId = params.id;
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   const supabase = createClient();
   
   try {
-    // Get Koov status
-    const koovResponse = await fetch(`${koovApiUrl}/api/status`);
-    const koovStatus = await koovResponse.json();
+    // Get Mechus status
+    const mechusResponse = await fetch(`${mechusApiUrl}/api/status`);
+    const mechusStatus = await mechusResponse.json();
     
-    // Update Supabase based on Koov status
+    // Update Supabase based on Mechus status
     const statusMap: Record<string, string> = {
       'starting': 'joining',
       'running': 'live',
@@ -312,18 +312,18 @@ export async function POST(
       'error': 'failed',
     };
     
-    const supabaseStatus = statusMap[koovStatus.status] || meeting.status;
+    const supabaseStatus = statusMap[mechusStatus.status] || meeting.status;
     
     await supabase
       .from('meetings')
       .update({
         status: supabaseStatus,
-        koov_status: koovStatus.status,
-        koov_uptime_seconds: koovStatus.uptime_seconds,
+        mechus_status: mechusStatus.status,
+        mechus_uptime_seconds: mechusStatus.uptime_seconds,
       })
       .eq('id', meetingId);
     
-    return NextResponse.json({ success: true, koov_status: koovStatus });
+    return NextResponse.json({ success: true, mechus_status: mechusStatus });
     
   } catch (error) {
     return NextResponse.json(
@@ -336,13 +336,13 @@ export async function POST(
 
 ## Database Schema Addition (Optional)
 
-If you want to track Koov-specific data in Supabase, add these columns to your `meetings` table:
+If you want to track Mechus-specific data in Supabase, add these columns to your `meetings` table:
 
 ```sql
 ALTER TABLE meetings
-ADD COLUMN IF NOT EXISTS koov_session_started_at TIMESTAMP WITH TIME ZONE,
-ADD COLUMN IF NOT EXISTS koov_status TEXT,
-ADD COLUMN IF NOT EXISTS koov_uptime_seconds INTEGER;
+ADD COLUMN IF NOT EXISTS mechus_session_started_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS mechus_status TEXT,
+ADD COLUMN IF NOT EXISTS mechus_uptime_seconds INTEGER;
 ```
 
 ## Environment Variables
@@ -350,8 +350,8 @@ ADD COLUMN IF NOT EXISTS koov_uptime_seconds INTEGER;
 Add to your Next.js `.env.local`:
 
 ```bash
-# Koov API Server URL (running locally)
-KOOV_API_URL=http://127.0.0.1:5000
+# Mechus API Server URL (running locally)
+MECHUS_API_URL=http://127.0.0.1:5000
 
 # Your existing Supabase variables
 NEXT_PUBLIC_SUPABASE_URL=...
@@ -363,23 +363,23 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 1. **User clicks "Start Meeting"** in dashboard
 2. **Dashboard** reads meeting from Supabase
 3. **Dashboard** updates meeting status to `joining` in Supabase
-4. **Dashboard** calls Koov API Server with meeting link
-5. **Koov API Server** opens meeting in browser and starts Koov agent
+4. **Dashboard** calls Mechus API Server with meeting link
+5. **Mechus API Server** opens meeting in browser and starts Mechus agent
 6. **Dashboard** updates Supabase status to `live`
-7. **Dashboard** can poll Koov status and sync to Supabase
+7. **Dashboard** can poll Mechus status and sync to Supabase
 
 ## Key Benefits
 
-✅ **Separation of Concerns**: Supabase handles data, Koov API handles voice agent  
-✅ **No Direct Database Access Needed**: Koov API doesn't need Supabase credentials  
-✅ **Status Sync**: Dashboard can keep Supabase in sync with Koov status  
+✅ **Separation of Concerns**: Supabase handles data, Mechus API handles voice agent  
+✅ **No Direct Database Access Needed**: Mechus API doesn't need Supabase credentials  
+✅ **Status Sync**: Dashboard can keep Supabase in sync with Mechus status  
 ✅ **Error Handling**: Failures update Supabase appropriately  
 
 ## Troubleshooting
 
-**"Connection refused" to Koov API:**
-- Make sure the Koov API server is running: `python3 scripts/start_api_server.py`
-- Check the port matches your `KOOV_API_URL`
+**"Connection refused" to Mechus API:**
+- Make sure the Mechus API server is running: `python3 scripts/start_api_server.py`
+- Check the port matches your `MECHUS_API_URL`
 
 **Status not updating in Supabase:**
 - Check your Supabase RLS policies allow updates

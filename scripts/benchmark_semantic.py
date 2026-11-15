@@ -10,7 +10,7 @@ Usage:
   python3 scripts/benchmark_semantic.py --scenario default
   python3 scripts/benchmark_semantic.py --scenario hard
   python3 scripts/benchmark_semantic.py --all   # run all scenarios, print table
-  # Set KOOV_LLM_BACKEND=openai and KOOV_OPENAI_API_KEY for LLM answers.
+  # Set MECHUS_LLM_BACKEND=openai and MECHUS_OPENAI_API_KEY for LLM answers.
 """
 
 from __future__ import annotations

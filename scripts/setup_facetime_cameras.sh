@@ -18,7 +18,7 @@ kernel="$(uname -r)"
 apt-get update
 apt-get install -y "linux-headers-${kernel}" v4l2loopback-dkms v4l-utils
 
-raw_devices="${KOOV_FT_VIDEO_DEVICES:-/dev/video20,/dev/video21,/dev/video22,/dev/video23}"
+raw_devices="${MECHUS_FT_VIDEO_DEVICES:-/dev/video20,/dev/video21,/dev/video22,/dev/video23}"
 IFS=',' read -r -a device_paths <<< "$raw_devices"
 video_numbers=()
 labels=()
@@ -29,7 +29,7 @@ for raw in "${device_paths[@]}"; do
     exit 5
   fi
   video_numbers+=("${BASH_REMATCH[1]}")
-  labels+=("Koov Virtual Camera ${#video_numbers[@]}")
+  labels+=("Mechus Virtual Camera ${#video_numbers[@]}")
 done
 if [[ ${#video_numbers[@]} -eq 0 ]]; then
   echo "ERROR: no devices configured." >&2
@@ -39,10 +39,10 @@ fi
 numbers_csv="$(IFS=,; echo "${video_numbers[*]}")"
 labels_csv="$(IFS=,; echo "${labels[*]}")"
 install -d /etc/modprobe.d /etc/modules-load.d
-printf '%s\n' "v4l2loopback" > /etc/modules-load.d/koov-facetime-camera.conf
+printf '%s\n' "v4l2loopback" > /etc/modules-load.d/mechus-facetime-camera.conf
 printf '%s\n' \
   "options v4l2loopback devices=${#video_numbers[@]} video_nr=${numbers_csv} card_label=\"${labels_csv}\" exclusive_caps=1" \
-  > /etc/modprobe.d/koov-facetime-camera.conf
+  > /etc/modprobe.d/mechus-facetime-camera.conf
 
 if [[ -d /sys/module/v4l2loopback ]]; then
   echo "v4l2loopback is already loaded. Refusing to unload it automatically because active calls may own devices."
@@ -63,4 +63,4 @@ else
   fi
 fi
 
-KOOV_FT_VIDEO_DEVICES="$raw_devices" "$(dirname "$0")/verify_facetime_camera_host.sh"
+MECHUS_FT_VIDEO_DEVICES="$raw_devices" "$(dirname "$0")/verify_facetime_camera_host.sh"

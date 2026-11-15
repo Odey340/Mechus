@@ -6,7 +6,7 @@ import json
 import unittest
 from unittest.mock import patch
 
-from koov.personas import Persona
+from mechus.personas import Persona
 
 
 def _make_persona(
@@ -42,7 +42,7 @@ def _make_persona(
 
 def _run_respond(persona, request_text: str = "what's apple's earnings"):
     """Run OpenAIResponder.respond with a faked OpenAI HTTP roundtrip and capture the request body."""
-    from koov.responder import OpenAIResponder, ResponseInput
+    from mechus.responder import OpenAIResponder, ResponseInput
 
     responder = OpenAIResponder(api_key="test-key", model="gpt-4o-mini")
     captured: dict = {}
@@ -71,19 +71,19 @@ def _run_respond(persona, request_text: str = "what's apple's earnings"):
         retrieval_meta={},
         persona=persona,
     )
-    with patch("koov.http_pool.http_request", side_effect=_fake_http_request):
+    with patch("mechus.http_pool.http_request", side_effect=_fake_http_request):
         text = responder.respond(inp)
     return text, captured
 
 
 class TestPersonaPromptSwap(unittest.TestCase):
-    def test_custom_persona_replaces_koov_block(self) -> None:
+    def test_custom_persona_replaces_mechus_block(self) -> None:
         persona = _make_persona()
         text, captured = _run_respond(persona)
         sys_msg = captured["body"]["messages"][0]["content"]
-        # Custom system prompt is present; built-in Koov "live teammate" line is gone.
+        # Custom system prompt is present; built-in Mechus "live teammate" line is gone.
         self.assertIn("You are Penny", sys_msg)
-        self.assertNotIn("You are Koov", sys_msg)
+        self.assertNotIn("You are Mechus", sys_msg)
         # Refusal rules appear under Boundaries:
         self.assertIn("Boundaries:", sys_msg)
         self.assertIn("not a licensed financial advisor", sys_msg)
@@ -92,12 +92,12 @@ class TestPersonaPromptSwap(unittest.TestCase):
         self.assertIn("Priority:", sys_msg)
         self.assertTrue(text)
 
-    def test_default_persona_keeps_koov_block(self) -> None:
+    def test_default_persona_keeps_mechus_block(self) -> None:
         # Synthetic default persona — empty system_prompt + is_default=True.
         persona = Persona(
             id="default",
-            name="Koov",
-            wake_phrases=("koov",),
+            name="Mechus",
+            wake_phrases=("mechus",),
             voice_id="default-voice",
             model_id=None,
             system_prompt="",
@@ -133,8 +133,8 @@ class TestPersonaTemperatureAndTokens(unittest.TestCase):
 class TestPersonaToolGating(unittest.TestCase):
     def test_realtime_disabled_when_persona_has_no_realtime_tool(self) -> None:
         persona = _make_persona(tools=("stock_quote",))  # no realtime!
-        with patch("koov.realtime.needs_realtime", return_value=True) as mock_needs:
-            with patch("koov.realtime.fetch_realtime", return_value="should not appear"):
+        with patch("mechus.realtime.needs_realtime", return_value=True) as mock_needs:
+            with patch("mechus.realtime.fetch_realtime", return_value="should not appear"):
                 _text, captured = _run_respond(persona, "what's the weather")
         # When the tool is disabled, needs_realtime must NOT be called at all.
         mock_needs.assert_not_called()
@@ -143,8 +143,8 @@ class TestPersonaToolGating(unittest.TestCase):
 
     def test_realtime_enabled_when_persona_has_realtime_tool(self) -> None:
         persona = _make_persona(tools=("realtime",))
-        with patch("koov.realtime.needs_realtime", return_value=True):
-            with patch("koov.realtime.fetch_realtime", return_value="WEATHER: sunny 72F"):
+        with patch("mechus.realtime.needs_realtime", return_value=True):
+            with patch("mechus.realtime.fetch_realtime", return_value="WEATHER: sunny 72F"):
                 _text, captured = _run_respond(persona, "what's the weather")
         user_msg = captured["body"]["messages"][1]["content"]
         # Realtime context must be injected into the user message.

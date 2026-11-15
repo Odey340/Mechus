@@ -1,4 +1,4 @@
-"""Koov Properties: costs, full API flow (offline AI), Chert actions with a fake client, webhook handling."""
+"""Mechus Properties: costs, full API flow (offline AI), Chert actions with a fake client, webhook handling."""
 
 from __future__ import annotations
 
@@ -12,17 +12,17 @@ import pytest
 
 pytest.importorskip("flask_cors")
 
-from koov import api_server as api  # noqa: E402
-from koov.estates import costs, media, messaging  # noqa: E402
+from mechus import api_server as api  # noqa: E402
+from mechus.estates import costs, media, messaging  # noqa: E402
 
 
 @pytest.fixture()
 def env(tmp_path, monkeypatch):
     monkeypatch.setattr(api, "_API_KEY", None)
-    monkeypatch.setenv("KOOV_ESTATES_DIR", str(tmp_path / "estates"))
-    monkeypatch.setenv("KOOV_ESTATES_FAKE_AI", "1")
-    monkeypatch.setenv("KOOV_OUTBOX_WORKER", "0")
-    for k in ("KOOV_ELEVEN_API_KEY", "KOOV_CHERT_SIGNING_SECRET", "KOOV_CHERT_TENANT", "KOOV_CHERT_WEBHOOK_SECRET"):
+    monkeypatch.setenv("MECHUS_ESTATES_DIR", str(tmp_path / "estates"))
+    monkeypatch.setenv("MECHUS_ESTATES_FAKE_AI", "1")
+    monkeypatch.setenv("MECHUS_OUTBOX_WORKER", "0")
+    for k in ("MECHUS_ELEVEN_API_KEY", "MECHUS_CHERT_SIGNING_SECRET", "MECHUS_CHERT_TENANT", "MECHUS_CHERT_WEBHOOK_SECRET"):
         monkeypatch.delenv(k, raising=False)
     return tmp_path
 
@@ -130,7 +130,7 @@ class FakeChert:
         self.calls = []
 
         class Cfg:
-            tenant, line_phone, line_id = "koov", "+15550000000", "line-1"
+            tenant, line_phone, line_id = "mechus", "+15550000000", "line-1"
         self.config = Cfg()
 
     def _rec(self, name, *a, **kw):
@@ -209,7 +209,7 @@ def test_chert_not_configured_is_409(client):
 def test_webhook_files_message_and_tapbacks(client, monkeypatch):
     fake = FakeChert()
     monkeypatch.setattr(messaging, "client_from_env", lambda: fake)
-    monkeypatch.setenv("KOOV_CHERT_WEBHOOK_SECRET", "whsec")
+    monkeypatch.setenv("MECHUS_CHERT_WEBHOOK_SECRET", "whsec")
     pid = client.post("/api/estates/properties", json={"name": "Loft", "landlord": {"phone": "+15550001111"}, "tenant": {"phone": "+15550002222"}}).get_json()["property"]["id"]
     client.post(f"/api/estates/properties/{pid}/group", json={})
 
@@ -253,8 +253,8 @@ def test_webhook_files_message_and_tapbacks(client, monkeypatch):
 # Outbox robustness
 # ---------------------------------------------------------------------------
 
-from koov.chert.client import ChertError  # noqa: E402
-from koov.estates import outbox  # noqa: E402
+from mechus.chert.client import ChertError  # noqa: E402
+from mechus.estates import outbox  # noqa: E402
 
 
 class FlakyChert(FakeChert):

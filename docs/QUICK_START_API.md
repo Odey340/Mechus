@@ -1,10 +1,10 @@
-# Quick Start: Koov Meeting Automation
+# Quick Start: Mechus Meeting Automation
 
 ## What This Does
 
 This solution allows your dashboard to automatically:
 1. ✅ Open meeting links in the browser
-2. ✅ Start the Koov agent automatically
+2. ✅ Start the Mechus agent automatically
 3. ✅ Monitor session status
 
 **Zero setup for the user:** The end user only uses the dashboard: paste meeting link, click Start. No .env or device setup. The server needs a one-time setup (below) by whoever deploys it; after that, users just paste links.
@@ -24,7 +24,7 @@ pip install -r requirements.txt
 python3 scripts/download_vosk_model.py --out models
 ```
 
-No need to set `KOOV_VOSK_MODEL_PATH` in .env; the server defaults to `models/vosk-model-small-en-us-0.15`.
+No need to set `MECHUS_VOSK_MODEL_PATH` in .env; the server defaults to `models/vosk-model-small-en-us-0.15`.
 
 ### 2. Start the API Server
 
@@ -34,22 +34,22 @@ export PYTHONPATH="$PWD"
 python3 scripts/start_api_server.py
 ```
 
-You should see: `Starting Koov API server on 127.0.0.1:5000`
+You should see: `Starting Mechus API server on 127.0.0.1:5000`
 
 ### 3. Update Your Dashboard
 
-Replace the `triggerKoovSessionStart` function in your dashboard with:
+Replace the `triggerMechusSessionStart` function in your dashboard with:
 
 ```typescript
-async function triggerKoovSessionStart(meeting: any): Promise<void> {
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+async function triggerMechusSessionStart(meeting: any): Promise<void> {
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   
-  const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+  const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       meeting_link: meeting.meeting_link,
-      display_name: 'Koov',
+      display_name: 'Mechus',
       // user_id optional (default "default"); dashboard can send only meeting_link
     }),
   });
@@ -66,11 +66,11 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
 1. Make sure the API server is running
 2. In your dashboard, paste a meeting link and click "Start"
 3. The meeting should open in your browser
-4. Koov should start listening automatically
+4. Mechus should start listening automatically
 
 ## API Endpoints
 
-- `POST /api/join-meeting` - Join a meeting and start Koov
+- `POST /api/join-meeting` - Join a meeting and start Mechus
 - `GET /api/status` - Get current session status
 - `POST /api/stop` - Stop the current session
 - `GET /health` - Health check
@@ -89,9 +89,9 @@ async function triggerKoovSessionStart(meeting: any): Promise<void> {
 **"Wake word model not found" (503):**
 - Run once: `python3 scripts/download_vosk_model.py --out models`, then try again.
 
-**Meeting opens but Koov doesn't hear/speak:**
-- For Koov to hear Zoom and speak into the call, do a one-time audio setup (BlackHole + Multi-Output). See `SETUP_MACOS.txt`. The user doesn't do this; the deployer or docs can describe it for the machine running Koov.
+**Meeting opens but Mechus doesn't hear/speak:**
+- For Mechus to hear Zoom and speak into the call, do a one-time audio setup (BlackHole + Multi-Output). See `SETUP_MACOS.txt`. The user doesn't do this; the deployer or docs can describe it for the machine running Mechus.
 
 **CORS errors:**
 - The API has CORS enabled by default
-- If issues persist, check `koov/api_server.py` CORS settings
+- If issues persist, check `mechus/api_server.py` CORS settings

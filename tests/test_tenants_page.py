@@ -3,15 +3,15 @@ import json
 
 import pytest
 
-from koov.estates import store
+from mechus.estates import store
 
 
 @pytest.fixture
 def client(monkeypatch, tmp_path):
-    monkeypatch.setenv("KOOV_ESTATES_DIR", str(tmp_path / "estates"))
-    monkeypatch.setenv("KOOV_NOTES_DIR", str(tmp_path / "notes"))
+    monkeypatch.setenv("MECHUS_ESTATES_DIR", str(tmp_path / "estates"))
+    monkeypatch.setenv("MECHUS_NOTES_DIR", str(tmp_path / "notes"))
     (tmp_path / "notes").mkdir()
-    from koov import api_server
+    from mechus import api_server
 
     monkeypatch.setattr(api_server, "_API_KEY", None)
     return api_server.app.test_client(), tmp_path / "notes"

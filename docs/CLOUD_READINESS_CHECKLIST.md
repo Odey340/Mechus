@@ -1,6 +1,6 @@
 # Cloud Deployment Readiness Checklist
 
-Use this checklist to determine if you're ready to deploy Koov to the cloud.
+Use this checklist to determine if you're ready to deploy Mechus to the cloud.
 
 ## ✅ Code & Features (All Complete!)
 
@@ -42,22 +42,22 @@ For dev-only local server (no Docker), see [DEV_LOCAL_SETUP.md](DEV_LOCAL_SETUP.
 Check your `.env` file has all required values:
 
 **Required:**
-- [ ] `KOOV_INPUT_DEVICE` - Your local device (will change in cloud)
-- [ ] `KOOV_OUTPUT_DEVICE` - Your local device (will change in cloud)
-- [ ] `KOOV_WAKE_PHRASE` - e.g., "computer"
-- [ ] `KOOV_VOSK_MODEL_PATH` - Path to Vosk model
-- [ ] `KOOV_WHISPER_MODEL` - e.g., "base.en"
+- [ ] `MECHUS_INPUT_DEVICE` - Your local device (will change in cloud)
+- [ ] `MECHUS_OUTPUT_DEVICE` - Your local device (will change in cloud)
+- [ ] `MECHUS_WAKE_PHRASE` - e.g., "computer"
+- [ ] `MECHUS_VOSK_MODEL_PATH` - Path to Vosk model
+- [ ] `MECHUS_WHISPER_MODEL` - e.g., "base.en"
 
 **Optional but Recommended:**
-- [ ] `KOOV_TTS_BACKEND=elevenlabs`
-- [ ] `KOOV_ELEVEN_API_KEY` - Your ElevenLabs API key
-- [ ] `KOOV_ELEVEN_VOICE_ID` - Your voice ID
-- [ ] `KOOV_LLM_BACKEND=ollama` (if using Ollama)
-- [ ] `KOOV_OLLAMA_HOST` - Where Ollama runs (cloud or local)
+- [ ] `MECHUS_TTS_BACKEND=elevenlabs`
+- [ ] `MECHUS_ELEVEN_API_KEY` - Your ElevenLabs API key
+- [ ] `MECHUS_ELEVEN_VOICE_ID` - Your voice ID
+- [ ] `MECHUS_LLM_BACKEND=ollama` (if using Ollama)
+- [ ] `MECHUS_OLLAMA_HOST` - Where Ollama runs (cloud or local)
 
 **For Cloud:**
-- [ ] `KOOV_API_HOST=0.0.0.0` - Listen on all interfaces
-- [ ] `KOOV_API_PORT=5000` - Port for API server
+- [ ] `MECHUS_API_HOST=0.0.0.0` - Listen on all interfaces
+- [ ] `MECHUS_API_PORT=5000` - Port for API server
 
 ## ☁️ Cloud Provider Setup
 
@@ -78,7 +78,7 @@ Check your `.env` file has all required values:
 ### 1. Virtual Audio Setup
 **You'll need to:**
 - [ ] Install PulseAudio on cloud server
-- [ ] Create virtual audio devices (`koov_input`, `koov_output`)
+- [ ] Create virtual audio devices (`mechus_input`, `mechus_output`)
 - [ ] Update `.env` with virtual device names
 - [ ] Test audio flow works
 
@@ -86,10 +86,10 @@ Check your `.env` file has all required values:
 
 ### 2. Chrome Profile Setup (One-Time)
 **You'll need to:**
-- [ ] Set up VNC or X11 forwarding (or use `KOOV_SHOW_BROWSER=true`)
+- [ ] Set up VNC or X11 forwarding (or use `MECHUS_SHOW_BROWSER=true`)
 - [ ] Join a test meeting manually
 - [ ] Configure audio devices in Zoom/Meet settings
-- [ ] Chrome saves settings to `~/.koov-chrome-profile`
+- [ ] Chrome saves settings to `~/.mechus-chrome-profile`
 - [ ] Future meetings use saved settings automatically
 
 **Documentation:** See `SETUP_CHROME_PROFILE.md`
@@ -129,7 +129,7 @@ Check your `.env` file has all required values:
    - [ ] Create `.env` file with cloud settings
    - [ ] Set virtual audio device names
    - [ ] Add API keys
-   - [ ] Set `KOOV_API_HOST=0.0.0.0`
+   - [ ] Set `MECHUS_API_HOST=0.0.0.0`
 
 5. **One-Time Chrome Setup**
    - [ ] Set up VNC/X11 or use visible browser
@@ -144,7 +144,7 @@ Check your `.env` file has all required values:
    - [ ] Test joining a meeting
 
 7. **Connect Dashboard**
-   - [ ] Update dashboard `KOOV_API_URL` to cloud server
+   - [ ] Update dashboard `MECHUS_API_URL` to cloud server
    - [ ] Test end-to-end flow
    - [ ] Verify multiple users can have meetings
 
@@ -185,7 +185,7 @@ Check your `.env` file has all required values:
 - `DEPLOY_AZURE.md` - Azure-specific steps
 - `CLOUD_AUDIO_SETUP.md` - Virtual audio setup
 - `SETUP_CHROME_PROFILE.md` - Chrome profile setup
-- `BEST_OPTION_FOR_KOOV.md` - Provider recommendations
+- `BEST_OPTION_FOR_MECHUS.md` - Provider recommendations
 - `CHEAPEST_DEPLOYMENT.md` - Cost comparison
 
 ## 💡 Pro Tips
@@ -193,5 +193,5 @@ Check your `.env` file has all required values:
 1. **Start small** - Use free tier or $6/month option first
 2. **Test locally first** - Make sure everything works before deploying
 3. **One meeting at a time** - Test with one meeting before scaling
-4. **Monitor logs** - Use `pm2 logs koov-api` or `journalctl` to debug
+4. **Monitor logs** - Use `pm2 logs mechus-api` or `journalctl` to debug
 5. **Backup `.env`** - Keep a secure copy of your environment variables

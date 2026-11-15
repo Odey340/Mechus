@@ -1,8 +1,8 @@
-# Koov Code Cleanup Summary
+# Mechus Code Cleanup Summary
 
 ## Removed Inefficient Code
 
-### 1. BackgroundPreprocessor (`koov/preprocessor.py`)
+### 1. BackgroundPreprocessor (`mechus/preprocessor.py`)
 **Removed**: Entire module deleted
 **Reason**: Made unnecessary background LLM calls to pre-compute responses, wasting resources and increasing latency. The cache hit rate was likely low, and the overhead of background processing wasn't justified.
 
@@ -24,7 +24,7 @@
 
 ### 3. Redundant Diarization Merge Logic
 **Removed**: `_merge_diarization` method in `agent.py`
-**Reason**: The diarization module (`koov/diarization.py`) already handles segment merging and overlapping speech in its `_post_process_segments` method. The agent was duplicating this logic unnecessarily.
+**Reason**: The diarization module (`mechus/diarization.py`) already handles segment merging and overlapping speech in its `_post_process_segments` method. The agent was duplicating this logic unnecessarily.
 
 **Impact**:
 - Removed ~70 lines of duplicate code
@@ -41,7 +41,7 @@
 - Faster transcript handling
 
 ### 5. ContextEventEngine (Moved to Experimental)
-**Moved**: All ContextEventEngine files to `koov/experimental/`
+**Moved**: All ContextEventEngine files to `mechus/experimental/`
 **Reason**: Complete separate system that's not integrated into the main agent. It was adding complexity and dependencies without being used.
 
 **Files Moved**:
@@ -93,22 +93,22 @@
 
 ## Files Modified
 
-- `koov/agent.py` - Removed preprocessor, actionable_llm, merge logic, simplified processing
-- `koov/config.py` - Removed actionable_llm config options
+- `mechus/agent.py` - Removed preprocessor, actionable_llm, merge logic, simplified processing
+- `mechus/config.py` - Removed actionable_llm config options
 - `requirements.txt` - Removed sentence-transformers
 
 ## Files Deleted
 
-- `koov/preprocessor.py` - Entire module removed
+- `mechus/preprocessor.py` - Entire module removed
 
 ## Files Moved
 
-- All ContextEventEngine files → `koov/experimental/`
+- All ContextEventEngine files → `mechus/experimental/`
 
 ## Backward Compatibility
 
 ⚠️ **Breaking Changes**:
-- Removed `KOOV_ACTIONABLE_LLM*` environment variables
+- Removed `MECHUS_ACTIONABLE_LLM*` environment variables
 - Removed background preprocessor functionality
 - ContextEventEngine is no longer in main package (moved to experimental)
 

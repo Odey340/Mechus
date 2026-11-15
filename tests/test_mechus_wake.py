@@ -1,10 +1,10 @@
-"""The assistant answers to "Mechus" (said "MECK-us"), not "Koov"."""
+"""The assistant answers to "Mechus" (said "MECK-us")."""
 import pytest
 
-from koov.brand import ASSISTANT_NAME, DEFAULT_WAKE_PHRASE, for_tts
-from koov.config import KoovConfig
-from koov.facetime_env import PRODUCTION_WAKE_PHRASE
-from koov.wake_detector import detect_wake, normalize_for_wake, strip_wake_phrase
+from mechus.brand import ASSISTANT_NAME, DEFAULT_WAKE_PHRASE, for_tts
+from mechus.config import MechusConfig
+from mechus.facetime_env import PRODUCTION_WAKE_PHRASE
+from mechus.wake_detector import detect_wake, normalize_for_wake, strip_wake_phrase
 
 PHRASES = tuple(p.strip() for p in PRODUCTION_WAKE_PHRASE.split(","))
 
@@ -16,8 +16,8 @@ def test_default_wake_phrases_are_mechus():
 
 
 def test_config_default_wake_phrase_is_mechus(monkeypatch):
-    monkeypatch.delenv("KOOV_WAKE_PHRASE", raising=False)
-    cfg = KoovConfig.from_env()
+    monkeypatch.delenv("MECHUS_WAKE_PHRASE", raising=False)
+    cfg = MechusConfig.from_env()
     assert cfg.wake_phrases == ("hey mechus", "mechus")
 
 
@@ -40,14 +40,14 @@ def test_mechus_and_its_stt_mishearings_wake(heard):
 @pytest.mark.parametrize(
     "heard",
     [
-        "Koov, what do you see?",
-        "Hey Koov, stop.",
+        "Computer, what do you see?",
+        "Hey there, stop.",
         "coop summarize the meeting",
         "the mechanic fixed the sink",
         "that was too much for us",
     ],
 )
-def test_koov_and_ordinary_speech_do_not_wake(heard):
+def test_mechus_and_ordinary_speech_do_not_wake(heard):
     assert not detect_wake(normalize_for_wake(heard), PHRASES, max_dist=1)
 
 

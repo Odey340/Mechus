@@ -6,7 +6,7 @@ import pytest
 
 
 def _join_requires_vosk_wake_model(join_backend: str) -> bool:
-    """Mirror koov.api_server.join_requires_vosk_wake_model (avoid Flask import in unit tests)."""
+    """Mirror mechus.api_server.join_requires_vosk_wake_model (avoid Flask import in unit tests)."""
     return (join_backend or "").strip().lower() in ("browser", "external")
 
 

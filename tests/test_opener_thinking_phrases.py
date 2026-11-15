@@ -5,13 +5,13 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock
 
-from koov.agent import KoovAgent
-from koov.text import strip_preroll_echo_from_response
+from mechus.agent import MechusAgent
+from mechus.text import strip_preroll_echo_from_response
 
 
 class TestOpenerThinkingPhrases(unittest.TestCase):
-    def _agent(self) -> KoovAgent:
-        agent = object.__new__(KoovAgent)
+    def _agent(self) -> MechusAgent:
+        agent = object.__new__(MechusAgent)
         agent._recent_thinking_phrases = []
         return agent
 

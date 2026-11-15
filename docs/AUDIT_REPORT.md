@@ -8,7 +8,7 @@
 ## ✅ PASSED CHECKS
 
 ### Voice Output Gating (Partial Pass)
-**File:** `koov/agent.py`  
+**File:** `mechus/agent.py`  
 **Lines:** 1016, 1048
 
 - ✅ TTS synthesis (`self._tts.synthesize()`) is only called within `_run_wake_cycle()` method
@@ -26,7 +26,7 @@
 ## ⚠️ WARNINGS (NON-BLOCKING)
 
 ### 1. Background Preprocessor Generates Responses Without Wake Word
-**File:** `koov/preprocessor.py`  
+**File:** `mechus/preprocessor.py`  
 **Lines:** 91-133
 
 The `BackgroundPreprocessor` generates responses in the background for common questions. While it does NOT call TTS (which is correct), it does call the responder LLM without a wake word activation.
@@ -38,7 +38,7 @@ The `BackgroundPreprocessor` generates responses in the background for common qu
 ---
 
 ### 2. Transcript Refinement Uses LLM
-**File:** `koov/transcript.py`  
+**File:** `mechus/transcript.py`  
 **Lines:** 273-328
 
 `TranscriptRefiner` uses an LLM to clean transcripts. This is acceptable as "Tier-2 extraction" but should be documented as such.
@@ -51,7 +51,7 @@ The `BackgroundPreprocessor` generates responses in the background for common qu
 
 ### 1. Wake-Word Safety Violations (CRITICAL)
 
-**File:** `koov/wake.py`  
+**File:** `mechus/wake.py`  
 **Lines:** 51-196
 
 #### Violation 1.1: Non-Deterministic Wake Word Detection
@@ -87,7 +87,7 @@ if not is_final:
 #### Violation 1.3: No Co-Occurrence Check with Question/Command
 - **Missing:** Wake word detection does not verify that wake word co-occurs with a question or command
 - **Requirement:** "Wake word must co-occur with a question or command"
-- **Current:** Wake word can fire on abstract mentions (e.g., "someone mentioned koov earlier")
+- **Current:** Wake word can fire on abstract mentions (e.g., "someone mentioned mechus earlier")
 
 **Evidence:** No code exists to validate that the wake phrase appears alongside actionable patterns.
 
@@ -112,7 +112,7 @@ def process(self, pcm16: bytes, timestamp_s: float) -> bool:
 
 ### 2. ContextEvent Immutability Violations (CRITICAL)
 
-**File:** `koov/memory.py`  
+**File:** `mechus/memory.py`  
 **Lines:** 13-29, 121-162
 
 #### Violation 2.1: No ContextEvent Class Exists
@@ -143,7 +143,7 @@ def add_segment(self, ts: float, text: str) -> None:
 
 ### 3. Grounded Answering Contract Violations (CRITICAL)
 
-**File:** `koov/responder.py`  
+**File:** `mechus/responder.py`  
 **Lines:** 130-305
 
 #### Violation 3.1: No Event IDs in Answers
@@ -178,7 +178,7 @@ def respond(self, inp: ResponseInput) -> str:
 
 ### 4. LLM Usage Discipline Violations (ARCHITECTURAL)
 
-**File:** `koov/agent.py`  
+**File:** `mechus/agent.py`  
 **Lines:** 552-607
 
 #### Violation 4.1: LLM Used for Routing/Activation Decisions
@@ -197,14 +197,14 @@ elif is_actionable and self._config.actionable_llm_enabled:
 **Impact:** This violates the architectural constraint that LLMs should only be used for Tier-2 extraction and answer synthesis.
 
 #### Acceptable LLM Usage
-- ✅ **Transcript Refinement** (`koov/transcript.py:273`): Acceptable as Tier-2 extraction
-- ✅ **Answer Synthesis** (`koov/responder.py:130`): Acceptable
+- ✅ **Transcript Refinement** (`mechus/transcript.py:273`): Acceptable as Tier-2 extraction
+- ✅ **Answer Synthesis** (`mechus/responder.py:130`): Acceptable
 
 ---
 
 ### 5. Deterministic Replay Readiness Violations
 
-**File:** `koov/memory.py`, `koov/agent.py`  
+**File:** `mechus/memory.py`, `mechus/agent.py`  
 **Multiple locations**
 
 #### Violation 5.1: Non-Deterministic Timestamps
@@ -243,7 +243,7 @@ recency_bonus = 1.0 / (1.0 + age / 600.0)
 
 ### Fix 1: Implement Deterministic Wake Word Detection
 **Priority:** CRITICAL  
-**File:** `koov/wake.py`
+**File:** `mechus/wake.py`
 
 **Changes Required:**
 1. Replace Vosk/openWakeWord with pure regex/string matching on final transcript segments only
@@ -268,7 +268,7 @@ recency_bonus = 1.0 / (1.0 + age / 600.0)
 
 ### Fix 2: Implement ContextEvent Immutability
 **Priority:** CRITICAL  
-**File:** `koov/memory.py`
+**File:** `mechus/memory.py`
 
 **Changes Required:**
 1. Create `ContextEvent` dataclass:
@@ -278,7 +278,7 @@ recency_bonus = 1.0 / (1.0 + age / 600.0)
        event_id: str
        timestamp_s: float
        text: str
-       kind: str  # "transcript", "user_request", "koov_response", etc.
+       kind: str  # "transcript", "user_request", "mechus_response", etc.
        meta: dict[str, Any]
    ```
 2. Make `ConversationMemory` store immutable `ContextEvent` objects
@@ -291,7 +291,7 @@ recency_bonus = 1.0 / (1.0 + age / 600.0)
 
 ### Fix 3: Add Grounded Answering with Citations
 **Priority:** CRITICAL  
-**File:** `koov/responder.py`
+**File:** `mechus/responder.py`
 
 **Changes Required:**
 1. Change `respond()` return type:
@@ -315,7 +315,7 @@ recency_bonus = 1.0 / (1.0 + age / 600.0)
 
 ### Fix 4: Remove LLM from Routing
 **Priority:** ARCHITECTURAL  
-**File:** `koov/agent.py`
+**File:** `mechus/agent.py`
 
 **Changes Required:**
 1. Remove `_actionable_via_llm()` method (lines 552-607)
@@ -328,7 +328,7 @@ recency_bonus = 1.0 / (1.0 + age / 600.0)
 
 ### Fix 5: Make Replay Deterministic
 **Priority:** HIGH  
-**Files:** `koov/memory.py`, `koov/agent.py`
+**Files:** `mechus/memory.py`, `mechus/agent.py`
 
 **Changes Required:**
 1. Accept timestamp as parameter instead of using `time.time()`

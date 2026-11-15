@@ -61,7 +61,7 @@ Reversals (e.g. “we decided X” later “actually we’re not doing X”) are
 ## Usage
 
 ```python
-from koov.context_integrity_engine import (
+from mechus.context_integrity_engine import (
     ContextIntegrityEngine,
     format_memory_update,
     format_final_report,

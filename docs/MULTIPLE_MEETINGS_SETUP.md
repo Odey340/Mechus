@@ -2,11 +2,11 @@
 
 ## ✅ Now Supported!
 
-**Koov now supports multiple concurrent meetings!**
+**Mechus now supports multiple concurrent meetings!**
 
 The API server has been updated to:
 1. ✅ Store sessions in a dictionary (keyed by `meeting_id`)
-2. ✅ Each meeting gets its own Koov agent instance
+2. ✅ Each meeting gets its own Mechus agent instance
 3. ✅ Each meeting has its own audio stream
 4. ✅ Status and transcript endpoints work per-meeting
 
@@ -17,9 +17,9 @@ The API server has been updated to:
 **Yes, you set it up once in the cloud:**
 
 1. **First meeting join:**
-   - Browser opens (visible via VNC/X11 or with `KOOV_SHOW_BROWSER=true`)
+   - Browser opens (visible via VNC/X11 or with `MECHUS_SHOW_BROWSER=true`)
    - Join test meeting
-   - Set audio devices to virtual devices (koov_input/koov_output)
+   - Set audio devices to virtual devices (mechus_input/mechus_output)
    - Chrome saves these settings in the profile
 
 2. **After setup:**
@@ -31,7 +31,7 @@ The API server has been updated to:
 
 **After code update:**
 - ✅ Multiple meetings can run simultaneously
-- ✅ Each meeting has its own Koov agent
+- ✅ Each meeting has its own Mechus agent
 - ✅ Each meeting has its own transcript
 - ✅ Status tracked per-meeting
 
@@ -52,7 +52,7 @@ POST /api/join-meeting
 {
   "meeting_link": "https://...",
   "meeting_id": "meeting-123",  // Add this
-  "display_name": "Koov"
+  "display_name": "Mechus"
 }
 ```
 

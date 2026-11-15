@@ -8,8 +8,8 @@ Primary safety rule: camera and vision failures must never prevent or degrade th
 
 Add two separately controlled capabilities to each FaceTime worker:
 
-1. **Outbound virtual camera** — FaceTime participants can see a Koov avatar, activity animation, or an approved status card.
-2. **On-demand visual understanding** — when explicitly requested, Koov captures one rendered FaceTime frame, analyzes the relevant visible content, answers the question, and discards the frame.
+1. **Outbound virtual camera** — FaceTime participants can see a Mechus avatar, activity animation, or an approved status card.
+2. **On-demand visual understanding** — when explicitly requested, Mechus captures one rendered FaceTime frame, analyzes the relevant visible content, answers the question, and discards the frame.
 
 The first production release must not continuously record video, perform face recognition, infer emotion or sensitive traits, expose private reasoning, or attempt browser screen sharing.
 
@@ -19,9 +19,9 @@ Apple's FaceTime web client supports camera access and camera on/off controls, b
 
 The project is complete only when all of the following are true on the deployment VM and in a real FaceTime call:
 
-- A camera-enabled worker appears in Chromium as a uniquely assigned `Koov Virtual Camera`.
-- The host can admit Koov and a second physical Apple device can see Koov's video.
-- Koov's existing virtual microphone, incoming audio, transcription, wake handling, TTS, and meeting shutdown still work.
+- A camera-enabled worker appears in Chromium as a uniquely assigned `Mechus Virtual Camera`.
+- The host can admit Mechus and a second physical Apple device can see Mechus's video.
+- Mechus's existing virtual microphone, incoming audio, transcription, wake handling, TTS, and meeting shutdown still work.
 - Camera enable/disable and scene changes are reflected remotely within five seconds.
 - Two simultaneous workers use different video devices and never receive each other's frames or commands.
 - Missing devices, exhausted capacity, producer crashes, selector failures, and vision failures fall back to audio-only operation.
@@ -33,11 +33,11 @@ The project is complete only when all of the following are true on the deploymen
 
 ### 3.1 Existing pieces to preserve
 
-- `koov/api_server.py` starts one Docker worker per FaceTime bot and monitors it using Docker plus `worker-status-<meeting_id>.json`.
+- `mechus/api_server.py` starts one Docker worker per FaceTime bot and monitors it using Docker plus `worker-status-<meeting_id>.json`.
 - The API and worker share the notes directory, which already provides a durable control/status boundary.
-- `koov/facetime_worker.py` drives the FaceTime web client using Selenium and headed Chromium in Xvfb.
+- `mechus/facetime_worker.py` drives the FaceTime web client using Selenium and headed Chromium in Xvfb.
 - The worker already grants `audioCapture` and `videoCapture` permission to `https://facetime.apple.com` before navigation.
-- PulseAudio creates separate call-listening and Koov-TTS paths. Chromium's microphone is deliberately routed to `koov_mic_source`.
+- PulseAudio creates separate call-listening and Mechus-TTS paths. Chromium's microphone is deliberately routed to `mechus_mic_source`.
 - The worker already takes diagnostic Selenium screenshots when the FaceTime UI cannot be controlled.
 - The worker already reports incremental state through `_facetime_status_payload`.
 - Pillow and NumPy are already application dependencies and can render video frames.
@@ -57,7 +57,7 @@ The project is complete only when all of the following are true on the deploymen
 
 Do not add `--use-fake-device-for-media-stream` to the production worker. Chromium documents that this replaces the actual camera **and microphone**, which would bypass the current PulseAudio microphone design: <https://chromium.googlesource.com/chromium/src/+/HEAD/media/base/media_switches.cc>.
 
-A Y4M fake-camera file may be used only in an isolated experiment. It is not the production design because dynamic scenes are awkward and the required fake-device path risks replacing Koov's microphone.
+A Y4M fake-camera file may be used only in an isolated experiment. It is not the production design because dynamic scenes are awkward and the required fake-device path risks replacing Mechus's microphone.
 
 ## 4. Architectural decisions
 
@@ -100,11 +100,11 @@ Vision never controls whether the worker joins or remains in the meeting.
 ```text
 Linux VM
 ├── v4l2loopback device pool
-│   ├── /dev/video20  Koov Camera 1
-│   ├── /dev/video21  Koov Camera 2
+│   ├── /dev/video20  Mechus Camera 1
+│   ├── /dev/video21  Mechus Camera 2
 │   └── ...
 │
-├── Koov API container
+├── Mechus API container
 │   ├── camera device lease manager
 │   ├── POST camera desired state
 │   ├── POST visual query
@@ -117,7 +117,7 @@ Linux VM
     ├── Chromium -> FaceTime outgoing video
     ├── Selenium camera controller
     ├── existing PulseAudio audio graph, unchanged
-    └── optional screenshot -> vision request -> Koov answer
+    └── optional screenshot -> vision request -> Mechus answer
 ```
 
 ## 6. Host provisioning
@@ -145,7 +145,7 @@ Add `scripts/verify_facetime_camera_host.sh`:
 
 Update `scripts/restart-on-server.sh`:
 
-- Run the read-only verifier before building when `KOOV_FT_CAMERA_FEATURE=1`.
+- Run the read-only verifier before building when `MECHUS_FT_CAMERA_FEATURE=1`.
 - Fail deployment if the camera feature is required and host prerequisites are missing.
 - Warn and continue when camera is globally disabled.
 - Build the FaceTime image only after preflight succeeds.
@@ -158,23 +158,23 @@ Update `docker-compose.zoom.yml` so the API receives pool configuration. The API
 Add these settings to `.env.example`:
 
 ```dotenv
-KOOV_FT_CAMERA_FEATURE=0
-KOOV_FT_CAMERA_REQUIRED=0
-KOOV_FT_VIDEO_DEVICES=/dev/video20,/dev/video21,/dev/video22,/dev/video23
-KOOV_FT_VIDEO_WIDTH=640
-KOOV_FT_VIDEO_HEIGHT=360
-KOOV_FT_VIDEO_FPS=12
-KOOV_FT_CAMERA_AUTO_ON=0
-KOOV_FT_CAMERA_DEFAULT_MODE=avatar
-KOOV_FT_VISION_ENABLED=0
-KOOV_OPENAI_VISION_MODEL=
-KOOV_FT_VISION_MAX_REQUESTS_PER_MINUTE=3
-KOOV_FT_VISION_RETAIN_SECONDS=0
+MECHUS_FT_CAMERA_FEATURE=0
+MECHUS_FT_CAMERA_REQUIRED=0
+MECHUS_FT_VIDEO_DEVICES=/dev/video20,/dev/video21,/dev/video22,/dev/video23
+MECHUS_FT_VIDEO_WIDTH=640
+MECHUS_FT_VIDEO_HEIGHT=360
+MECHUS_FT_VIDEO_FPS=12
+MECHUS_FT_CAMERA_AUTO_ON=0
+MECHUS_FT_CAMERA_DEFAULT_MODE=avatar
+MECHUS_FT_VISION_ENABLED=0
+MECHUS_OPENAI_VISION_MODEL=
+MECHUS_FT_VISION_MAX_REQUESTS_PER_MINUTE=3
+MECHUS_FT_VISION_RETAIN_SECONDS=0
 ```
 
 ## 7. Device lease manager
 
-Add `koov/facetime_camera_lease.py` with a small, independently testable API:
+Add `mechus/facetime_camera_lease.py` with a small, independently testable API:
 
 ```python
 @dataclass(frozen=True)
@@ -208,10 +208,10 @@ Refactor the duplicate single-bot and multi-bot Docker command construction into
 
 ```text
 --device /dev/video20:/dev/video20:rwm
---label koov.facetime=1
---label koov.meeting_id=<safe meeting id>
---label koov.video_device=/dev/video20
--e KOOV_FT_VIDEO_DEVICE=/dev/video20
+--label mechus.facetime=1
+--label mechus.meeting_id=<safe meeting id>
+--label mechus.video_device=/dev/video20
+-e MECHUS_FT_VIDEO_DEVICE=/dev/video20
 ```
 
 The helper must preserve current env-file precedence, notes mount, names, cleanup behavior, and multi-bot persona overrides.
@@ -226,7 +226,7 @@ Update `docker/facetime-worker/Dockerfile`:
 
 Update `docker/facetime-worker/entrypoint.sh`:
 
-- When `KOOV_FT_VIDEO_DEVICE` is present, verify that it is a character device and readable/writable.
+- When `MECHUS_FT_VIDEO_DEVICE` is present, verify that it is a character device and readable/writable.
 - Do not start a separate unsupervised shell-background producer.
 - Let the Python worker own the producer lifecycle so shutdown, restart, and health reporting are deterministic.
 - Keep PulseAudio and Xvfb startup ordering unchanged.
@@ -234,7 +234,7 @@ Update `docker/facetime-worker/entrypoint.sh`:
 
 ## 9. Video renderer
 
-Add `koov/facetime_video.py`.
+Add `mechus/facetime_video.py`.
 
 ### 9.1 Public interface
 
@@ -288,12 +288,12 @@ class VirtualCameraOutput:
 
 ## 10. FaceTime camera controller
 
-Add `koov/facetime_camera.py` and keep Selenium-specific behavior out of the renderer.
+Add `mechus/facetime_camera.py` and keep Selenium-specific behavior out of the renderer.
 
 ### 10.1 Responsibilities
 
 - Call `navigator.mediaDevices.enumerateDevices()` after permission grant.
-- Confirm exactly one expected Koov `videoinput` is visible.
+- Confirm exactly one expected Mechus `videoinput` is visible.
 - Record labels and counts without persisting opaque device IDs.
 - Open the FaceTime camera menu using accessibility labels and roles.
 - Select the option containing the configured camera label.
@@ -310,7 +310,7 @@ Add `koov/facetime_camera.py` and keep Selenium-specific behavior out of the ren
 - Search normal DOM and open shadow roots where available.
 - Keep all camera-label synonyms in one tested constant.
 - Reuse/refactor the existing microphone-menu event dispatch helper rather than copying large JavaScript blocks.
-- Never click a generic menu item unless its normalized label matches the Koov camera.
+- Never click a generic menu item unless its normalized label matches the Mechus camera.
 - Apply bounded retries; camera repair must not stall the main worker state loop.
 
 ### 10.3 Startup order
@@ -324,13 +324,13 @@ Add `koov/facetime_camera.py` and keep Selenium-specific behavior out of the ren
 7. Turn it on only when desired state says enabled.
 8. Report selection and track health in worker status.
 
-Do not change the existing audio-only `getUserMedia` keepalive call to request video. FaceTime should own its outgoing video track after selecting the real V4L2 camera; Koov's probe may request a short, separately stopped video stream only when diagnosing enumeration.
+Do not change the existing audio-only `getUserMedia` keepalive call to request video. FaceTime should own its outgoing video track after selecting the real V4L2 camera; Mechus's probe may request a short, separately stopped video stream only when diagnosing enumeration.
 
 ## 11. Activity state integration
 
-Do not have the renderer reach into many private `KoovAgent` fields.
+Do not have the renderer reach into many private `MechusAgent` fields.
 
-Add a small read-only method to `KoovAgent`:
+Add a small read-only method to `MechusAgent`:
 
 ```python
 def get_runtime_activity(self) -> dict[str, object]:
@@ -367,7 +367,7 @@ Schema:
   "meeting_id": "meeting-123",
   "enabled": true,
   "mode": "status_card",
-  "text": "Koov is preparing the summary",
+  "text": "Mechus is preparing the summary",
   "expires_at": 1794680060.0,
   "requested_at": 1794680000.0
 }
@@ -426,7 +426,7 @@ Accepted actions:
 {"action":"turn_on"}
 {"action":"turn_off"}
 {"action":"set_mode","mode":"avatar"}
-{"action":"show_card","mode":"status_card","text":"Koov is summarizing","duration_seconds":10}
+{"action":"show_card","mode":"status_card","text":"Mechus is summarizing","duration_seconds":10}
 ```
 
 Return the accepted desired state and revision. Return:
@@ -437,7 +437,7 @@ Return the accepted desired state and revision. Return:
 - 409 when the meeting exists but is not a FaceTime worker.
 - 503 when camera support is globally disabled.
 
-The existing global API-key middleware protects this endpoint when `KOOV_API_KEY` is configured. Production deployment must treat an empty API key as a failed readiness condition when camera/vision is enabled.
+The existing global API-key middleware protects this endpoint when `MECHUS_API_KEY` is configured. Production deployment must treat an empty API key as a failed readiness condition when camera/vision is enabled.
 
 ### 13.3 Status fields
 
@@ -479,10 +479,10 @@ Visual understanding is on-demand image analysis, not continuous video analysis.
 
 Supported first-release questions:
 
-- "Koov, what is visible on the whiteboard?"
-- "Koov, read the text I'm showing."
-- "Koov, summarize this diagram."
-- "Koov, what object am I holding?"
+- "Mechus, what is visible on the whiteboard?"
+- "Mechus, read the text I'm showing."
+- "Mechus, summarize this diagram."
+- "Mechus, what object am I holding?"
 
 Explicitly unsupported:
 
@@ -495,7 +495,7 @@ Explicitly unsupported:
 
 ### 14.2 Capture pipeline
 
-Add `koov/facetime_vision.py`:
+Add `mechus/facetime_vision.py`:
 
 1. Verify vision is globally and per-meeting enabled.
 2. Verify the worker is in call and the request is fresh.
@@ -549,11 +549,11 @@ The POST returns 202 and a request ID. The GET reports queued, processing, compl
 
 Do not initially send every wake request to vision. Add a narrow visual-intent detector for phrases containing both a visual action and a visible target, such as `look`, `see`, `read`, `whiteboard`, `screen`, `diagram`, `camera`, or `showing`.
 
-When confidence is low, Koov should ask a short clarification rather than taking a screenshot. A voice-triggered visual request must follow the same feature gates, rate limits, no-retention policy, and status reporting as an API request.
+When confidence is low, Mechus should ask a short clarification rather than taking a screenshot. A voice-triggered visual request must follow the same feature gates, rate limits, no-retention policy, and status reporting as an API request.
 
 ### 14.5 Privacy and retention
 
-- Default `KOOV_FT_VISION_ENABLED=0`.
+- Default `MECHUS_FT_VISION_ENABLED=0`.
 - Default image retention is zero.
 - Do not write captures to the notes volume in normal operation.
 - Diagnostic capture requires a separate explicit debug flag and must redact/expire files.
@@ -563,7 +563,7 @@ When confidence is low, Koov should ask a short clarification rather than taking
 
 ## 15. Worker integration
 
-Integrate in `koov/facetime_worker.py` in small stages:
+Integrate in `mechus/facetime_worker.py` in small stages:
 
 1. Parse and validate camera/vision environment settings.
 2. Initialize camera state variables before browser startup.
@@ -573,7 +573,7 @@ Integrate in `koov/facetime_worker.py` in small stages:
 6. After admission, run the camera controller asynchronously.
 7. Poll desired-state revision at approximately 2 Hz using cheap file metadata checks.
 8. Poll vision commands only when vision is enabled.
-9. Read `KoovAgent.get_runtime_activity()` for automatic animation.
+9. Read `MechusAgent.get_runtime_activity()` for automatic animation.
 10. Add camera health to periodic status writes.
 11. During shutdown, stop accepting commands, finish/fail an active visual request, turn camera off best-effort, quit Chromium, stop the video producer, and release the device through API/container cleanup.
 
@@ -723,7 +723,7 @@ Use a dedicated test FaceTime link and two physical Apple devices.
 
 #### Test A: outbound camera
 
-- Join with camera disabled; remote sees no Koov video.
+- Join with camera disabled; remote sees no Mechus video.
 - Turn on avatar; remote sees the correct avatar within five seconds.
 - Switch listening/thinking/speaking/status-card modes.
 - Turn camera off and back on.
@@ -732,7 +732,7 @@ Use a dedicated test FaceTime link and two physical Apple devices.
 #### Test B: audio regression
 
 - Participant speech is transcribed.
-- Wake Koov and receive a relevant spoken response.
+- Wake Mechus and receive a relevant spoken response.
 - Remote participants hear the complete TTS response.
 - Barge-in/stop behavior remains correct.
 - Camera state changes while TTS is playing do not create audio gaps.
@@ -754,10 +754,10 @@ Use a dedicated test FaceTime link and two physical Apple devices.
 
 #### Test E: vision
 
-- Show large printed text and ask Koov to read it.
+- Show large printed text and ask Mechus to read it.
 - Show a simple diagram and ask for a summary.
 - Ask a nonvisual question and verify no screenshot is taken.
-- Present a blank/dark feed and verify Koov reports that it cannot see enough.
+- Present a blank/dark feed and verify Mechus reports that it cannot see enough.
 - Verify the notes directory contains no captured frame after completion.
 
 ### 18.6 Performance gates
@@ -781,7 +781,7 @@ Deliverables:
 - Host setup and verification scripts in a draft branch.
 - One manually provisioned V4L2 device.
 - Test pattern visible in Chromium and a real FaceTime call.
-- Proof that the current PulseAudio microphone still carries Koov TTS.
+- Proof that the current PulseAudio microphone still carries Mechus TTS.
 - Proof that a Selenium screenshot contains rendered remote video.
 - Recorded supported resolution/pixel format and resource usage.
 
@@ -840,7 +840,7 @@ Exit gate: one canary worker, then 25%, then 100% of desired meetings with no au
 
 ### 20.1 Rollout sequence
 
-1. Deploy code with `KOOV_FT_CAMERA_FEATURE=0` and `KOOV_FT_VISION_ENABLED=0`.
+1. Deploy code with `MECHUS_FT_CAMERA_FEATURE=0` and `MECHUS_FT_VISION_ENABLED=0`.
 2. Verify the existing audio-only FaceTime flow.
 3. Provision the host device pool.
 4. Enable camera globally but keep per-meeting camera off.
@@ -851,8 +851,8 @@ Exit gate: one canary worker, then 25%, then 100% of desired meetings with no au
 
 ### 20.2 Rollback
 
-- Set `KOOV_FT_CAMERA_FEATURE=0`; new workers start audio-only without code rollback.
-- Set `KOOV_FT_VISION_ENABLED=0`; all new visual requests are rejected before capture.
+- Set `MECHUS_FT_CAMERA_FEATURE=0`; new workers start audio-only without code rollback.
+- Set `MECHUS_FT_VISION_ENABLED=0`; all new visual requests are rejected before capture.
 - Existing V4L2 host devices may remain loaded; unused devices are inert.
 - If necessary, roll back the application image while leaving host provisioning intact.
 - Never unload the module while active workers own devices.
@@ -860,7 +860,7 @@ Exit gate: one canary worker, then 25%, then 100% of desired meetings with no au
 
 ## 21. Security review checklist
 
-- `KOOV_API_KEY` required in production when camera or vision is enabled.
+- `MECHUS_API_KEY` required in production when camera or vision is enabled.
 - CORS restricted to the production dashboard origin.
 - Device paths come only from server configuration.
 - No `shell=True`, user-supplied command arguments, or remote image URLs.
@@ -908,7 +908,7 @@ Before writing the production renderer or API routes, complete Phase 0 on the de
 - Whether Docker `--device` exposes the device to the worker image.
 - Whether Chromium enumerates it after the producer opens it.
 - Whether FaceTime transmits the test pattern.
-- Whether Koov's current microphone and TTS remain intact.
+- Whether Mechus's current microphone and TTS remain intact.
 - Whether Selenium screenshots include remote video.
 
 Those facts are the hard feasibility gate. Once they pass, implementation proceeds phase-by-phase with camera and vision feature flags off until their respective acceptance suites pass.

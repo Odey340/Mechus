@@ -1,27 +1,27 @@
-"""KOOV_TTS_SMOOTH preset: fades, pcm_32000, preroll off by default."""
+"""MECHUS_TTS_SMOOTH preset: fades, pcm_32000, preroll off by default."""
 
 from __future__ import annotations
 
 import os
 from unittest.mock import patch
 
-from koov.config import KoovConfig
+from mechus.config import MechusConfig
 
 
 def test_tts_smooth_defaults() -> None:
     with patch.dict(
         os.environ,
-        {"KOOV_TTS_SMOOTH": "1"},
+        {"MECHUS_TTS_SMOOTH": "1"},
         clear=False,
     ):
         for key in (
-            "KOOV_ELEVEN_OUTPUT_FORMAT",
-            "KOOV_THINKING_PREROLL",
-            "KOOV_TTS_FADE_IN_MS",
-            "KOOV_TTS_FADE_OUT_MS",
+            "MECHUS_ELEVEN_OUTPUT_FORMAT",
+            "MECHUS_THINKING_PREROLL",
+            "MECHUS_TTS_FADE_IN_MS",
+            "MECHUS_TTS_FADE_OUT_MS",
         ):
             os.environ.pop(key, None)
-        cfg = KoovConfig.from_env()
+        cfg = MechusConfig.from_env()
     assert cfg.tts_smooth is True
     assert cfg.eleven_output_format == "pcm_32000"
     assert cfg.thinking_preroll_enabled is False
@@ -31,7 +31,7 @@ def test_tts_smooth_defaults() -> None:
 
 def test_thinking_preroll_off_by_default_without_smooth() -> None:
     with patch.dict(os.environ, {}, clear=True):
-        os.environ.pop("KOOV_THINKING_PREROLL", None)
-        os.environ.pop("KOOV_TTS_SMOOTH", None)
-        cfg = KoovConfig.from_env()
+        os.environ.pop("MECHUS_THINKING_PREROLL", None)
+        os.environ.pop("MECHUS_TTS_SMOOTH", None)
+        cfg = MechusConfig.from_env()
     assert cfg.thinking_preroll_enabled is False

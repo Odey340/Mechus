@@ -1,5 +1,5 @@
 # Optional: Zoom Meeting SDK join backend (Linux only).
-# Enables join_backend=zoom_sdk so Koov joins Zoom without a browser.
+# Enables join_backend=zoom_sdk so Mechus joins Zoom without a browser.
 # Install: pip install -r requirements-zoom.txt
 # See docs/SCALABLE_JOIN.md and docs/ZOOM_SDK_SETUP.md.
 

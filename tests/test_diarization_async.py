@@ -9,8 +9,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-from koov.diarization import SpeakerSegment
-from koov.diarization_async import AsyncCloudDiarizer
+from mechus.diarization import SpeakerSegment
+from mechus.diarization_async import AsyncCloudDiarizer
 
 
 class _MockCloudDiarizer:

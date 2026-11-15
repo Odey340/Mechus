@@ -16,7 +16,7 @@ if "zoom_meeting_sdk" not in sys.modules:
     _zm.ZoomSDKAudioChannel_Mono = 0
     sys.modules["zoom_meeting_sdk"] = _zm
 
-from koov.zoom_sdk_join import OnDemandMuteZoomOutput, ZoomAudioOutput
+from mechus.zoom_sdk_join import OnDemandMuteZoomOutput, ZoomAudioOutput
 
 
 class MockSender:
@@ -67,7 +67,7 @@ class TestZoomPlayStreaming(unittest.TestCase):
                 self.mute_count += 1
 
         bot = Bot()
-        with patch.dict(os.environ, {"KOOV_ZOOM_MUTE_WHEN_IDLE": "1"}, clear=False):
+        with patch.dict(os.environ, {"MECHUS_ZOOM_MUTE_WHEN_IDLE": "1"}, clear=False):
             wrapped = OnDemandMuteZoomOutput(inner, bot)
             wrapped.play_streaming(
                 (np.zeros(int(sr * 0.02), dtype=np.float32) for _ in range(2)),

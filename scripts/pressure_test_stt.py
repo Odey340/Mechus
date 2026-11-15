@@ -6,7 +6,7 @@ Measures per-call latency and throughput for the configured transcriber.
 Use --mock with elevenlabs to test code path without API calls.
 
 Usage:
-  # ElevenLabs (real API; set KOOV_ELEVEN_API_KEY)
+  # ElevenLabs (real API; set MECHUS_ELEVEN_API_KEY)
   python3 scripts/pressure_test_stt.py --backend elevenlabs --iterations 10 --duration-sec 1.5
 
   # ElevenLabs with mock HTTP (no network, tests multipart build + parse)
@@ -41,9 +41,9 @@ def _run_stt_test(
     duration_sec: float,
     mock: bool,
 ) -> dict:
-    from koov.config import KoovConfig
+    from mechus.config import MechusConfig
 
-    config = KoovConfig.from_env()
+    config = MechusConfig.from_env()
     sample_rate = 16000
     pcm16 = _make_pcm16_silence(duration_sec, sample_rate)
     if not pcm16:
@@ -52,11 +52,11 @@ def _run_stt_test(
     if backend == "elevenlabs":
         import urllib.request
         import json
-        from koov.stt import ElevenLabsTranscriber
+        from mechus.stt import ElevenLabsTranscriber
 
-        api_key = os.getenv("KOOV_ELEVEN_API_KEY") or config.eleven_api_key
+        api_key = os.getenv("MECHUS_ELEVEN_API_KEY") or config.eleven_api_key
         if not api_key and not mock:
-            return {"error": "KOOV_ELEVEN_API_KEY required for elevenlabs (or use --mock)", "iterations": 0}
+            return {"error": "MECHUS_ELEVEN_API_KEY required for elevenlabs (or use --mock)", "iterations": 0}
 
         transcriber = ElevenLabsTranscriber(
             api_key=api_key or "mock-key",
@@ -73,7 +73,7 @@ def _run_stt_test(
                 return MockResponse()
             urllib.request.urlopen = _mock_urlopen
     elif backend == "faster-whisper":
-        from koov.stt import FasterWhisperTranscriber
+        from mechus.stt import FasterWhisperTranscriber
 
         transcriber = FasterWhisperTranscriber(
             model=config.whisper_model,

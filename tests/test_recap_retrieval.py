@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.intent import INTENT_RECAP, classify_intent
-from koov.retrieval import (
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.intent import INTENT_RECAP, classify_intent
+from mechus.retrieval import (
     _extract_freeform_topic_hint,
     _extract_time_window_minutes,
     _recap_scope,
@@ -36,7 +36,7 @@ def test_time_window_last_five_minutes_filters_old_chunks() -> None:
     )
     with patch("time.time", return_value=now):
         bundle = retrieve_for_question(
-            "Koov recap the last 5 minutes",
+            "Mechus recap the last 5 minutes",
             context_engine=eng,
             memory=None,
             max_chars=8000,
@@ -62,7 +62,7 @@ def test_time_window_uses_explicit_meeting_now_ts_session_clock() -> None:
         ],
     )
     bundle = retrieve_for_question(
-        "Koov recap the last 5 minutes",
+        "Mechus recap the last 5 minutes",
         context_engine=eng,
         memory=None,
         max_chars=8000,
@@ -91,7 +91,7 @@ def test_topic_scoped_recap_includes_distinctive_token() -> None:
         ],
     )
     bundle = retrieve_for_question(
-        "Koov what did we say about WIDGETXTOKEN",
+        "Mechus what did we say about WIDGETXTOKEN",
         context_engine=eng,
         memory=None,
         max_chars=8000,

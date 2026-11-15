@@ -1,12 +1,12 @@
-# Koov Documentation
+# Mechus Documentation
 
-This folder contains all documentation files for the Koov project.
+This folder contains all documentation files for the Mechus project.
 
 ## Quick Start
 
 - **[README.md](../README.md)** - Main project README (in root directory)
 - **[QUICK_START.md](QUICK_START.md)** - Quick start guide (start here!)
-- **[HOW_TO_RUN_KOOV.md](HOW_TO_RUN_KOOV.md)** - How to run Koov
+- **[HOW_TO_RUN_MECHUS.md](HOW_TO_RUN_MECHUS.md)** - How to run Mechus
 - **[QUICK_START_API.md](QUICK_START_API.md)** - Quick start guide for API
 - **[OLLAMA_SETUP.md](OLLAMA_SETUP.md)** - Ollama installation and setup
 
@@ -32,7 +32,7 @@ This folder contains all documentation files for the Koov project.
 - **[DEPLOY_AWS.md](DEPLOY_AWS.md)** - AWS deployment guide
 - **[DEPLOY_AZURE.md](DEPLOY_AZURE.md)** - Azure deployment guide
 - **[CHEAPEST_DEPLOYMENT.md](CHEAPEST_DEPLOYMENT.md)** - Cost-effective deployment options
-- **[BEST_OPTION_FOR_KOOV.md](BEST_OPTION_FOR_KOOV.md)** - Recommended deployment options
+- **[BEST_OPTION_FOR_MECHUS.md](BEST_OPTION_FOR_MECHUS.md)** - Recommended deployment options
 
 ## Features & Integration
 
@@ -58,7 +58,7 @@ This folder contains all documentation files for the Koov project.
 - **[FULL_AUTOMATION_AUDIO.md](FULL_AUTOMATION_AUDIO.md)** - Full audio automation
 - **[USER_LIMIT_ONE_MEETING.md](USER_LIMIT_ONE_MEETING.md)** - Single meeting limits
 - **[HOW_TO_TOGGLE_BROWSER.md](HOW_TO_TOGGLE_BROWSER.md)** - Browser toggle guide
-- **[HOW_TO_VERIFY_KOOV.md](HOW_TO_VERIFY_KOOV.md)** - Verification guide
+- **[HOW_TO_VERIFY_MECHUS.md](HOW_TO_VERIFY_MECHUS.md)** - Verification guide
 
 ## Cursor Prompts
 

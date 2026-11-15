@@ -6,7 +6,7 @@ This doc captures the correct order of work: what’s solid, what’s weak, and 
 
 ## What’s solid vs weak in the plan
 
-### 1. Running Koov on a real Linux host — **Correct**
+### 1. Running Mechus on a real Linux host — **Correct**
 
 Running the Zoom Meeting SDK bot on real Linux is the right move.
 
@@ -27,7 +27,7 @@ Backend
   → Zoom API: GET /meetings/{id}/jointoken/local_recording
   → recording_token
   → POST /api/join-meeting (with recording_token)
-  → Koov bot joins with recording enabled
+  → Mechus bot joins with recording enabled
 ```
 
 **Advantages:** No host popup, automatic recording permission, fully first-party Zoom.
@@ -60,7 +60,7 @@ That gap is the difference between a robot that interrupts meetings and a bot th
 
 ### 4. VAD / turn detection — **The missing gate**
 
-The agent must detect **“speaker finished talking”**. Otherwise Koov will:
+The agent must detect **“speaker finished talking”**. Otherwise Mechus will:
 
 - Talk over people  
 - Answer too late  
@@ -106,13 +106,13 @@ Right now you need: **one reliable bot**, **low latency responses**, **no meetin
 ```
 Zoom Meeting
       ↓
-Koov Bot (Linux VM)
+Mechus Bot (Linux VM)
       ↓
 Audio stream
       ↓
 Streaming STT
       ↓
-Koov decision engine
+Mechus decision engine
       ↓
 OpenAI LLM
       ↓

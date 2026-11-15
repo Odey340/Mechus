@@ -1,6 +1,6 @@
 # Minimal canonical decision state schema
 
-This document locks the **contract** for Koov’s canonical state. The event-extraction layer and the responder (including LLM phrasing) depend on this shape. Test “state completeness” against this schema, not against the LLM.
+This document locks the **contract** for Mechus’s canonical state. The event-extraction layer and the responder (including LLM phrasing) depend on this shape. Test “state completeness” against this schema, not against the LLM.
 
 ---
 
@@ -96,5 +96,5 @@ Rules:
 
 ## 7. File references
 
-- **Producers**: `koov/context_integrity_engine.py` — `get_canonical_state_for_qa()`, `DecisionState`, `_reversal_log`, `_action_items`, `_issues`.
-- **Consumers**: `koov/retrieval.py` (bundle.state), `koov/responder.py` (`_format_state_for_llm`, `_render_state_answer`).
+- **Producers**: `mechus/context_integrity_engine.py` — `get_canonical_state_for_qa()`, `DecisionState`, `_reversal_log`, `_action_items`, `_issues`.
+- **Consumers**: `mechus/retrieval.py` (bundle.state), `mechus/responder.py` (`_format_state_for_llm`, `_render_state_answer`).

@@ -10,17 +10,17 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from koov.agent import KoovAgent, WakeCycleResult
-from koov.config import KoovConfig
+from mechus.agent import MechusAgent, WakeCycleResult
+from mechus.config import MechusConfig
 
 
-def _minimal_config() -> KoovConfig:
+def _minimal_config() -> MechusConfig:
     """Stable config for bare-agent tests (no real audio devices)."""
-    return KoovConfig.from_env()
+    return MechusConfig.from_env()
 
 
-def _bare_agent(cfg: KoovConfig) -> KoovAgent:
-    agent = object.__new__(KoovAgent)
+def _bare_agent(cfg: MechusConfig) -> MechusAgent:
+    agent = object.__new__(MechusAgent)
     agent._config = cfg
     agent._stop = threading.Event()
     agent._tts = MagicMock()
@@ -44,7 +44,7 @@ def _bare_agent(cfg: KoovConfig) -> KoovAgent:
     agent._play_cached_thinking_preroll = MagicMock(return_value=False)
     agent._should_play_wake_opener = MagicMock(return_value=False)
     agent._personas = MagicMock()
-    agent._personas.default.return_value = SimpleNamespace(id="koov", filler_phrases=())
+    agent._personas.default.return_value = SimpleNamespace(id="mechus", filler_phrases=())
     agent._transcript_wake_only = False
     agent._pending_transcript_wake = None
     agent._barge_stream_chunkers = {}
@@ -77,15 +77,15 @@ def test_non_interrupt_path_calls_play_blocking_not_play() -> None:
     agent._tts = MagicMock(spec=["synthesize"])
     agent._flush_transcript_chunkers = lambda: None
     agent._run_wake_cycle = MagicMock(
-        return_value=WakeCycleResult("koov", "Test reply phrase.", is_instant=True)
+        return_value=WakeCycleResult("mechus", "Test reply phrase.", is_instant=True)
     )
     agent._wait_for_silence = MagicMock(return_value=True)
     agent._can_interrupt_tts = MagicMock(return_value=False)
     agent._tts.synthesize = MagicMock(side_effect=lambda _text: _fake_tts_result())
 
-    ok = KoovAgent._run_wake_pipeline_after_detect(
+    ok = MechusAgent._run_wake_pipeline_after_detect(
         agent,
-        trigger_text="koov",
+        trigger_text="mechus",
         seed_pcm16=b"",
         context_pcm16=b"",
         source="test",
@@ -104,7 +104,7 @@ def test_interrupt_path_calls_play_and_wait() -> None:
     agent._tts = MagicMock(spec=["synthesize"])
     agent._flush_transcript_chunkers = lambda: None
     agent._run_wake_cycle = MagicMock(
-        return_value=WakeCycleResult("koov", "Short.", is_instant=True)
+        return_value=WakeCycleResult("mechus", "Short.", is_instant=True)
     )
     agent._wait_for_silence = MagicMock(return_value=True)
     agent._can_interrupt_tts = MagicMock(return_value=True)
@@ -113,9 +113,9 @@ def test_interrupt_path_calls_play_and_wait() -> None:
     agent._handle_live_frame = MagicMock()
     agent._interrupt_vad.is_speech = MagicMock(return_value=False)
 
-    ok = KoovAgent._run_wake_pipeline_after_detect(
+    ok = MechusAgent._run_wake_pipeline_after_detect(
         agent,
-        trigger_text="koov",
+        trigger_text="mechus",
         seed_pcm16=b"",
         context_pcm16=b"",
         source="test",
@@ -134,7 +134,7 @@ def test_non_interrupt_streaming_tts_concatenates_chunks_to_one_play() -> None:
             play_chunk(np.ones(240, dtype=np.float32), 48000)
             play_chunk(np.ones(240, dtype=np.float32), 48000)
 
-    with patch.dict(os.environ, {"KOOV_ELEVEN_TTS_STREAM": "1"}, clear=False):
+    with patch.dict(os.environ, {"MECHUS_ELEVEN_TTS_STREAM": "1"}, clear=False):
         cfg = _minimal_config()
     agent = _bare_agent(cfg)
     agent._playback_output_sample_rate = lambda: 48000
@@ -143,14 +143,14 @@ def test_non_interrupt_streaming_tts_concatenates_chunks_to_one_play() -> None:
     agent._tts = _StreamingTTS()
     agent._flush_transcript_chunkers = lambda: None
     agent._run_wake_cycle = MagicMock(
-        return_value=WakeCycleResult("koov", "Streamed.", is_instant=True)
+        return_value=WakeCycleResult("mechus", "Streamed.", is_instant=True)
     )
     agent._wait_for_silence = MagicMock(return_value=True)
     agent._can_interrupt_tts = MagicMock(return_value=False)
 
-    ok = KoovAgent._run_wake_pipeline_after_detect(
+    ok = MechusAgent._run_wake_pipeline_after_detect(
         agent,
-        trigger_text="koov",
+        trigger_text="mechus",
         seed_pcm16=b"",
         context_pcm16=b"",
         source="test",
@@ -175,7 +175,7 @@ def test_discarded_transcript_wake_clears_tts_playing() -> None:
 
     agent._run_wake_opener = _fake_opener
 
-    ok = KoovAgent._run_wake_pipeline_after_detect(
+    ok = MechusAgent._run_wake_pipeline_after_detect(
         agent,
         trigger_text="Oh, yes. And, uh, like, um",
         seed_pcm16=b"",

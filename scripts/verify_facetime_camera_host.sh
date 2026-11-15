@@ -10,16 +10,16 @@ if [[ ! -d /sys/module/v4l2loopback ]]; then
   exit 3
 fi
 
-raw_devices="${KOOV_FT_VIDEO_DEVICES:-/dev/video20,/dev/video21,/dev/video22,/dev/video23}"
+raw_devices="${MECHUS_FT_VIDEO_DEVICES:-/dev/video20,/dev/video21,/dev/video22,/dev/video23}"
 IFS=',' read -r -a devices <<< "$raw_devices"
 if [[ ${#devices[@]} -eq 0 ]]; then
-  echo "ERROR: KOOV_FT_VIDEO_DEVICES is empty." >&2
+  echo "ERROR: MECHUS_FT_VIDEO_DEVICES is empty." >&2
   exit 4
 fi
 for raw in "${devices[@]}"; do
   device="${raw//[[:space:]]/}"
   if [[ ! "$device" =~ ^/dev/video[0-9]+$ ]]; then
-    echo "ERROR: invalid video device in KOOV_FT_VIDEO_DEVICES: $raw" >&2
+    echo "ERROR: invalid video device in MECHUS_FT_VIDEO_DEVICES: $raw" >&2
     exit 5
   fi
   if [[ ! -c "$device" ]]; then
@@ -38,4 +38,4 @@ if ! command -v docker >/dev/null 2>&1; then
   echo "ERROR: docker is required to launch FaceTime workers." >&2
   exit 8
 fi
-echo "OK: v4l2loopback is loaded and ${#devices[@]} Koov camera device(s) are ready."
+echo "OK: v4l2loopback is loaded and ${#devices[@]} Mechus camera device(s) are ready."

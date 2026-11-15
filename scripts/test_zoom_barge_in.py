@@ -14,7 +14,7 @@ import types
 
 import numpy as np
 
-# Stubs so importing koov.zoom_sdk_join does not require optional native deps in bare CI.
+# Stubs so importing mechus.zoom_sdk_join does not require optional native deps in bare CI.
 _vad = types.ModuleType("webrtcvad")
 
 
@@ -35,7 +35,7 @@ sys.modules.setdefault("zoom_meeting_sdk", _stub)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from koov.zoom_sdk_join import OnDemandMuteZoomOutput, ZoomAudioOutput
+from mechus.zoom_sdk_join import OnDemandMuteZoomOutput, ZoomAudioOutput
 
 
 class MockSender:

@@ -6,7 +6,7 @@
 
 **Error:**
 ```
-WARNING koov.api_server: Selenium not installed. Install with: pip install selenium
+WARNING mechus.api_server: Selenium not installed. Install with: pip install selenium
 ```
 
 **Fix:**

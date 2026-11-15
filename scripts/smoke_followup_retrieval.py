@@ -3,7 +3,7 @@
 Retrieval-only smoke test for dialog follow-ups (no STT/TTS/LLM).
 
 Ingests a fixed synthetic meeting, then simulates two-turn flows using the same
-dialog_memory + retrieve_for_question wiring as KoovAgent (expanded query for turn 2).
+dialog_memory + retrieve_for_question wiring as MechusAgent (expanded query for turn 2).
 
 Usage:
   python3 scripts/smoke_followup_retrieval.py
@@ -20,14 +20,14 @@ _root = os.path.dirname(_script_dir)
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.dialog_memory import (
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.dialog_memory import (
     build_retrieval_query,
     extract_salient_terms,
     merge_salient,
 )
-from koov.memory import ConversationMemory
-from koov.retrieval import retrieve_for_question
+from mechus.memory import ConversationMemory
+from mechus.retrieval import retrieve_for_question
 
 
 def _ingest_meeting(eng: ContextIntegrityEngine, t: float = 0.0) -> None:
@@ -91,21 +91,21 @@ def main() -> int:
             "name": "NIH anaphora",
             "t1": "What did Alice say about the NIH rollout?",
             "t2": "what about that?",
-            "koov_after_t1": "Alice said the NIH rollout might slip to Q3 due to compliance blockers.",
+            "mechus_after_t1": "Alice said the NIH rollout might slip to Q3 due to compliance blockers.",
             "expect2": ["nih", "alice", "rollout"],
         },
         {
             "name": "Three blockers → first one",
             "t1": "What were the three blockers?",
             "t2": "tell me more about the first one",
-            "koov_after_t1": "The blockers were funding, security review, and unclear ownership.",
+            "mechus_after_t1": "The blockers were funding, security review, and unclear ownership.",
             "expect2": ["funding", "blocker"],
         },
         {
             "name": "Sprint 24 → H1B same framing",
             "t1": "Who owns Sprint 24 follow-ups?",
             "t2": "same thing for H1B?",
-            "koov_after_t1": "Sprint 24 follow-ups are owned by Priya.",
+            "mechus_after_t1": "Sprint 24 follow-ups are owned by Priya.",
             "expect2": ["h1b", "sprint", "priya"],
         },
     ]
@@ -125,7 +125,7 @@ def main() -> int:
         rq = build_retrieval_query(
             sc["t2"],
             last_user=sc["t1"],
-            last_koov=sc["koov_after_t1"],
+            last_mechus=sc["mechus_after_t1"],
             salient_terms=merged,
         )
         r2 = _run_turn(eng, mem, sc["t2"], retrieval_query=rq, salient_terms_used=merged)

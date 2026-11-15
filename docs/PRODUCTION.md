@@ -1,6 +1,6 @@
 # Production Deployment (Cloud)
 
-Koov is production-grade and is intended to run in Docker (or cloud containers), not as a local desktop process. This guide covers security, configuration, scaling, and deployment.
+Mechus is production-grade and is intended to run in Docker (or cloud containers), not as a local desktop process. This guide covers security, configuration, scaling, and deployment.
 
 ---
 
@@ -10,7 +10,7 @@ Koov is production-grade and is intended to run in Docker (or cloud containers),
 
 When the API is reachable from the internet, **always** set an API key so only your dashboard (or backend) can call it.
 
-- **Set:** `KOOV_API_KEY=<strong-secret>` (e.g. from your secrets manager).
+- **Set:** `MECHUS_API_KEY=<strong-secret>` (e.g. from your secrets manager).
 - **Clients:** Send the key on every request:
   - Header: `X-API-Key: <your-key>`, or
   - Header: `Authorization: Bearer <your-key>`.
@@ -20,7 +20,7 @@ When the API is reachable from the internet, **always** set an API key so only y
 
 Restrict origins in production so only your dashboard can call the API.
 
-- **Set:** `KOOV_CORS_ORIGINS=https://your-dashboard.example.com,https://app.example.com` (comma-separated).
+- **Set:** `MECHUS_CORS_ORIGINS=https://your-dashboard.example.com,https://app.example.com` (comma-separated).
 - **Omit:** In development you can leave this unset (all origins allowed).
 
 ### Secrets
@@ -31,11 +31,11 @@ Restrict origins in production so only your dashboard can call the API.
   - **GCP:** Secret Manager or Cloud Run env.
   - **Azure:** Key Vault or App Service config.
   - **Kubernetes:** Secrets or External Secrets.
-- Required secrets for full functionality: `KOOV_API_KEY`, Zoom (`ZOOM_APP_CLIENT_ID`, `ZOOM_APP_CLIENT_SECRET`), TTS/LLM keys as needed.
+- Required secrets for full functionality: `MECHUS_API_KEY`, Zoom (`ZOOM_APP_CLIENT_ID`, `ZOOM_APP_CLIENT_SECRET`), TTS/LLM keys as needed.
 
 ### HTTPS
 
-- Terminate TLS at the load balancer or ingress (recommended). Run Koov on HTTP inside the network (e.g. `KOOV_API_HOST=0.0.0.0`).
+- Terminate TLS at the load balancer or ingress (recommended). Run Mechus on HTTP inside the network (e.g. `MECHUS_API_HOST=0.0.0.0`).
 - Do not put secrets in the URL; use headers and env.
 
 ---
@@ -44,12 +44,12 @@ Restrict origins in production so only your dashboard can call the API.
 
 | Variable | Description | Production |
 |----------|-------------|------------|
-| `KOOV_API_KEY` | API key; if set, required on all API routes except /health, /ready | **Set** (strong secret) |
-| `KOOV_CORS_ORIGINS` | Allowed origins (comma-separated) | **Set** (dashboard origin(s)) |
-| `KOOV_API_HOST` | Bind address | `0.0.0.0` (when in container/VM) |
-| `KOOV_API_PORT` | Port | `5000` (or platform default) |
-| `KOOV_LOG_LEVEL` | Log level | `INFO` (or `WARNING` to reduce noise) |
-| `KOOV_ENV_FILE` | Path to .env (optional) | Omit if using platform env |
+| `MECHUS_API_KEY` | API key; if set, required on all API routes except /health, /ready | **Set** (strong secret) |
+| `MECHUS_CORS_ORIGINS` | Allowed origins (comma-separated) | **Set** (dashboard origin(s)) |
+| `MECHUS_API_HOST` | Bind address | `0.0.0.0` (when in container/VM) |
+| `MECHUS_API_PORT` | Port | `5000` (or platform default) |
+| `MECHUS_LOG_LEVEL` | Log level | `INFO` (or `WARNING` to reduce noise) |
+| `MECHUS_ENV_FILE` | Path to .env (optional) | Omit if using platform env |
 | Zoom / TTS / LLM | See README and ZOOM_SDK_SETUP | From secrets manager |
 
 ---
@@ -62,8 +62,8 @@ Do **not** use the Flask dev server in production. Use gunicorn:
 
 ```bash
 pip install -r requirements.txt -r requirements-prod.txt
-export PYTHONPATH=/path/to/koovdemo
-gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 4 --timeout 120 --access-logfile - --error-logfile - koov.api_server:app
+export PYTHONPATH=/path/to/mechusdemo
+gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 4 --timeout 120 --access-logfile - --error-logfile - mechus.api_server:app
 ```
 
 - **Workers:** Use **1** worker when using browser or Zoom SDK join (sessions are in-memory per process). Scale by running more instances (horizontal scaling) instead of more workers.
@@ -75,8 +75,8 @@ gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 4 --timeout 120 --access-logf
 The repo Dockerfile is production-oriented: non-root user, gunicorn, healthcheck.
 
 ```bash
-docker build -t koov-api .
-docker run -p 5000:5000 --env-file .env koov-api
+docker build -t mechus-api .
+docker run -p 5000:5000 --env-file .env mechus-api
 ```
 
 Use `docker compose up` for local or single-node deployment; see `docker-compose.yml` for healthcheck and restart policy. After the container is up, run `./scripts/test-docker-api.sh` to smoke-test `/health` and `/api/join-meeting` (and confirm the wake-word model is found).
@@ -106,14 +106,14 @@ Both return 200 and JSON; no API key required. Configure your load balancer or K
 ## 6. Logging and observability
 
 - **Logs:** Gunicorn logs to stdout/stderr (e.g. `--access-logfile - --error-logfile -`). In cloud, capture stdout/stderr with your log agent (CloudWatch, Stackdriver, Azure Monitor, etc.).
-- **Log level:** `KOOV_LOG_LEVEL=INFO` (or `WARNING`). Avoid `DEBUG` in production (PII in logs).
+- **Log level:** `MECHUS_LOG_LEVEL=INFO` (or `WARNING`). Avoid `DEBUG` in production (PII in logs).
 - **Metrics:** Optional: add a Prometheus `/metrics` endpoint or use your platform’s APM. Not included by default.
 
 ---
 
 ## 7. Data and privacy
 
-- **Transcripts/notes:** Stored under `koov_notes/` (or configured root) on the instance’s disk. Plan retention and backup per your policy; restrict filesystem permissions.
+- **Transcripts/notes:** Stored under `mechus_notes/` (or configured root) on the instance’s disk. Plan retention and backup per your policy; restrict filesystem permissions.
 - **PII:** Logs are redacted at INFO level (see DATA_PRIVACY.md). Do not ship DEBUG logs to shared systems.
 - **Compliance:** Ensure your deployment meets your data residency and access controls (encryption, network, secrets).
 
@@ -121,8 +121,8 @@ Both return 200 and JSON; no API key required. Configure your load balancer or K
 
 ## 8. Checklist before going live
 
-- [ ] `KOOV_API_KEY` set and sent by dashboard (or backend).
-- [ ] `KOOV_CORS_ORIGINS` set to dashboard origin(s).
+- [ ] `MECHUS_API_KEY` set and sent by dashboard (or backend).
+- [ ] `MECHUS_CORS_ORIGINS` set to dashboard origin(s).
 - [ ] API not exposed to the internet without TLS (terminate at LB/ingress).
 - [ ] Secrets from a secrets manager, not in code or in repo.
 - [ ] Server run with gunicorn (or production Docker image).
@@ -138,9 +138,9 @@ For **what to build first** (Linux, recording token, streaming TTS, VAD), see **
 
 1. **VM:** Linux (e.g. Ubuntu 22.04) on AWS/GCP/Azure or Hetzner/DO.
 2. **Install:** Docker (or Python 3.10+ and deps).
-3. **Secrets:** Store `KOOV_API_KEY`, Zoom credentials, TTS/LLM keys in platform secrets; inject as env.
-4. **Run:** `docker run -d -p 5000:5000 --env-file /path/to/env --restart unless-stopped koov-api` (or use docker compose).
+3. **Secrets:** Store `MECHUS_API_KEY`, Zoom credentials, TTS/LLM keys in platform secrets; inject as env.
+4. **Run:** `docker run -d -p 5000:5000 --env-file /path/to/env --restart unless-stopped mechus-api` (or use docker compose).
 5. **LB:** Put the VM behind a load balancer; TLS at LB; allow only `/health`, `/ready`, and `/api/*` to the VM.
-6. **Dashboard:** Call `https://your-api.example.com/api/join-meeting` with `X-API-Key` and `KOOV_CORS_ORIGINS=https://your-dashboard.example.com`.
+6. **Dashboard:** Call `https://your-api.example.com/api/join-meeting` with `X-API-Key` and `MECHUS_CORS_ORIGINS=https://your-dashboard.example.com`.
 
 For multi-instance, run the same image on multiple VMs/containers and put them behind the same load balancer; use one instance per meeting or sticky sessions as needed.

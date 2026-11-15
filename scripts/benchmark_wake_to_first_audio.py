@@ -25,24 +25,24 @@ if _REPO not in sys.path:
 
 _env = os.path.join(_REPO, ".env")
 if os.path.exists(_env):
-    from koov.envfile import load_env_file
+    from mechus.envfile import load_env_file
 
     load_env_file(_env)
 
 # Production FaceTime worker defaults for this benchmark
-os.environ.setdefault("KOOV_LOW_LATENCY", "1")
-os.environ.setdefault("KOOV_WAKE_OPENER", "1")
-os.environ.setdefault("KOOV_WAKE_OPENER_MAX_AUDIO_S", "1.0")
-os.environ.setdefault("KOOV_MIN_SILENCE_BEFORE_SPEAKING_TRANSCRIPT_ST_S", "0")
-os.environ.setdefault("KOOV_ELEVEN_TTS_STREAM", "1")
-os.environ.setdefault("KOOV_WAKE_SPOKEN_MAX_WORDS", "12")
-os.environ.setdefault("KOOV_WAKE_SPOKEN_MAX_CHARS", "40")
-os.environ.setdefault("KOOV_RESPONSE_JSON_MODE", "1")
+os.environ.setdefault("MECHUS_LOW_LATENCY", "1")
+os.environ.setdefault("MECHUS_WAKE_OPENER", "1")
+os.environ.setdefault("MECHUS_WAKE_OPENER_MAX_AUDIO_S", "1.0")
+os.environ.setdefault("MECHUS_MIN_SILENCE_BEFORE_SPEAKING_TRANSCRIPT_ST_S", "0")
+os.environ.setdefault("MECHUS_ELEVEN_TTS_STREAM", "1")
+os.environ.setdefault("MECHUS_WAKE_SPOKEN_MAX_WORDS", "12")
+os.environ.setdefault("MECHUS_WAKE_SPOKEN_MAX_CHARS", "40")
+os.environ.setdefault("MECHUS_RESPONSE_JSON_MODE", "1")
 
-from koov.config import KoovConfig  # noqa: E402
-from koov.memory import ConversationMemory  # noqa: E402
-from koov.responder import OpenAIResponder, ResponseInput  # noqa: E402
-from koov.tts import ElevenLabsTTSEngine, SynthesizedAudio  # noqa: E402
+from mechus.config import MechusConfig  # noqa: E402
+from mechus.memory import ConversationMemory  # noqa: E402
+from mechus.responder import OpenAIResponder, ResponseInput  # noqa: E402
+from mechus.tts import ElevenLabsTTSEngine, SynthesizedAudio  # noqa: E402
 
 
 def _p50(xs: list[float]) -> float:
@@ -63,7 +63,7 @@ def _play_cached_duration(audio: SynthesizedAudio) -> float:
 
 def _run_iteration(
     *,
-    config: KoovConfig,
+    config: MechusConfig,
     responder: OpenAIResponder,
     tts: ElevenLabsTTSEngine,
     opener_audio: SynthesizedAudio,
@@ -74,7 +74,7 @@ def _run_iteration(
         max_chars=config.memory_max_chars,
         recent_chars=config.memory_recent_chars,
     )
-    memory.add_segment("Alex: Koov, quick update on the beta launch.")
+    memory.add_segment("Alex: Mechus, quick update on the beta launch.")
     memory.add_segment("Sarah: Engineering is targeting July 25th.")
 
     state = {
@@ -162,9 +162,9 @@ def main() -> int:
     ap.add_argument("--iterations", type=int, default=8)
     args = ap.parse_args()
 
-    config = KoovConfig.from_env()
+    config = MechusConfig.from_env()
     if not config.openai_api_key or not config.eleven_api_key or not config.eleven_voice_id:
-        print("Need KOOV_OPENAI_API_KEY, KOOV_ELEVEN_API_KEY, KOOV_ELEVEN_VOICE_ID", file=sys.stderr)
+        print("Need MECHUS_OPENAI_API_KEY, MECHUS_ELEVEN_API_KEY, MECHUS_ELEVEN_VOICE_ID", file=sys.stderr)
         return 1
 
     tts = ElevenLabsTTSEngine(
@@ -185,7 +185,7 @@ def main() -> int:
         audio_tags_enabled=config.eleven_audio_tags,
     )
 
-    from koov.personas import PersonaRegistry
+    from mechus.personas import PersonaRegistry
 
     persona = PersonaRegistry.load(config).default()
     opener_phrase = "Yeah."

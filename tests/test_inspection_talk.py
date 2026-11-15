@@ -1,7 +1,7 @@
 """Inspection talking style: asks for a better look, confirms clean areas, never babbles."""
 import json
 
-from koov.inspection import Inspector, LocalInspectionStore, build_prompt, parse_talk
+from mechus.inspection import Inspector, LocalInspectionStore, build_prompt, parse_talk
 
 
 def reply(scene="living room north wall", view="clear", findings=(), ask="", ok=""):

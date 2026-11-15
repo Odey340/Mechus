@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from koov.zoom_user_credentials import ZoomUserCredentials, fetch_zoom_credentials_for_user
+from mechus.zoom_user_credentials import ZoomUserCredentials, fetch_zoom_credentials_for_user
 
 
 def test_fetch_zoom_credentials_skips_default_user() -> None:
@@ -24,8 +24,8 @@ def test_fetch_zoom_credentials_from_app_metadata() -> None:
         },
     }
 
-    with patch("koov.zoom_user_credentials._supabase_admin_config", return_value=("https://x.supabase.co", "key")):
-        with patch("koov.zoom_user_credentials._supabase_get_user", return_value=fake_user):
+    with patch("mechus.zoom_user_credentials._supabase_admin_config", return_value=("https://x.supabase.co", "key")):
+        with patch("mechus.zoom_user_credentials._supabase_get_user", return_value=fake_user):
             creds = fetch_zoom_credentials_for_user("user-uuid")
 
     assert isinstance(creds, ZoomUserCredentials)
@@ -42,8 +42,8 @@ def test_fetch_zoom_credentials_rejects_encrypted_user_metadata_tokens() -> None
         "app_metadata": {},
     }
 
-    with patch("koov.zoom_user_credentials._supabase_admin_config", return_value=("https://x.supabase.co", "key")):
-        with patch("koov.zoom_user_credentials._supabase_get_user", return_value=fake_user):
+    with patch("mechus.zoom_user_credentials._supabase_admin_config", return_value=("https://x.supabase.co", "key")):
+        with patch("mechus.zoom_user_credentials._supabase_get_user", return_value=fake_user):
             creds = fetch_zoom_credentials_for_user("user-uuid")
 
     assert creds is None

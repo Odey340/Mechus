@@ -14,8 +14,8 @@ _root = os.path.dirname(_script_dir)
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.structured_response import try_structured_response
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.structured_response import try_structured_response
 
 
 def _run_sim_metrics():
@@ -112,10 +112,10 @@ def _test_hallucination_guard():
 
 
 def _test_wake_negative():
-    """Step E: 'Koov is cool' -> no activation. Test same rule logic without loading Vosk/audio."""
+    """Step E: 'Mechus is cool' -> no activation. Test same rule logic without loading Vosk/audio."""
     import re
-    wake_phrase = "koov"
-    text = "koov is cool"
+    wake_phrase = "mechus"
+    text = "mechus is cool"
     t = text.lower().strip()
     for phrase in (wake_phrase, wake_phrase.capitalize()):
         if t.startswith(phrase):
@@ -123,10 +123,10 @@ def _test_wake_negative():
             break
     t = re.sub(rf"\b{re.escape(wake_phrase)}\b", "", t, flags=re.IGNORECASE).strip()
     if not t or len(t) < 2:
-        return False, "wake-only should allow; this is 'koov is cool'"
+        return False, "wake-only should allow; this is 'mechus is cool'"
     non_commands = ("is cool", "sounds good", "is great", "is awesome", "is fine", "is okay")
     if any(t.startswith(p) or p in t for p in non_commands) and len(t) < 25:
-        return True, "no activation for 'Koov is cool' (rule rejects non-command)"
+        return True, "no activation for 'Mechus is cool' (rule rejects non-command)"
     return False, "rule should have rejected 'is cool'"
 
 
@@ -187,7 +187,7 @@ def main():
     print(f"  {'PASS' if d_ok else 'FAIL'}: {d_msg}")
 
     # E
-    print("\n--- Step E: Wake negative ('Koov is cool') ---")
+    print("\n--- Step E: Wake negative ('Mechus is cool') ---")
     e_ok, e_msg = _test_wake_negative()
     if e_ok is None:
         print(f"  SKIP: {e_msg}")

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Simulate a full test meeting and measure Koov performance.
+Simulate a full test meeting and measure Mechus performance.
 
 1. Feeds meeting transcript chunks into memory in order (as in a real meeting).
-2. At set points, simulates "Koov" questions (no real STT/TTS).
+2. At set points, simulates "Mechus" questions (no real STT/TTS).
 3. Measures latency (memory + LLM) and answer quality per question.
 4. Prints full transcript and a performance summary.
 
 Usage:
   python3 scripts/simulate_meeting_test.py
-  python3 scripts/simulate_meeting_test.py --stress   # OpenAI: default+hard meetings, seconds + p95 (needs KOOV_OPENAI_API_KEY)
-  python3 scripts/simulate_meeting_test.py --compare-latency   # A/B vs KOOV_LOW_LATENCY=1
-  python3 scripts/simulate_meeting_test.py --transcript path/to/transcript.txt   # raw adversarial transcript (Speaker: line; Koov, question = wake-word)
+  python3 scripts/simulate_meeting_test.py --stress   # OpenAI: default+hard meetings, seconds + p95 (needs MECHUS_OPENAI_API_KEY)
+  python3 scripts/simulate_meeting_test.py --compare-latency   # A/B vs MECHUS_LOW_LATENCY=1
+  python3 scripts/simulate_meeting_test.py --transcript path/to/transcript.txt   # raw adversarial transcript (Speaker: line; Mechus, question = wake-word)
 """
 
 from __future__ import annotations
@@ -25,19 +25,19 @@ _root = os.path.dirname(_script_dir)
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
-from koov.envfile import load_env_file
+from mechus.envfile import load_env_file
 
-from koov.config import KoovConfig
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.intent import INTENT_ACTION_ITEMS, INTENT_OPEN_QUESTIONS, classify_intent
-from koov.retrieval import retrieve_for_question
-from koov.memory import ConversationMemory
-from koov.responder import OpenAIResponder, ResponseInput, RuleResponder
-from koov.text import strip_wake_word
+from mechus.config import MechusConfig
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.intent import INTENT_ACTION_ITEMS, INTENT_OPEN_QUESTIONS, classify_intent
+from mechus.retrieval import retrieve_for_question
+from mechus.memory import ConversationMemory
+from mechus.responder import OpenAIResponder, ResponseInput, RuleResponder
+from mechus.text import strip_wake_word
 
 
-def _retrieve_kwargs(config: KoovConfig) -> dict:
-    """Match production agent retrieval parameters (see simulate_financial_scrum_koov._ask_koov)."""
+def _retrieve_kwargs(config: MechusConfig) -> dict:
+    """Match production agent retrieval parameters (see simulate_financial_scrum_mechus._ask_mechus)."""
     return {
         "max_chars": config.retrieval_max_chars,
         "general_max_chars": config.retrieval_general_max_chars,
@@ -55,15 +55,15 @@ def _retrieve_kwargs(config: KoovConfig) -> dict:
 
 
 def _print_storage_model() -> None:
-    notes = os.getenv("KOOV_NOTES_DIR", "koov_notes")
-    mdir = os.getenv("KOOV_MEETING_STORE_DIR", "koov_meetings")
+    notes = os.getenv("MECHUS_NOTES_DIR", "mechus_notes")
+    mdir = os.getenv("MECHUS_MEETING_STORE_DIR", "mechus_meetings")
     print("--- Storage model (this script vs production) ---\n")
     print("  Simulation (this script):")
-    print("    - ConversationMemory: rolling text segments in RAM (KOOV_MEMORY_MAX_CHARS / RECENT).")
+    print("    - ConversationMemory: rolling text segments in RAM (MECHUS_MEMORY_MAX_CHARS / RECENT).")
     print("    - ContextIntegrityEngine: tagged chunks, raw timestamps, canonical state in RAM.")
-    print("  Production (KoovAgent live meeting):")
-    print(f"    - NoteStore JSONL under KOOV_NOTES_DIR (default {notes!r}).")
-    print(f"    - MeetingStore enriched chunks under KOOV_MEETING_STORE_DIR (default {mdir!r}).")
+    print("  Production (MechusAgent live meeting):")
+    print(f"    - NoteStore JSONL under MECHUS_NOTES_DIR (default {notes!r}).")
+    print(f"    - MeetingStore enriched chunks under MECHUS_MEETING_STORE_DIR (default {mdir!r}).")
     print()
 
 
@@ -107,21 +107,21 @@ def _print_latency_summary_seconds(
 
 
 def _require_openai_for_stress() -> bool:
-    load_env_file(os.getenv("KOOV_ENV_FILE", os.path.join(_root, ".env")))
-    key = (os.getenv("KOOV_OPENAI_API_KEY") or "").strip()
+    load_env_file(os.getenv("MECHUS_ENV_FILE", os.path.join(_root, ".env")))
+    key = (os.getenv("MECHUS_OPENAI_API_KEY") or "").strip()
     if not key:
-        print("Error: --stress requires KOOV_OPENAI_API_KEY in the environment.", file=sys.stderr)
+        print("Error: --stress requires MECHUS_OPENAI_API_KEY in the environment.", file=sys.stderr)
         return False
     return True
 
 
 def _run_stress_mode(compare_latency: bool) -> int:
-    """Run default + hard simulations; print wall seconds, p50/p95 in seconds, optional A/B vs KOOV_LOW_LATENCY."""
+    """Run default + hard simulations; print wall seconds, p50/p95 in seconds, optional A/B vs MECHUS_LOW_LATENCY."""
     if not _require_openai_for_stress():
         return 1
-    cfg = KoovConfig.from_env()
+    cfg = MechusConfig.from_env()
     if (cfg.llm_backend or "").lower() != "openai" or not (cfg.openai_api_key or "").strip():
-        print("Error: --stress requires KOOV_LLM_BACKEND=openai and KOOV_OPENAI_API_KEY.", file=sys.stderr)
+        print("Error: --stress requires MECHUS_LLM_BACKEND=openai and MECHUS_OPENAI_API_KEY.", file=sys.stderr)
         return 1
 
     print("=" * 60)
@@ -129,7 +129,7 @@ def _run_stress_mode(compare_latency: bool) -> int:
     print("=" * 60)
     print()
 
-    saved_ll = os.environ.get("KOOV_LOW_LATENCY")
+    saved_ll = os.environ.get("MECHUS_LOW_LATENCY")
 
     def one_stress_round(label: str) -> tuple[float, list[dict], list[float]]:
         wall0 = time.perf_counter()
@@ -143,10 +143,10 @@ def _run_stress_mode(compare_latency: bool) -> int:
 
     try:
         if compare_latency:
-            os.environ.pop("KOOV_LOW_LATENCY", None)
-            w1, qa1, lat1 = one_stress_round("Round A: KOOV_LOW_LATENCY unset")
-            os.environ["KOOV_LOW_LATENCY"] = "1"
-            w2, qa2, lat2 = one_stress_round("Round B: KOOV_LOW_LATENCY=1")
+            os.environ.pop("MECHUS_LOW_LATENCY", None)
+            w1, qa1, lat1 = one_stress_round("Round A: MECHUS_LOW_LATENCY unset")
+            os.environ["MECHUS_LOW_LATENCY"] = "1"
+            w2, qa2, lat2 = one_stress_round("Round B: MECHUS_LOW_LATENCY=1")
             p95_1 = _percentile_ms(lat1, 0.95) / 1000.0
             p95_2 = _percentile_ms(lat2, 0.95) / 1000.0
             print("--- Compare (p95 total latency per question, seconds) ---\n")
@@ -159,12 +159,12 @@ def _run_stress_mode(compare_latency: bool) -> int:
             one_stress_round("Stress run (current env)")
     finally:
         if saved_ll is None:
-            os.environ.pop("KOOV_LOW_LATENCY", None)
+            os.environ.pop("MECHUS_LOW_LATENCY", None)
         else:
-            os.environ["KOOV_LOW_LATENCY"] = saved_ll
+            os.environ["MECHUS_LOW_LATENCY"] = saved_ll
 
     _print_storage_model()
-    print("Optimization: set KOOV_LOW_LATENCY=1 for lexical-only retrieval and tighter budgets (see koov/config.py).")
+    print("Optimization: set MECHUS_LOW_LATENCY=1 for lexical-only retrieval and tighter budgets (see mechus/config.py).")
     print("Re-run with --compare-latency to measure A/B without editing .env.")
     return 0
 
@@ -182,7 +182,7 @@ MEETING_SCRIPT = [
     "Carol: Metric: target 10% conversion. Goal is 50K users by launch.",
 ]
 
-KOOV_QUESTIONS = [
+MECHUS_QUESTIONS = [
     (3, "What did we decide about the API?"),
     (6, "What did we just decide about the API?"),
     (8, "What are the action items?"),
@@ -205,7 +205,7 @@ HARD_MEETING_SCRIPT = [
 ]
 
 # Hard questions: decision reversal, who said what, conflicting numbers, open points
-HARD_KOOV_QUESTIONS = [
+HARD_MECHUS_QUESTIONS = [
     (3, "What did we decide about the API?"),                    # Early: v2
     (6, "What did we just decide about the API?"),              # After reversal: v1
     (7, "Who raised the concern about the legacy system?"),      # Speaker attribution: Dave
@@ -416,7 +416,7 @@ GENERAL_VOICE_QUESTIONS = [
     (2, "Thanks, that's all for now."),
 ]
 
-# 20-minute sports planning meeting — live Koov call-outs (wake, fast-path, reversals, grounding)
+# 20-minute sports planning meeting — live Mechus call-outs (wake, fast-path, reversals, grounding)
 SPORTS_MEETING_SCRIPT = [
     "Alice: Alright everyone, let's finalize the basketball tournament plans.",
     "Bob: First, format. Round robin or single elimination?",
@@ -457,8 +457,8 @@ SPORTS_MEETING_SCRIPT = [
     "Alice: Add that to the checklist.",
 ]
 
-# Koov invocations: (after_line_index_0based, question)
-SPORTS_KOOV_QUESTIONS = [
+# Mechus invocations: (after_line_index_0based, question)
+SPORTS_MECHUS_QUESTIONS = [
     (11, "What did we just decide about the format?"),
     (15, "What are the action items so far?"),
     (21, "What is Bob responsible for?"),
@@ -473,7 +473,7 @@ SPORTS_MEETING_SCRIPT_STRESS = SPORTS_MEETING_SCRIPT + [
     "Dana: No, that drops profit too much.",
     "Alice: Confirming — we are staying with single elimination.",
 ]
-SPORTS_KOOV_QUESTIONS_STRESS = SPORTS_KOOV_QUESTIONS + [
+SPORTS_MECHUS_QUESTIONS_STRESS = SPORTS_MECHUS_QUESTIONS + [
     (39, "What is our final format decision?"),
 ]
 
@@ -489,7 +489,7 @@ def run_simulation(
     use_failure_case: bool = False,
     use_45min: bool = False,
 ) -> dict:
-    config = KoovConfig.from_env()
+    config = MechusConfig.from_env()
     if use_long:
         script = _long_meeting_script()
         questions = LONG_MEETING_QUESTIONS
@@ -507,19 +507,19 @@ def run_simulation(
         questions = FAILURE_CASE_QUESTIONS
     elif use_hard:
         script = HARD_MEETING_SCRIPT
-        questions = HARD_KOOV_QUESTIONS
+        questions = HARD_MECHUS_QUESTIONS
     elif use_general:
         script = GENERAL_VOICE_AGENT_SCRIPT
         questions = GENERAL_VOICE_QUESTIONS
     elif use_sports_stress:
         script = SPORTS_MEETING_SCRIPT_STRESS
-        questions = SPORTS_KOOV_QUESTIONS_STRESS
+        questions = SPORTS_MECHUS_QUESTIONS_STRESS
     elif use_sports:
         script = SPORTS_MEETING_SCRIPT
-        questions = SPORTS_KOOV_QUESTIONS
+        questions = SPORTS_MECHUS_QUESTIONS
     else:
         script = MEETING_SCRIPT
-        questions = KOOV_QUESTIONS
+        questions = MECHUS_QUESTIONS
 
     memory = ConversationMemory(
         max_chars=config.memory_max_chars,
@@ -554,7 +554,7 @@ def run_simulation(
         for after_idx, question in questions:
             if i != after_idx:
                 continue
-            request_text = strip_wake_word(f"Koov {question}", config.wake_phrase).strip() or question
+            request_text = strip_wake_word(f"Mechus {question}", config.wake_phrase).strip() or question
             t0 = time.perf_counter()
             bundle = retrieve_for_question(
                 request_text,
@@ -597,8 +597,8 @@ def run_simulation(
                 "event_ids": list(bundle.event_ids),
                 "structured_path": False,
             })
-            transcript_log.append(f"[Koov] Q: {question}")
-            transcript_log.append(f"[Koov] A: {answer or '(no response)'}")
+            transcript_log.append(f"[Mechus] Q: {question}")
+            transcript_log.append(f"[Mechus] A: {answer or '(no response)'}")
 
     final_state = context_engine.get_canonical_state_for_qa()
     return {
@@ -620,17 +620,17 @@ def run_simulation(
 
 
 def _is_wake_line(line: str) -> bool:
-    """True if line is a wake-word question (Koov, ... or Koov: ...)."""
+    """True if line is a wake-word question (Mechus, ... or Mechus: ...)."""
     s = line.strip()
-    return s.startswith("Koov,") or s.startswith("Koov:")
+    return s.startswith("Mechus,") or s.startswith("Mechus:")
 
 
 def _extract_question_from_wake_line(line: str) -> str:
-    """Extract question text after 'Koov,' or 'Koov:'."""
+    """Extract question text after 'Mechus,' or 'Mechus:'."""
     s = line.strip()
-    if s.startswith("Koov,"):
+    if s.startswith("Mechus,"):
         return s[5:].strip()
-    if s.startswith("Koov:"):
+    if s.startswith("Mechus:"):
         return s[5:].strip()
     return s
 
@@ -638,14 +638,14 @@ def _extract_question_from_wake_line(line: str) -> str:
 def run_simulation_from_transcript(
     transcript_lines: list[str],
     *,
-    config: KoovConfig | None = None,
+    config: MechusConfig | None = None,
 ) -> dict:
     """
     Run simulation from raw transcript: each line is 'Speaker: text'.
-    Lines that start with 'Koov,' or 'Koov:' are wake-word questions; we respond and log.
+    Lines that start with 'Mechus,' or 'Mechus:' are wake-word questions; we respond and log.
     No predefined expected outcomes — blind adversarial test.
     """
-    config = config or KoovConfig.from_env()
+    config = config or MechusConfig.from_env()
     memory = ConversationMemory(
         max_chars=config.memory_max_chars,
         recent_chars=config.memory_recent_chars,
@@ -670,7 +670,7 @@ def run_simulation_from_transcript(
             continue
         if _is_wake_line(line):
             question = _extract_question_from_wake_line(line)
-            request_text = strip_wake_word(f"Koov {question}", config.wake_phrase).strip() or question
+            request_text = strip_wake_word(f"Mechus {question}", config.wake_phrase).strip() or question
             t0 = time.perf_counter()
             bundle = retrieve_for_question(
                 request_text,
@@ -714,8 +714,8 @@ def run_simulation_from_transcript(
                 "structured_path": False,
             })
             transcript_log.append(line)
-            transcript_log.append(f"[Koov] Q: {question}")
-            transcript_log.append(f"[Koov] A: {answer or '(no response)'}")
+            transcript_log.append(f"[Mechus] Q: {question}")
+            transcript_log.append(f"[Mechus] A: {answer or '(no response)'}")
             continue
         memory.add_segment(line)
         transcript_log.append(line)
@@ -831,7 +831,7 @@ def _run_raw_transcript(args) -> int:
 
     result = run_simulation_from_transcript(lines)
 
-    print("--- Transcript + Koov Q&A ---\n")
+    print("--- Transcript + Mechus Q&A ---\n")
     for line in result["transcript"]:
         print(line)
     print()
@@ -1023,30 +1023,30 @@ def main() -> int:
     # Pytest discovers this utility because its filename ends in ``_test.py``.
     # Loading .env at import time polluted every unit test with local developer
     # presets, so only load runtime configuration when the script is executed.
-    load_env_file(os.getenv("KOOV_ENV_FILE", os.path.join(_root, ".env")))
+    load_env_file(os.getenv("MECHUS_ENV_FILE", os.path.join(_root, ".env")))
     import argparse
-    ap = argparse.ArgumentParser(description="Simulate meeting and measure Koov performance")
+    ap = argparse.ArgumentParser(description="Simulate meeting and measure Mechus performance")
     ap.add_argument("--hard", action="store_true", help="Run harder simulation (longer meeting, reversals)")
     ap.add_argument("--multi", action="store_true", help="Multi-topic meeting: pricing, API, hiring; right-context answers")
     ap.add_argument("--finance", action="store_true", help="Finance/sales call: rep, prospect, pricing, objections, competitor, next steps")
     ap.add_argument("--long", action="store_true", help="Long meeting (40+ segments): tests memory retrieval for 60-min-style context")
     ap.add_argument("--general", action="store_true", help="General voice agent: greeting, help, action items, recap, stop")
-    ap.add_argument("--sports", action="store_true", help="20-min sports meeting with live Koov call-outs (format, action items, reversals, recap)")
+    ap.add_argument("--sports", action="store_true", help="20-min sports meeting with live Mechus call-outs (format, action items, reversals, recap)")
     ap.add_argument("--sports-stress", action="store_true", help="Sports meeting + extra reversal stress (final format decision)")
     ap.add_argument("--failure-case", action="store_true", help="Provisional vs final blur: v2 then revert to v1, then 'revisit v2 Q3' / 'aligned on v2'; must answer v1.")
     ap.add_argument("--state-completeness", action="store_true", help="Assert state contains launch/timeline decision after script with 'Decision: launch date June 15'.")
     ap.add_argument("--meeting-45min", dest="meeting_45min", action="store_true", help="45-minute meeting (~45 segments): multi-topic, decisions, action items, recap.")
-    ap.add_argument("--transcript", metavar="FILE", help="Raw transcript file (Speaker: line; Koov, question = wake-word). Blind adversarial test.")
+    ap.add_argument("--transcript", metavar="FILE", help="Raw transcript file (Speaker: line; Mechus, question = wake-word). Blind adversarial test.")
     ap.add_argument("--all", action="store_true", help="Run all scenarios (default, hard, multi, general) and print summary")
     ap.add_argument(
         "--stress",
         action="store_true",
-        help="OpenAI stress: run default + hard meeting scripts; print wall-clock seconds, p50/p95 per question, stage averages. Requires KOOV_OPENAI_API_KEY.",
+        help="OpenAI stress: run default + hard meeting scripts; print wall-clock seconds, p50/p95 per question, stage averages. Requires MECHUS_OPENAI_API_KEY.",
     )
     ap.add_argument(
         "--compare-latency",
         action="store_true",
-        help="Run stress twice: without KOOV_LOW_LATENCY, then with KOOV_LOW_LATENCY=1. Implies --stress.",
+        help="Run stress twice: without MECHUS_LOW_LATENCY, then with MECHUS_LOW_LATENCY=1. Implies --stress.",
     )
     args = ap.parse_args()
 
@@ -1079,7 +1079,7 @@ def main() -> int:
     elif args.sports_stress:
         print("SPORTS MEETING + REVERSAL STRESS (final format decision)")
     elif args.sports:
-        print("20-MIN SPORTS MEETING (live Koov call-outs)")
+        print("20-MIN SPORTS MEETING (live Mechus call-outs)")
     elif args.meeting_45min:
         print("45-MINUTE MEETING (multi-topic, decisions, action items, recap)")
     else:
@@ -1100,12 +1100,12 @@ def main() -> int:
     )
     elapsed = (time.perf_counter() - t_run) * 1000
 
-    print("--- Meeting transcript + Koov Q&A ---\n")
+    print("--- Meeting transcript + Mechus Q&A ---\n")
     for line in result["transcript"]:
         print(line)
     print()
 
-    print("--- Koov Q&A and latency ---\n")
+    print("--- Mechus Q&A and latency ---\n")
     for idx, entry in enumerate(result["qa_log"]):
         print(f"  After line {entry['after_line']}: {entry['question']}")
         ans = entry.get("answer") or ""
@@ -1164,7 +1164,7 @@ def main() -> int:
         print("  Result: PASS – Latency and answer relevance acceptable.")
     else:
         print("  Result: FAIL – Answer relevance below threshold (semantic correctness).")
-    print("  Tip: Set KOOV_LLM_BACKEND=openai and KOOV_OPENAI_API_KEY for LLM answers.")
+    print("  Tip: Set MECHUS_LLM_BACKEND=openai and MECHUS_OPENAI_API_KEY for LLM answers.")
     print()
     return 0 if passed else 1
 

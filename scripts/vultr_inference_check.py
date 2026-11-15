@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Check Vultr Serverless Inference for Koov: list models and run one test completion.
+Check Vultr Serverless Inference for Mechus: list models and run one test completion.
 
   1. Vultr console -> Serverless Inference -> create a subscription, copy its API key.
-  2. In .env:  KOOV_LLM_PROVIDER=vultr
+  2. In .env:  MECHUS_LLM_PROVIDER=vultr
                VULTR_INFERENCE_API_KEY=...
                VULTR_INFERENCE_MODEL=<a model id printed by this script>
   3. python scripts/vultr_inference_check.py
@@ -24,8 +24,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
-from koov.envfile import load_env_file  # noqa: E402
-from koov.openai_compat import base_url, chat_completions_url  # noqa: E402
+from mechus.envfile import load_env_file  # noqa: E402
+from mechus.openai_compat import base_url, chat_completions_url  # noqa: E402
 
 
 def _req(method: str, url: str, key: str, body: dict | None = None) -> dict:
@@ -41,10 +41,10 @@ def _req(method: str, url: str, key: str, body: dict | None = None) -> dict:
 
 def main() -> None:
     load_env_file(str(REPO_ROOT / ".env"))
-    key = (os.environ.get("VULTR_INFERENCE_API_KEY") or os.environ.get("KOOV_OPENAI_API_KEY") or "").strip()
+    key = (os.environ.get("VULTR_INFERENCE_API_KEY") or os.environ.get("MECHUS_OPENAI_API_KEY") or "").strip()
     if not key:
         sys.exit("Set VULTR_INFERENCE_API_KEY in .env")
-    os.environ.setdefault("KOOV_LLM_PROVIDER", "vultr")
+    os.environ.setdefault("MECHUS_LLM_PROVIDER", "vultr")
     print(f"Endpoint: {base_url()}")
 
     models: list[str] = []
@@ -61,7 +61,7 @@ def main() -> None:
     for m in models:
         print(f"  {m}")
 
-    model = (os.environ.get("VULTR_INFERENCE_MODEL") or os.environ.get("KOOV_OPENAI_CHAT_MODEL") or "").strip()
+    model = (os.environ.get("VULTR_INFERENCE_MODEL") or os.environ.get("MECHUS_OPENAI_CHAT_MODEL") or "").strip()
     if not model:
         sys.exit("\nPick one and set VULTR_INFERENCE_MODEL=<id> in .env, then rerun for a test call.")
     t0 = time.monotonic()
@@ -69,7 +69,7 @@ def main() -> None:
         out = _req("POST", chat_completions_url(), key, {
             "model": model,
             "messages": [
-                {"role": "system", "content": "You are Koov, a concise meeting assistant."},
+                {"role": "system", "content": "You are Mechus, a concise meeting assistant."},
                 {"role": "user", "content": "In one sentence: what are the action items if Sam owns the demo and Priya owns the slides?"},
             ],
             "max_tokens": 80,

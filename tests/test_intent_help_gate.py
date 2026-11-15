@@ -1,6 +1,6 @@
 """Help intent must not fire when the utterance contains a real question."""
 
-from koov.intent import INTENT_GENERAL, INTENT_HELP, classify_intent
+from mechus.intent import INTENT_GENERAL, INTENT_HELP, classify_intent
 
 
 def test_help_not_on_substantive_barge_in_line() -> None:

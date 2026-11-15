@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Welcome to Mechus</title>
+<link rel="icon" type="image/png" href="/static/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+@property --bg0 { syntax: "<color>"; inherits: true; initial-value: #04101c; }
+@property --bg1 { syntax: "<color>"; inherits: true; initial-value: #0b2c44; }
+@property --glow { syntax: "<color>"; inherits: true; initial-value: #4fb6e0; }
+:root {
+  --bg0: #04101c; --bg1: #0b2c44; --glow: #4fb6e0;
+  --ink: #f3efe8; --ink-2: rgba(243, 239, 232, .72); --muted: rgba(243, 239, 232, .5);
+  --glass: rgba(255, 255, 255, .06); --glass-line: rgba(255, 255, 255, .13);
+  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* , *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: radial-gradient(120% 95% at 68% 42%, var(--bg1), var(--bg0) 72%);
+  background-color: var(--bg0);
+  color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  transition: --bg0 1.2s ease, --bg1 1.2s ease, --glow 1.2s ease;
+}
+button, input { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.glow {
+  position: fixed; left: 68%; top: 50%; width: 70vmin; height: 70vmin; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--glow) 0%, transparent 62%); opacity: .38; filter: blur(40px); pointer-events: none;
+}
+.grain {
+  position: fixed; inset: -50%; pointer-events: none; opacity: .09; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 1.2s steps(6) infinite;
+}
+@keyframes grain { 0% { transform: translate(0, 0); } 33% { transform: translate(-3%, 2%); } 66% { transform: translate(2%, -3%); } 100% { transform: translate(0, 0); } }
+.fallback-blob {
+  position: fixed; left: 68%; top: 50%; width: 38vmin; height: 38vmin; transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 35% 30%, var(--c, #f4ead5), var(--b, #4fb6e0) 35%, var(--a, #123f6b) 75%);
+  border-radius: 46% 54% 52% 48% / 52% 44% 56% 48%; box-shadow: 0 0 80px -10px var(--glow);
+  animation: morph 9s ease-in-out infinite;
+}
+@keyframes morph { 50% { border-radius: 55% 45% 44% 56% / 46% 58% 42% 54%; } }
+
+/* ---------- chrome ---------- */
+.top {
+  position: fixed; inset: 0 0 auto 0; z-index: 5; display: flex; align-items: center; gap: 16px;
+  padding: max(20px, env(safe-area-inset-top)) clamp(18px, 4vw, 44px) 0;
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+.brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--ink); color: var(--bg0); display: grid; place-items: center; }
+.brand-name { font: 400 26px/1 var(--serif); }
+.steps { margin: 0 auto; display: flex; gap: 18px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.steps span { transition: color .4s; }
+.steps span.on { color: var(--ink); }
+.steps b { font: 400 15px var(--serif); letter-spacing: 0; margin-right: 6px; font-style: italic; }
+.skip { color: var(--ink-2); text-decoration: none; font-size: 13px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--glass-line); background: var(--glass); backdrop-filter: blur(10px); transition: background .2s, color .2s; }
+.skip:hover { color: var(--ink); background: rgba(255, 255, 255, .1); }
+
+/* ---------- copy column ---------- */
+.stage {
+  position: fixed; z-index: 4; left: clamp(18px, 7vw, 110px); top: 50%; transform: translateY(-50%);
+  width: min(470px, calc(100vw - 36px));
+}
+.step { position: absolute; inset: 0 auto auto 0; width: 100%; transform: translateY(-50%); opacity: 0; pointer-events: none; transition: opacity .55s ease, transform .55s ease; }
+.step.on { opacity: 1; pointer-events: auto; }
+.step:not(.on) { transform: translateY(calc(-50% + 14px)); }
+.eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 0 0 18px; }
+h1 { font: 400 clamp(46px, 6.4vw, 92px)/.96 var(--serif); letter-spacing: -.02em; margin: 0; }
+h1 em { color: var(--glow); transition: color 1.2s; }
+h1 .w { display: inline-block; opacity: 0; transform: translateY(.35em); filter: blur(6px); }
+.step.on h1 .w { animation: word .8s cubic-bezier(.2, .7, .2, 1) forwards; animation-delay: calc(var(--i) * 70ms + 120ms); }
+@keyframes word { to { opacity: 1; transform: none; filter: none; } }
+.lede { color: var(--ink-2); font-size: 16.5px; margin: 20px 0 0; max-width: 40ch; }
+.actions { display: flex; gap: 10px; align-items: center; margin-top: 28px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid transparent;
+  font-weight: 600; font-size: 14.5px; cursor: pointer; transition: transform .2s, background .2s, box-shadow .2s, opacity .2s;
+}
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--ink); color: #0b1118; box-shadow: 0 10px 40px -12px var(--glow); }
+.btn-primary:hover { box-shadow: 0 14px 50px -10px var(--glow); }
+.btn-primary .arrow { transition: transform .2s; }
+.btn-primary:hover .arrow { transform: translateX(3px); }
+.btn-ghost { background: var(--glass); border-color: var(--glass-line); color: var(--ink); backdrop-filter: blur(10px); }
+.btn-ghost:hover { background: rgba(255, 255, 255, .11); }
+.btn:focus-visible, .swatch:focus-visible, .skip:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, .35); }
+
+/* ---------- mixer ---------- */
+.mixer {
+  margin-top: 26px; padding: 18px; border-radius: 20px; background: var(--glass); border: 1px solid var(--glass-line);
+  backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3);
+}
+.mixer-label { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.swatch { border: 1px solid transparent; background: transparent; border-radius: 14px; padding: 8px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-2); transition: background .2s, border-color .2s, color .2s; }
+.swatch i { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25), 0 6px 20px -6px var(--sw-b); background: radial-gradient(circle at 32% 28%, var(--sw-c) 0, var(--sw-b) 38%, var(--sw-a) 80%); transition: transform .25s; }
+.swatch:hover i { transform: scale(1.08); }
+.swatch[aria-pressed="true"] { background: rgba(255, 255, 255, .08); border-color: var(--glass-line); color: var(--ink); }
+.sliders { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+.slider-row label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; margin-bottom: 7px; }
+.slider-row label span { color: var(--muted); font-size: 12px; }
+.slider-row output { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 12px; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; background: transparent; cursor: pointer; margin: 0; }
+input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--ink) 0 var(--v, 50%), rgba(255, 255, 255, .18) var(--v, 50%)); }
+input[type="range"]::-moz-range-track { height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .18); }
+input[type="range"]::-moz-range-progress { height: 3px; border-radius: 3px; background: var(--ink); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); margin-top: -6.5px; box-shadow: 0 0 0 5px rgba(255, 255, 255, .1), 0 2px 8px rgba(0, 0, 0, .4); transition: box-shadow .2s; }
+input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%; background: var(--ink); }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(255, 255, 255, .3); }
+.shuffle { background: none; border: none; color: var(--ink-2); font-size: 12px; letter-spacing: 0; text-transform: none; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; padding: 4px 6px; border-radius: 8px; }
+.shuffle:hover { color: var(--ink); background: rgba(255, 255, 255, .07); }
+
+/* ---------- form ---------- */
+.form { margin-top: 26px; display: grid; gap: 12px; }
+.form label { display: block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+.form input {
+  width: 100%; height: 50px; padding: 0 16px; border-radius: 14px; background: var(--glass); border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px); font-size: 16px; outline: none; transition: border-color .2s, background .2s;
+}
+.form input:focus { border-color: rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .09); }
+.err { color: #ffb4a2; font-size: 13px; min-height: 1.2em; margin: 2px 0 0; }
+
+.hint { position: fixed; z-index: 3; left: 68%; top: calc(50% + 35vmin); transform: translateX(-50%); font-size: 12.5px; color: var(--muted); letter-spacing: .04em; opacity: 0; transition: opacity .8s; pointer-events: none; white-space: nowrap; }
+.hint.on { opacity: 1; }
+
+/* ---------- set sail transition ---------- */
+.tide { position: fixed; inset: 0; z-index: 10; pointer-events: none; transform: translateY(105%); transition: transform 1.25s cubic-bezier(.7, 0, .2, 1); }
+.tide svg { position: absolute; top: -58px; left: 0; width: 200%; height: 60px; animation: drift 3s linear infinite; }
+.tide .fill { position: absolute; inset: 0; background: linear-gradient(to bottom, var(--bg1), var(--bg0)); }
+@keyframes drift { to { transform: translateX(-50%); } }
+body.sailing .tide { transform: translateY(0); }
+body.sailing .stage, body.sailing .top, body.sailing .hint { opacity: 0; transition: opacity .5s; }
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .glow, .fallback-blob { left: 50%; top: 30%; }
+  .hint { display: none; }
+  .steps { display: none; }
+  .top { justify-content: space-between; }
+  .stage { top: auto; bottom: max(22px, env(safe-area-inset-bottom)); transform: none; left: 18px; }
+  .step, .step:not(.on) { inset: auto auto 0 0; transform: none; }
+  .step:not(.on) { transform: translateY(14px); }
+  h1 { font-size: clamp(40px, 12vw, 56px); }
+  .lede { font-size: 15px; margin-top: 12px; }
+  .mixer { margin-top: 16px; padding: 14px; }
+  .sliders { gap: 10px; margin-top: 12px; }
+  .actions { margin-top: 18px; }
+}
+@media (max-width: 760px) and (max-height: 760px) { .step[data-step="1"] .lede { display: none; } }
+.step[data-step="1"] h1 { font-size: clamp(40px, 5vw, 76px); }
+@media (min-width: 761px) and (max-height: 820px) { .step[data-step="1"] .lede { display: none; } .mixer { margin-top: 18px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .001ms !important; }
+  h1 .w { opacity: 1; transform: none; filter: none; }
+}
+</style>
+<link rel="stylesheet" href="../static/css/minimal.css">
+</head>
+<body class="page-welcome">
+<canvas id="c" aria-hidden="true"></canvas>
+<div class="glow" aria-hidden="true"></div>
+<div class="fallback-blob" id="fallback" hidden aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="/dashboard" aria-label="Mechus">
+    <span class="brand-mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M11 3v12H4.5z" fill="currentColor"/><path d="M13 6v9h6z" fill="currentColor" opacity=".55"/><path d="M3 17h18l-2.5 4h-13z" fill="currentColor"/></svg></span>
+    <span class="brand-name">Mechus</span>
+  </a>
+  <nav class="steps" aria-label="Progress"><span data-for="0"><b>i.</b>Meet</span><span data-for="1"><b>ii.</b>Shape</span><span data-for="2"><b>iii.</b>Sail</span></nav>
+  <a class="skip" href="/dashboard" id="skip">Skip intro</a>
+</header>
+
+<main class="stage">
+  <section class="step on" data-step="0" aria-labelledby="h0">
+    <p class="eyebrow">Mechus · Odyssey</p>
+    <h1 id="h0" data-split>Meet your <em>navigator.</em></h1>
+    <p class="lede">Mechus sits in your calls, listens for its name, and remembers what your crew decided. First, make it yours.</p>
+    <div class="actions"><button class="btn btn-primary" data-next type="button">Begin <span class="arrow">→</span></button></div>
+  </section>
+
+  <section class="step" data-step="1" aria-labelledby="h1">
+    <h1 id="h1" data-split>Shape <em>it.</em></h1>
+    <p class="lede">Every voyage has a different sea. Drag, pick a harbour, or tap the navigator to make waves.</p>
+    <div class="mixer" role="group" aria-label="Shape your navigator">
+      <div class="mixer-label">Harbour <button class="shuffle" id="shuffle" type="button" aria-label="Shuffle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle</button></div>
+      <div class="swatches" id="swatches"></div>
+      <div class="sliders">
+        <div class="slider-row"><label for="tide">Tide <span>how far the surface rises</span><output id="tideOut">45</output></label><input id="tide" type="range" min="0" max="100" value="45"></div>
+        <div class="slider-row"><label for="wind">Wind <span>how fast it moves</span><output id="windOut">35</output></label><input id="wind" type="range" min="0" max="100" value="35"></div>
+        <div class="slider-row"><label for="swell">Swell <span>how busy the waves are</span><output id="swellOut">40</output></label><input id="swell" type="range" min="0" max="100" value="40"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" data-back type="button">Back</button>
+      <button class="btn btn-primary" data-next type="button">Looks right <span class="arrow">→</span></button>
+    </div>
+  </section>
+
+  <section class="step" data-step="2" aria-labelledby="h2">
+    <h1 id="h2" data-split>Who's <em>sailing?</em></h1>
+    <form class="form" id="crewForm" autocomplete="off" novalidate>
+      <div><label for="name">Your name</label><input id="name" type="text" maxlength="60" placeholder="Penelope"></div>
+      <div><label for="crew">Your crew</label><input id="crew" type="text" maxlength="60" placeholder="ithaca"></div>
+      <p class="err" id="err" role="alert"></p>
+      <div class="actions" style="margin-top:6px">
+        <button class="btn btn-ghost" data-back type="button">Back</button>
+        <button class="btn btn-primary" type="submit">Set sail <span class="arrow">→</span></button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<p class="hint" id="hint">Tap the navigator to make waves</p>
+
+<div class="tide" aria-hidden="true">
+  <svg viewBox="0 0 1200 60" preserveAspectRatio="none"><path d="M0 30 Q75 0 150 30 T300 30 T450 30 T600 30 T750 30 T900 30 T1050 30 T1200 30 V60 H0Z" fill="var(--bg1)"/></svg>
+  <div class="fill"></div>
+</div>
+
+<script type="module">
+import * as THREE from "/static/vendor/three.module.min.js";
+import { PALETTES, DEFAULTS, loadSaved, saveBlob, createBlob } from "/static/js/blob.js";
+
+const $ = (id) => document.getElementById(id);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("mechus." + k); return v == null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("mechus." + k, v); } catch {} },
+};
+const cfg = loadSaved();
+
+// ---------- split headings into words for the reveal ----------
+document.querySelectorAll("[data-split]").forEach((h) => {
+  let i = 0;
+  const walk = (node) => {
+    for (const child of [...node.childNodes]) {
+      if (child.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        child.textContent.split(/(\s+)/).forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.append(part); return; }
+          const s = document.createElement("span");
+          s.className = "w"; s.style.setProperty("--i", i++); s.textContent = part;
+          frag.append(s);
+        });
+        child.replaceWith(frag);
+      } else walk(child);
+    }
+  };
+  walk(h);
+});
+
+// ---------- palette → page colours ----------
+function applyPalette(key) {
+  const p = PALETTES[key];
+  const r = document.documentElement.style;
+  r.setProperty("--bg0", p.bg[0]); r.setProperty("--bg1", p.bg[1]); r.setProperty("--glow", p.b);
+  const fb = $("fallback").style;
+  fb.setProperty("--a", p.a); fb.setProperty("--b", p.b); fb.setProperty("--c", p.c);
+  document.querySelectorAll(".swatch").forEach((s) => s.setAttribute("aria-pressed", String(s.dataset.key === key)));
+}
+
+// ---------- 3D ----------
+let renderer = null, blob = null, scene, camera;
+const canvas = $("c");
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+} catch { renderer = null; }
+
+if (renderer) {
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
+  renderer.setClearColor(0x000000, 0);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
+  camera.position.set(0, 0, 5.2);
+  blob = createBlob(cfg, { detail: 40 });
+  scene.add(blob.mesh);
+} else {
+  canvas.hidden = true;
+  $("fallback").hidden = false;
+}
+
+const layout = { scale: 1, x: 0, y: 0 };
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  if (!renderer) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+  const halfW = halfH * camera.aspect;
+  if (w <= 760) {           // phone: blob top-centre, copy underneath
+    layout.x = 0; layout.y = (0.5 - 0.3) * 2 * halfH; layout.scale = Math.min(0.5, halfW * 0.55);
+  } else {                  // desktop: blob on the right, copy on the left
+    layout.x = (0.68 - 0.5) * 2 * halfW; layout.y = 0; layout.scale = Math.min(0.72, halfW * 0.3);
+  }
+  if (reduced) frame(0);
+}
+addEventListener("resize", resize);
+
+// Sail transition state (blob rises like a sun).
+const sail = { on: false, t: 0 };
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.max(0, (now - last) / 1000); last = now;
+  if (!renderer) return;
+  if (reduced) blob.snap(); else blob.update(dt);
+  const s = sail.on ? Math.min(1, (sail.t += dt) / 1.2) : 0;
+  const ease = s * s * (3 - 2 * s);
+  blob.mesh.position.set(layout.x * (1 - ease), layout.y + ease * 1.6, 0);
+  blob.mesh.scale.setScalar(layout.scale * (blob.mesh.userData.breathe || 1) * (1 - ease * 0.55));
+  renderer.render(scene, camera);
+}
+function loop(now) {
+  if (!document.hidden) frame(now);
+  requestAnimationFrame(loop);
+}
+resize();
+if (renderer) {
+  if (reduced) frame(performance.now()); else requestAnimationFrame(loop);
+}
+
+// ---------- pointer ----------
+function blobScreen() {
+  if (!renderer) return { x: innerWidth * 0.68, y: innerHeight / 2, r: innerHeight * 0.19 };
+  const v = blob.mesh.position.clone().project(camera);
+  const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+  return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight, r: (layout.scale * 1.25 / halfH) * innerHeight / 2 };
+}
+addEventListener("pointermove", (e) => {
+  if (!blob) return;
+  const b = blobScreen();
+  const nx = Math.max(-1, Math.min(1, (e.clientX - b.x) / (b.r * 2.2)));
+  const ny = Math.max(-1, Math.min(1, -(e.clientY - b.y) / (b.r * 2.2)));
+  blob.pointer(nx, ny);
+  if (reduced) frame(performance.now());
+}, { passive: true });
+document.addEventListener("pointerleave", () => blob && blob.leave());
+canvas.addEventListener("pointerdown", (e) => {
+  const b = blobScreen();
+  if (Math.hypot(e.clientX - b.x, e.clientY - b.y) < b.r * 1.15 && blob) {
+    blob.splash();
+    $("hint").classList.remove("on");
+    store.set("hintSeen", "1");
+  }
+});
+
+// ---------- mixer ----------
+const swatches = $("swatches");
+for (const [key, p] of Object.entries(PALETTES)) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "swatch"; b.dataset.key = key; b.setAttribute("aria-pressed", "false");
+  b.style.setProperty("--sw-a", p.a); b.style.setProperty("--sw-b", p.b); b.style.setProperty("--sw-c", p.c);
+  b.append(document.createElement("i"), document.createTextNode(p.name));
+  b.addEventListener("click", () => { cfg.palette = key; sync(); });
+  swatches.append(b);
+}
+const sliders = ["tide", "wind", "swell"];
+function sync() {
+  for (const k of sliders) {
+    const el = $(k);
+    el.value = Math.round(cfg[k] * 100);
+    el.style.setProperty("--v", el.value + "%");
+    $(k + "Out").textContent = el.value;
+  }
+  applyPalette(cfg.palette);
+  if (blob) { blob.set(cfg); if (reduced) frame(performance.now()); }
+}
+for (const k of sliders) {
+  $(k).addEventListener("input", (e) => { cfg[k] = e.target.value / 100; sync(); });
+}
+$("shuffle").addEventListener("click", () => {
+  const keys = Object.keys(PALETTES).filter((k) => k !== cfg.palette);
+  cfg.palette = keys[Math.floor(Math.random() * keys.length)];
+  cfg.tide = 0.2 + Math.random() * 0.7;
+  cfg.wind = 0.15 + Math.random() * 0.7;
+  cfg.swell = 0.15 + Math.random() * 0.75;
+  sync();
+  if (blob) blob.splash();
+});
+sync();
+
+// ---------- steps ----------
+let step = 0;
+function go(n) {
+  step = Math.max(0, Math.min(2, n));
+  document.querySelectorAll(".step").forEach((s) => s.classList.toggle("on", +s.dataset.step === step));
+  document.querySelectorAll(".steps span").forEach((s) => s.classList.toggle("on", +s.dataset.for === step));
+  if (step === 1 && store.get("hintSeen", "") !== "1") setTimeout(() => step === 1 && $("hint").classList.add("on"), 900);
+  else $("hint").classList.remove("on");
+  if (step === 2) setTimeout(() => $("name").focus({ preventScroll: true }), 450);
+}
+document.querySelectorAll("[data-next]").forEach((b) => b.addEventListener("click", () => go(step + 1)));
+document.querySelectorAll("[data-back]").forEach((b) => b.addEventListener("click", () => go(step - 1)));
+addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && step < 2 && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); go(step + 1); }
+  if (e.key === "Escape" && step > 0) go(step - 1);
+});
+go(0);
+
+// ---------- crew + set sail ----------
+const savedUser = store.get("user", "");
+const savedTeam = store.get("team", "");
+if (savedUser && savedUser !== "odysseus") $("name").value = savedUser;
+if (savedTeam) $("crew").value = savedTeam;
+
+$("crewForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("name").value.trim() || "odysseus";
+  const crew = $("crew").value.trim() || "ithaca";
+  if (!/^[a-zA-Z0-9._-]{1,128}$/.test(crew)) {
+    $("err").textContent = "Crew names can use letters, numbers, dots, dashes and underscores.";
+    $("crew").focus();
+    return;
+  }
+  $("err").textContent = "";
+  saveBlob(cfg);
+  store.set("user", name);
+  store.set("team", crew);
+  store.set("onboarded", "1");
+  if (reduced || !renderer) { location.href = "/dashboard"; return; }
+  blob.setIntensity(1.25);
+  sail.on = true;
+  document.body.classList.add("sailing");
+  setTimeout(() => { location.href = "/dashboard"; }, 1350);
+});
+$("skip").addEventListener("click", () => { store.set("onboarded", "1"); saveBlob(cfg); });
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Download a pre-built OpenWakeWord model OR train a custom one for "hey koov".
+Download a pre-built OpenWakeWord model OR train a custom one for "hey mechus".
 
 QUICK START — download a pre-built model (no PyTorch needed, <1 minute):
     python3 scripts/train_wake_model.py --download --out models/hey_mycroft.onnx
@@ -11,14 +11,14 @@ Available pre-built wake phrases (set --model-name):
     hey_rhasspy   →  say "hey rhasspy"
     hey_jarvis    →  say "hey jarvis"
 
-CUSTOM "hey koov" model (requires PyTorch, takes 5-15 minutes):
+CUSTOM "hey mechus" model (requires PyTorch, takes 5-15 minutes):
     pip install torch torchinfo
-    python3 scripts/train_wake_model.py --phrase "hey koov" --out models/hey_koov.onnx
+    python3 scripts/train_wake_model.py --phrase "hey mechus" --out models/hey_mechus.onnx
 
 After running, activate in docker-compose.zoom.yml:
-    - KOOV_WAKE_BACKEND=openwakeword
-    - KOOV_WAKE_MODEL_PATH=/app/models/<model_filename>
-    - KOOV_WAKE_PHRASE=<the phrase you chose>
+    - MECHUS_WAKE_BACKEND=openwakeword
+    - MECHUS_WAKE_MODEL_PATH=/app/models/<model_filename>
+    - MECHUS_WAKE_PHRASE=<the phrase you chose>
     Then: ./run.sh deploy
 """
 from __future__ import annotations
@@ -30,9 +30,9 @@ import sys
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Get an OpenWakeWord model for Koov")
-    parser.add_argument("--phrase", default="hey koov", help="Custom wake phrase (for custom training only)")
-    parser.add_argument("--out", default="models/hey_koov.onnx", help="Output model path")
+    parser = argparse.ArgumentParser(description="Get an OpenWakeWord model for Mechus")
+    parser.add_argument("--phrase", default="hey mechus", help="Custom wake phrase (for custom training only)")
+    parser.add_argument("--out", default="models/hey_mechus.onnx", help="Output model path")
     parser.add_argument("--download", action="store_true", help="Download a pre-built model (fast, no PyTorch)")
     parser.add_argument("--model-name", default="hey_mycroft", help="Pre-built model name (default: hey_mycroft)")
     parser.add_argument("--n-samples", type=int, default=2000, help="Synthetic training samples (custom only, default: 2000)")
@@ -57,9 +57,9 @@ def main() -> None:
     print()
     print("=" * 60)
     print("Done! Add these to docker-compose.zoom.yml environment:")
-    print(f"  - KOOV_WAKE_BACKEND=openwakeword")
-    print(f"  - KOOV_WAKE_MODEL_PATH=/app/models/{os.path.basename(args.out)}")
-    print(f"  - KOOV_WAKE_PHRASE={phrase_hint}")
+    print(f"  - MECHUS_WAKE_BACKEND=openwakeword")
+    print(f"  - MECHUS_WAKE_MODEL_PATH=/app/models/{os.path.basename(args.out)}")
+    print(f"  - MECHUS_WAKE_PHRASE={phrase_hint}")
     print()
     print("Also add to Dockerfile.zoom (before the CMD line):")
     print(f"  COPY models/{os.path.basename(args.out)} /app/models/{os.path.basename(args.out)}")

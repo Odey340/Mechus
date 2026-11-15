@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from koov.facetime_control import (
+from mechus.facetime_control import (
     enqueue_vision_request,
     read_camera_control,
     vision_request_status,
@@ -18,7 +18,7 @@ def test_camera_control_revisions_and_validation(tmp_path):
         "m1",
         enabled=True,
         mode="status_card",
-        text="Koov is summarizing",
+        text="Mechus is summarizing",
         duration_seconds=10,
     )
     assert first.revision == 1

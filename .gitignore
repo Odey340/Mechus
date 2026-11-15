@@ -8,7 +8,7 @@ __pycache__/
 *.pyd
 .python-version
 
-koov_notes/
+mechus_notes/
 models/
 *.onnx
 *.pt
@@ -27,6 +27,6 @@ public/
 *.pyc
 __pycache__/
 
-# Local secrets (Tiger Data URL, Vultr keys) - loaded after .env by koov/envfile.py
+# Local secrets (Tiger Data URL, Vultr keys) - loaded after .env by mechus/envfile.py
 .env.local
 tiger-cloud-*credentials*

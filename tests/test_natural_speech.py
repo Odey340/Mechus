@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from koov.text import phrases_for_natural_speech
+from mechus.text import phrases_for_natural_speech
 
 
 def test_phrases_split_on_sentences_and_commas() -> None:
@@ -24,7 +24,7 @@ def test_short_reply_stays_single_chunk() -> None:
 
 
 def test_humanize_strips_bot_openers_and_contracts() -> None:
-    from koov.text import clean_spoken_text, humanize_spoken_text, strip_tts_disfluencies
+    from mechus.text import clean_spoken_text, humanize_spoken_text, strip_tts_disfluencies
 
     assert humanize_spoken_text("Certainly! The launch is on July 25.") == "The launch is on July 25."
     assert clean_spoken_text("We do not have that yet.") == "We don't have that yet."

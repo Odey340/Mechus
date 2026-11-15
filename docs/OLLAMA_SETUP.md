@@ -141,20 +141,20 @@ ollama pull qwen2.5:7b-instruct-q4_0  # 4-bit quantized
    ollama pull qwen2.5:7b-instruct-q8_0  # 8-bit (balanced)
    ```
 
-3. **Reduce context size** in Koov config:
+3. **Reduce context size** in Mechus config:
    ```bash
-   KOOV_MEMORY_MAX_CHARS=4000  # Reduced from 8000
+   MECHUS_MEMORY_MAX_CHARS=4000  # Reduced from 8000
    ```
 
-## Configuration for Koov
+## Configuration for Mechus
 
-Once Ollama is running and models are pulled, configure Koov:
+Once Ollama is running and models are pulled, configure Mechus:
 
 ```bash
 # .env file
-KOOV_LLM_BACKEND=ollama
-KOOV_OLLAMA_HOST=http://127.0.0.1:11434
-KOOV_OLLAMA_MODEL=qwen2.5:7b-instruct
+MECHUS_LLM_BACKEND=ollama
+MECHUS_OLLAMA_HOST=http://127.0.0.1:11434
+MECHUS_OLLAMA_MODEL=qwen2.5:7b-instruct
 ```
 
 ## Performance Tips

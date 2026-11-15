@@ -1,12 +1,12 @@
 # Meeting Automation Guide
 
-This guide explains how to use the Koov API server to automatically join meetings from your dashboard.
+This guide explains how to use the Mechus API server to automatically join meetings from your dashboard.
 
 ## Overview
 
-The Koov API server allows your dashboard to automatically:
+The Mechus API server allows your dashboard to automatically:
 1. Open meeting links in the browser
-2. Start the Koov agent to listen and respond in the meeting
+2. Start the Mechus agent to listen and respond in the meeting
 3. Monitor the status of active sessions
 
 ## Setup
@@ -23,7 +23,7 @@ pip install -r requirements.txt
 ### 2. Configure Environment
 
 Ensure your `.env` file is properly configured with:
-- Audio device settings (`KOOV_INPUT_DEVICE`, `KOOV_OUTPUT_DEVICE`)
+- Audio device settings (`MECHUS_INPUT_DEVICE`, `MECHUS_OUTPUT_DEVICE`)
 - Wake word settings
 - TTS and LLM configurations
 
@@ -40,9 +40,9 @@ python3 scripts/start_api_server.py
 Or set environment variables:
 
 ```bash
-export KOOV_API_PORT=5000
-export KOOV_API_HOST=127.0.0.1
-export KOOV_API_DEBUG=false
+export MECHUS_API_PORT=5000
+export MECHUS_API_HOST=127.0.0.1
+export MECHUS_API_DEBUG=false
 python3 scripts/start_api_server.py
 ```
 
@@ -66,7 +66,7 @@ Content-Type: application/json
 
 {
   "meeting_link": "https://zoom.us/j/123456789",
-  "display_name": "Koov"  # optional
+  "display_name": "Mechus"  # optional
 }
 ```
 
@@ -74,9 +74,9 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "message": "Koov is joining the meeting",
+  "message": "Mechus is joining the meeting",
   "status": "starting",
-  "meeting_link": "https://zoom.us/j/123456789?uname=Koov"
+  "meeting_link": "https://zoom.us/j/123456789?uname=Mechus"
 }
 ```
 
@@ -107,7 +107,7 @@ POST /api/stop
 ```json
 {
   "success": true,
-  "message": "Koov session stopped",
+  "message": "Mechus session stopped",
   "meeting_link": "https://zoom.us/j/123456789"
 }
 ```
@@ -116,10 +116,10 @@ POST /api/stop
 
 ### Example: Next.js API Route
 
-In your Next.js dashboard, create an API route that calls the Koov server:
+In your Next.js dashboard, create an API route that calls the Mechus server:
 
 ```typescript
-// app/api/koov/join/route.ts
+// app/api/mechus/join/route.ts
 export async function POST(request: Request) {
   const { meeting_link, display_name } = await request.json();
   
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       meeting_link,
-      display_name: display_name || 'Koov',
+      display_name: display_name || 'Mechus',
     }),
   });
   
@@ -154,7 +154,7 @@ export function JoinMeetingButton({ meetingLink }: { meetingLink: string }) {
   const handleJoin = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/koov/join', {
+      const response = await fetch('/api/mechus/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ meeting_link: meetingLink }),
@@ -174,7 +174,7 @@ export function JoinMeetingButton({ meetingLink }: { meetingLink: string }) {
 
   return (
     <button onClick={handleJoin} disabled={loading}>
-      {loading ? 'Joining...' : 'Start Koov Meeting'}
+      {loading ? 'Joining...' : 'Start Mechus Meeting'}
     </button>
   );
 }
@@ -194,22 +194,22 @@ export function JoinMeetingButton({ meetingLink }: { meetingLink: string }) {
    - Microphone: `BlackHole 2ch`
    - Speaker: Your Multi-Output device (includes your speakers + BlackHole)
 
-3. **Verify Koov Configuration**
-   - `KOOV_INPUT_DEVICE=BlackHole 2ch` (or `BlackHole 16ch`)
-   - `KOOV_OUTPUT_DEVICE=BlackHole 2ch`
+3. **Verify Mechus Configuration**
+   - `MECHUS_INPUT_DEVICE=BlackHole 2ch` (or `BlackHole 16ch`)
+   - `MECHUS_OUTPUT_DEVICE=BlackHole 2ch`
 
 See `SETUP_MACOS.txt` for detailed audio routing instructions.
 
 ### Meeting Link Format
 
 The API automatically handles:
-- **Zoom links**: Adds `?uname=Koov` parameter so Koov appears with the correct name
+- **Zoom links**: Adds `?uname=Mechus` parameter so Mechus appears with the correct name
 - **Google Meet links**: Opens directly (no special parameters)
 - **Other platforms**: Opens in default browser
 
 ### Session Management
 
-- Only one Koov session can be active at a time
+- Only one Mechus session can be active at a time
 - If you try to start a new session while one is active, you'll get a 409 Conflict error
 - Use `/api/stop` to gracefully stop the current session before starting a new one
 
@@ -217,26 +217,26 @@ The API automatically handles:
 
 **Server won't start:**
 - Check that port 5000 is available: `lsof -i :5000`
-- Try a different port: `export KOOV_API_PORT=5001`
+- Try a different port: `export MECHUS_API_PORT=5001`
 
 **Meeting doesn't open:**
 - Check that the meeting link is valid
 - Verify your default browser is set correctly
 
-**Koov doesn't hear the meeting:**
+**Mechus doesn't hear the meeting:**
 - Verify audio device configuration (see above)
 - Check that Zoom/Meet microphone is set to `BlackHole 2ch`
 - Check that Zoom/Meet speaker is routing to BlackHole
 
 **CORS errors:**
 - The API server has CORS enabled by default
-- If you're accessing from a different origin, you may need to configure CORS settings in `koov/api_server.py`
+- If you're accessing from a different origin, you may need to configure CORS settings in `mechus/api_server.py`
 
 ## Running as a Service
 
 To run the API server as a background service on macOS, you can use `launchd`:
 
-1. Create a plist file: `~/Library/LaunchAgents/com.koov.api.plist`
+1. Create a plist file: `~/Library/LaunchAgents/com.mechus.api.plist`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -244,20 +244,20 @@ To run the API server as a background service on macOS, you can use `launchd`:
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.koov.api</string>
+  <string>com.mechus.api</string>
   <key>ProgramArguments</key>
   <array>
     <string>/path/to/your/venv/bin/python3</string>
-    <string>/path/to/koovdemo/scripts/start_api_server.py</string>
+    <string>/path/to/mechusdemo/scripts/start_api_server.py</string>
   </array>
   <key>WorkingDirectory</key>
-  <string>/path/to/koovdemo</string>
+  <string>/path/to/mechusdemo</string>
   <key>EnvironmentVariables</key>
   <dict>
     <key>PYTHONPATH</key>
-    <string>/path/to/koovdemo</string>
-    <key>KOOV_ENV_FILE</key>
-    <string>/path/to/koovdemo/.env</string>
+    <string>/path/to/mechusdemo</string>
+    <key>MECHUS_ENV_FILE</key>
+    <string>/path/to/mechusdemo/.env</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>
@@ -269,10 +269,10 @@ To run the API server as a background service on macOS, you can use `launchd`:
 
 2. Load the service:
 ```bash
-launchctl load ~/Library/LaunchAgents/com.koov.api.plist
+launchctl load ~/Library/LaunchAgents/com.mechus.api.plist
 ```
 
 3. Check status:
 ```bash
-launchctl list | grep koov
+launchctl list | grep mechus
 ```

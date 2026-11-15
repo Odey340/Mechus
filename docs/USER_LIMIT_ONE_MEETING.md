@@ -2,7 +2,7 @@
 
 ## Overview
 
-Koov now enforces a **one active meeting per user** limit. This means:
+Mechus now enforces a **one active meeting per user** limit. This means:
 - ✅ Each user can only have **one active meeting** at a time
 - ✅ Multiple users can have meetings running simultaneously
 - ✅ If a user tries to start a second meeting, they'll get an error
@@ -18,7 +18,7 @@ Koov now enforces a **one active meeting per user** limit. This means:
   "meeting_link": "https://zoom.us/j/123456789",
   "user_id": "user-123",  // REQUIRED - from your Supabase auth
   "meeting_id": "meeting-123",  // optional
-  "display_name": "Koov"  // optional
+  "display_name": "Mechus"  // optional
 }
 ```
 
@@ -69,15 +69,15 @@ const userId = user?.id;
 ### 2. Update Join Meeting Call
 
 ```typescript
-async function triggerKoovSessionStart(meeting: any, userId: string): Promise<void> {
-  const response = await fetch('/api/koov/join', {
+async function triggerMechusSessionStart(meeting: any, userId: string): Promise<void> {
+  const response = await fetch('/api/mechus/join', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       meeting_link: meeting.meeting_link,
       meeting_id: meeting.id,
       user_id: userId,  // Add this
-      display_name: 'Koov',
+      display_name: 'Mechus',
     }),
   });
   
@@ -94,7 +94,7 @@ async function triggerKoovSessionStart(meeting: any, userId: string): Promise<vo
   }
   
   const data = await response.json();
-  console.log('Koov session started:', data);
+  console.log('Mechus session started:', data);
 }
 ```
 
@@ -121,7 +121,7 @@ if (hasActiveMeeting) {
 
 ```typescript
 try {
-  await triggerKoovSessionStart(meeting, userId);
+  await triggerMechusSessionStart(meeting, userId);
 } catch (error) {
   if (error.message.includes('already has an active meeting')) {
     // Show user-friendly error

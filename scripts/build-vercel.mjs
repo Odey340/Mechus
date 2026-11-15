@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const sourceRoot = path.join(repoRoot, "koov", "static");
+const sourceRoot = path.join(repoRoot, "mechus", "static");
 const outputRoot = path.resolve(
   process.env.MECHUS_VERCEL_OUTPUT_DIR || path.join(repoRoot, "public"),
 );

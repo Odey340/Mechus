@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from koov.text import strip_preroll_echo_from_response
+from mechus.text import strip_preroll_echo_from_response
 
 
 def test_strip_shared_boundary_word() -> None:

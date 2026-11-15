@@ -15,7 +15,7 @@ selenium>=4.15.0
 supabase>=2.0.0
 websocket-client>=1.8.0
 
-# Koov Properties: bundled ffmpeg, image ops, iPhone HEIC photos
+# Mechus Properties: bundled ffmpeg, image ops, iPhone HEIC photos
 imageio-ffmpeg>=0.5.1
 opencv-python-headless>=4.9
 pillow-heif>=0.16

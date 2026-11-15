@@ -9,7 +9,7 @@ import types
 import unittest
 
 
-def _koov_agent_class():
+def _mechus_agent_class():
     if "sounddevice" not in sys.modules:
         sys.modules["sounddevice"] = types.SimpleNamespace(
             PortAudioError=Exception,
@@ -24,9 +24,9 @@ def _koov_agent_class():
     if "soundfile" not in sys.modules:
         sys.modules["soundfile"] = types.SimpleNamespace(read=lambda *a, **k: ([], 16000))
 
-    from koov.agent import KoovAgent
+    from mechus.agent import MechusAgent
 
-    return KoovAgent
+    return MechusAgent
 
 
 class _FakeAudioOut:
@@ -52,7 +52,7 @@ class _FakeAudioOut:
         self.sample_rate = sample_rate_hz
         self.gain = gain
         # After streaming, the agent plays a short pure-silence tail so the final
-        # phoneme is not clipped (KoovAgent._play_phrase_end_tail). That is padding,
+        # phoneme is not clipped (MechusAgent._play_phrase_end_tail). That is padding,
         # not audio content, so it is recorded separately and kept out of `played`.
         if vals and not any(vals):
             self.silence_tail_calls += 1
@@ -82,8 +82,8 @@ class _FakeTTSEngine:
 
 
 def _make_agent_for_streaming(audio_out, tts_output_gain: float = 1.0):
-    KoovAgent = _koov_agent_class()
-    agent = object.__new__(KoovAgent)
+    MechusAgent = _mechus_agent_class()
+    agent = object.__new__(MechusAgent)
     agent._audio_out = audio_out
     agent._wake_opener_played = False
     agent._wake_pipeline_t0 = time.perf_counter()
@@ -201,7 +201,7 @@ class TestAudioOutputPlayStreaming(unittest.TestCase):
     """Smoke test that AudioOutput exposes play_streaming with expected signature."""
 
     def test_audio_output_has_play_streaming(self) -> None:
-        from koov.audio import AudioOutput
+        from mechus.audio import AudioOutput
 
         self.assertTrue(callable(getattr(AudioOutput, "play_streaming", None)))
 

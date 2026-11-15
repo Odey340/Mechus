@@ -34,7 +34,7 @@ Zoom requires **supporting evidence** in the form of scan results. You must run 
 
 - **Purpose:** Find vulnerabilities in source code (e.g. injection, hardcoded secrets, unsafe APIs).
 - **Options:**
-  - **Bandit** (Python): `pip install bandit && bandit -r koov -f json -o sast-bandit.json` then share a short summary or sanitized report.
+  - **Bandit** (Python): `pip install bandit && bandit -r mechus -f json -o sast-bandit.json` then share a short summary or sanitized report.
   - **Semgrep:** Use [semgrep.dev](https://semgrep.dev) or CLI; run against the repo and export results.
   - **Snyk Code** or **GitHub Advanced Security** (if available): Run and export the summary.
 - **Deliverable:** Attach an executive summary (e.g. “SAST run on [date], X findings, Y critical/high, remediation status”) and optionally a redacted report.
@@ -43,7 +43,7 @@ Zoom requires **supporting evidence** in the form of scan results. You must run 
 
 - **Purpose:** Test the running application (API) for issues like misconfigurations, exposed endpoints, and common web flaws.
 - **Options:**
-  - **OWASP ZAP:** Run against your deployed API base URL (e.g. `https://your-koov-api.example.com`). Export report or summary.
+  - **OWASP ZAP:** Run against your deployed API base URL (e.g. `https://your-mechus-api.example.com`). Export report or summary.
   - **Burp Suite** (or similar): Scan the API and produce a short summary.
 - **Deliverable:** Attach an executive summary (e.g. “DAST run on [date] against [URL], critical/high findings and remediation”).
 
@@ -54,10 +54,10 @@ Zoom requires **supporting evidence** in the form of scan results. You must run 
 ## TLS 1.2 or higher
 
 - **Requirement:** Your application must support TLS 1.2 or higher for all external traffic.
-- **Koov:** The app runs as an HTTP service (e.g. Flask/gunicorn). TLS is terminated at the **load balancer, reverse proxy, or ingress** (see [PRODUCTION.md](../PRODUCTION.md)). You must configure your infrastructure to:
+- **Mechus:** The app runs as an HTTP service (e.g. Flask/gunicorn). TLS is terminated at the **load balancer, reverse proxy, or ingress** (see [PRODUCTION.md](../PRODUCTION.md)). You must configure your infrastructure to:
   - Use TLS 1.2 (or 1.3) only; disable TLS 1.0/1.1.
   - Use a valid certificate (e.g. Let’s Encrypt or your CA).
-- **Outbound:** Koov uses Python’s `ssl` module with `ssl.create_default_context()` (and `certifi` where available) for HTTPS calls to Zoom and other APIs; this uses the system’s OpenSSL, which supports TLS 1.2+ when the OS is up to date.
+- **Outbound:** Mechus uses Python’s `ssl` module with `ssl.create_default_context()` (and `certifi` where available) for HTTPS calls to Zoom and other APIs; this uses the system’s OpenSSL, which supports TLS 1.2+ when the OS is up to date.
 - **Statement for Zoom:** “Our application is deployed behind a load balancer (or reverse proxy) that terminates TLS. We support only TLS 1.2 and 1.3. All Zoom API and user-facing traffic is over HTTPS with TLS 1.2 or higher.”
 
 ---

@@ -1,6 +1,6 @@
-# Deploying Koov to Azure
+# Deploying Mechus to Azure
 
-This guide walks you through deploying Koov to Azure step-by-step.
+This guide walks you through deploying Mechus to Azure step-by-step.
 
 ## Architecture Options
 
@@ -26,7 +26,7 @@ This guide walks you through deploying Koov to Azure step-by-step.
 2. **Basics:**
    - **Subscription:** Your subscription
    - **Resource Group:** Create new or use existing
-   - **VM name:** `koov-api-server`
+   - **VM name:** `mechus-api-server`
    - **Region:** Choose closest to your users
    - **Image:** Ubuntu Server 22.04 LTS
    - **Size:** 
@@ -57,7 +57,7 @@ ssh azureuser@your-vm-public-ip
 
 Or use Azure Cloud Shell:
 ```bash
-az vm show -d -g your-resource-group -n koov-api-server --query publicIps -o tsv
+az vm show -d -g your-resource-group -n mechus-api-server --query publicIps -o tsv
 ```
 
 ### 3. Install Dependencies
@@ -97,42 +97,42 @@ sudo apt install -y pulseaudio pulseaudio-utils xvfb
 pulseaudio --start --system=false
 
 # Create virtual audio devices
-pactl load-module module-null-sink sink_name=koov_input sink_properties=device.description="Koov Input"
-pactl load-module module-null-sink sink_name=koov_output sink_properties=device.description="Koov Output"
+pactl load-module module-null-sink sink_name=mechus_input sink_properties=device.description="Mechus Input"
+pactl load-module module-null-sink sink_name=mechus_output sink_properties=device.description="Mechus Output"
 
 # Make persistent
-echo 'load-module module-null-sink sink_name=koov_input sink_properties=device.description="Koov Input"' | sudo tee -a /etc/pulse/default.pa
-echo 'load-module module-null-sink sink_name=koov_output sink_properties=device.description="Koov Output"' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_input sink_properties=device.description="Mechus Input"' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_output sink_properties=device.description="Mechus Output"' | sudo tee -a /etc/pulse/default.pa
 
 # Set up Xvfb for headless browser
 export DISPLAY=:99
 Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
 # Verify
-pactl list sinks | grep -A 5 koov
+pactl list sinks | grep -A 5 mechus
 ```
 
-### 5. Deploy Koov Code
+### 5. Deploy Mechus Code
 
 **Option A: Clone from Git**
 ```bash
-git clone https://github.com/yourusername/koovdemo.git
-cd koovdemo
+git clone https://github.com/yourusername/mechusdemo.git
+cd mechusdemo
 ```
 
 **Option B: Upload via Azure Storage**
 ```bash
 # On your local machine
-az storage blob upload --account-name yourstorage --container-name koov --name koovdemo.zip --file koovdemo.zip
+az storage blob upload --account-name yourstorage --container-name mechus --name mechusdemo.zip --file mechusdemo.zip
 
 # On VM
-az storage blob download --account-name yourstorage --container-name koov --name koovdemo.zip --file koovdemo.zip
-unzip koovdemo.zip
+az storage blob download --account-name yourstorage --container-name mechus --name mechusdemo.zip --file mechusdemo.zip
+unzip mechusdemo.zip
 ```
 
 **Set up Python environment:**
 ```bash
-cd koovdemo
+cd mechusdemo
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
@@ -148,10 +148,10 @@ nano .env
 
 Add your configuration (same as AWS guide):
 ```bash
-KOOV_INPUT_DEVICE=koov_input
-KOOV_OUTPUT_DEVICE=koov_output
-KOOV_API_HOST=0.0.0.0
-KOOV_API_PORT=5000
+MECHUS_INPUT_DEVICE=mechus_input
+MECHUS_OUTPUT_DEVICE=mechus_output
+MECHUS_API_HOST=0.0.0.0
+MECHUS_API_PORT=5000
 # ... rest of your config
 ```
 
@@ -160,10 +160,10 @@ KOOV_API_PORT=5000
 ```bash
 sudo npm install -g pm2
 
-cd /home/azureuser/koovdemo
+cd /home/azureuser/mechusdemo
 source .venv/bin/activate
 export PYTHONPATH="$PWD"
-pm2 start scripts/start_api_server.py --name koov-api --interpreter python3
+pm2 start scripts/start_api_server.py --name mechus-api --interpreter python3
 pm2 save
 pm2 startup
 # Follow instructions
@@ -174,7 +174,7 @@ pm2 startup
 ```bash
 sudo apt install -y nginx
 
-sudo nano /etc/nginx/sites-available/koov-api
+sudo nano /etc/nginx/sites-available/mechus-api
 ```
 
 Add configuration (same as AWS):
@@ -198,7 +198,7 @@ server {
 
 Enable:
 ```bash
-sudo ln -s /etc/nginx/sites-available/koov-api /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mechus-api /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
@@ -235,7 +235,7 @@ http://your-vm-public-ip:5000
 ### 12. Update Dashboard
 
 ```bash
-KOOV_API_URL=https://your-domain.com
+MECHUS_API_URL=https://your-domain.com
 ```
 
 ## Azure Container Instances (Alternative)
@@ -254,7 +254,7 @@ az acr create --resource-group your-rg --name yourregistry --sku Basic
 az acr login --name yourregistry
 
 # Build and push
-az acr build --registry yourregistry --image koov-api:latest .
+az acr build --registry yourregistry --image mechus-api:latest .
 ```
 
 ### 3. Deploy Container Instance
@@ -262,8 +262,8 @@ az acr build --registry yourregistry --image koov-api:latest .
 ```bash
 az container create \
   --resource-group your-rg \
-  --name koov-api \
-  --image yourregistry.azurecr.io/koov-api:latest \
+  --name mechus-api \
+  --image yourregistry.azurecr.io/mechus-api:latest \
   --cpu 2 \
   --memory 4 \
   --registry-login-server yourregistry.azurecr.io \
@@ -272,14 +272,14 @@ az container create \
   --ports 5000 \
   --ip-address Public \
   --environment-variables \
-    KOOV_API_HOST=0.0.0.0 \
-    KOOV_API_PORT=5000
+    MECHUS_API_HOST=0.0.0.0 \
+    MECHUS_API_PORT=5000
 ```
 
 ### 4. Get Public IP
 
 ```bash
-az container show --resource-group your-rg --name koov-api --query ipAddress.ip -o tsv
+az container show --resource-group your-rg --name mechus-api --query ipAddress.ip -o tsv
 ```
 
 ## Cost Estimation
@@ -307,7 +307,7 @@ az container show --resource-group your-rg --name koov-api --query ipAddress.ip 
 **PM2:**
 ```bash
 pm2 monit
-pm2 logs koov-api
+pm2 logs mechus-api
 ```
 
 ## Troubleshooting
@@ -322,7 +322,7 @@ pm2 logs koov-api
 - Check .env configuration
 
 **PM2 issues:**
-- Check logs: `pm2 logs koov-api`
+- Check logs: `pm2 logs mechus-api`
 - Verify environment variables
 
 ## Azure-Specific Tips
@@ -330,7 +330,7 @@ pm2 logs koov-api
 1. **Use Azure Key Vault** for secrets:
    ```bash
    az keyvault create --name your-keyvault --resource-group your-rg
-   az keyvault secret set --vault-name your-keyvault --name koov-eleven-api-key --value your-key
+   az keyvault secret set --vault-name your-keyvault --name mechus-eleven-api-key --value your-key
    ```
 
 2. **Set up Auto-shutdown** to save costs (dev/test):

@@ -7,7 +7,7 @@ import time
 import numpy as np
 import pytest
 
-from koov.facetime_video import (
+from mechus.facetime_video import (
     CameraMode,
     VideoScene,
     VirtualCameraOutput,
@@ -18,7 +18,7 @@ from koov.facetime_video import (
 def test_render_every_camera_scene_has_expected_shape():
     for mode in CameraMode:
         frame = render_scene(
-            VideoScene(True, mode, "Koov", "A safe status card"),
+            VideoScene(True, mode, "Mechus", "A safe status card"),
             width=320,
             height=180,
             phase=0.25,
@@ -35,7 +35,7 @@ def test_speaking_bars_never_reach_the_name_label():
         name_top = int(height * 0.73)
         for phase in (0.0, 0.1, 0.2, 0.3, 0.45):
             frame = render_scene(
-                VideoScene(True, CameraMode.SPEAKING, "Koov"),
+                VideoScene(True, CameraMode.SPEAKING, "Mechus"),
                 width=width,
                 height=height,
                 phase=phase,
@@ -47,16 +47,16 @@ def test_speaking_bars_never_reach_the_name_label():
 
 
 def test_render_is_deterministic_for_same_inputs():
-    scene = VideoScene(True, CameraMode.AVATAR, "Koov")
+    scene = VideoScene(True, CameraMode.AVATAR, "Mechus")
     first = render_scene(scene, width=320, height=180, phase=0.0)
     second = render_scene(scene, width=320, height=180, phase=0.0)
     assert np.array_equal(first, second)
 
 
 def test_cached_background_is_not_mutated_between_frames():
-    card = render_scene(VideoScene(True, CameraMode.STATUS_CARD, "Koov", "Card"), width=320, height=180)
-    plain_a = render_scene(VideoScene(True, CameraMode.AVATAR, "Koov"), width=320, height=180)
-    plain_b = render_scene(VideoScene(True, CameraMode.AVATAR, "Koov"), width=320, height=180)
+    card = render_scene(VideoScene(True, CameraMode.STATUS_CARD, "Mechus", "Card"), width=320, height=180)
+    plain_a = render_scene(VideoScene(True, CameraMode.AVATAR, "Mechus"), width=320, height=180)
+    plain_b = render_scene(VideoScene(True, CameraMode.AVATAR, "Mechus"), width=320, height=180)
     assert not np.array_equal(card, plain_a)
     assert np.array_equal(plain_a, plain_b)
 
@@ -70,7 +70,7 @@ def test_long_and_unicode_card_text_is_bounded():
 
 
 def test_render_is_fast_enough_for_12fps():
-    scene = VideoScene(True, CameraMode.SPEAKING, "Koov")
+    scene = VideoScene(True, CameraMode.SPEAKING, "Mechus")
     render_scene(scene, width=640, height=360)  # warm caches
     started = time.perf_counter()
     for i in range(20):

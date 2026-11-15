@@ -1,17 +1,17 @@
 # Meeting Q&A and Latency
 
-## When someone says "Koov" during a meeting
+## When someone says "Mechus" during a meeting
 
-1. **Wake word** is detected (e.g. "Koov").
+1. **Wake word** is detected (e.g. "Mechus").
 2. **Request audio** is captured and sent to **STT** (speech-to-text).
 3. **Meeting context** is used:
    - **Rolling context**: If the question mentions "summarize", "recap", "action", "what did", etc., the last N seconds of meeting audio are transcribed and added to memory.
    - **Memory**: Topic-based retrieval returns relevant past transcript + recent turns.
-4. **Optional web search**: If the user asks for external info (e.g. "What is UGC?", "Look up DNS"), Koov calls the DuckDuckGo Instant Answer API and adds a short snippet to the prompt. Answers use **meeting context first**, then **web results** if needed.
+4. **Optional web search**: If the user asks for external info (e.g. "What is UGC?", "Look up DNS"), Mechus calls the DuckDuckGo Instant Answer API and adds a short snippet to the prompt. Answers use **meeting context first**, then **web results** if needed.
 5. **LLM** (Ollama or rule responder) produces a short, casual answer.
 6. **TTS** speaks the response.
 
-No summarization of the whole meeting is done until you explicitly ask (e.g. "Koov, summarize") or use the context integrity engine’s "END OF MEETING" trigger.
+No summarization of the whole meeting is done until you explicitly ask (e.g. "Mechus, summarize") or use the context integrity engine’s "END OF MEETING" trigger.
 
 ## Current latency (tracked per wake cycle)
 
@@ -43,7 +43,7 @@ Latency is **not** tracked for transcript-only processing (continuous transcript
 
 ## Transcript at end of meeting
 
-- **Session notes**: Each run writes `koov_notes/session-YYYYMMDD-HHMMSS.jsonl` with `kind: "transcript"` (meeting chunks) and `kind: "wake_cycle"` (user question + Koov answer).
+- **Session notes**: Each run writes `mechus_notes/session-YYYYMMDD-HHMMSS.jsonl` with `kind: "transcript"` (meeting chunks) and `kind: "wake_cycle"` (user question + Mechus answer).
 - **API**: `GET /api/transcript?meeting_id=<id>` returns:
   - `transcripts`: transcript chunks (with timestamps/speakers when available).
   - `wake_cycles`: each wake Q&A (request + response).
@@ -55,13 +55,13 @@ Latency is **not** tracked for transcript-only processing (continuous transcript
 
 ```bash
 # Uses meeting memory only (no STT/TTS). Measures memory + LLM time.
-python3 scripts/test_koov_meeting_qa.py
+python3 scripts/test_mechus_meeting_qa.py
 
 # Custom question
-python3 scripts/test_koov_meeting_qa.py --question "What did we decide about the API?"
+python3 scripts/test_mechus_meeting_qa.py --question "What did we decide about the API?"
 
 # Question that triggers web search (needs network)
-python3 scripts/test_koov_meeting_qa.py --web
+python3 scripts/test_mechus_meeting_qa.py --web
 ```
 
 The script prints:
@@ -70,7 +70,7 @@ The script prints:
 - **Latency (ms)** for memory and LLM (no STT/TTS in this script).
 - **Transcript at end of meeting**: sample meeting lines + the test Q&A.
 
-For full pipeline latency (including STT and TTS), run a real meeting with Koov and check `GET /api/status?meeting_id=...` after saying "Koov" and getting a response.
+For full pipeline latency (including STT and TTS), run a real meeting with Mechus and check `GET /api/status?meeting_id=...` after saying "Mechus" and getting a response.
 
 ## Improving efficiency
 

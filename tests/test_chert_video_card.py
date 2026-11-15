@@ -1,4 +1,4 @@
-from koov.chert_livekit import LiveKitVideoCard
+from mechus.chert_livekit import LiveKitVideoCard
 
 
 def test_inspection_card_is_portrait_and_rgba():

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from koov.http_pool import _POOLS, get_pool_for_url, http_request
+from mechus.http_pool import _POOLS, get_pool_for_url, http_request
 
 
 class TestHttpPoolReuse(unittest.TestCase):

@@ -2,7 +2,7 @@
 
 ## The Problem
 
-When the Koov API server tried to start the agent in a background thread, it failed with:
+When the Mechus API server tried to start the agent in a background thread, it failed with:
 ```
 ValueError: signal only works in main thread of the main interpreter
 ```
@@ -11,7 +11,7 @@ This happened because `agent.run_forever()` tries to install signal handlers, bu
 
 ## The Fix
 
-I've updated `koov/api_server.py` to skip signal handler installation when running in a background thread. The agent will still work normally - it just won't respond to Ctrl+C signals (which is fine since it's running in the background anyway).
+I've updated `mechus/api_server.py` to skip signal handler installation when running in a background thread. The agent will still work normally - it just won't respond to Ctrl+C signals (which is fine since it's running in the background anyway).
 
 ## Next Steps
 
@@ -26,6 +26,6 @@ I've updated `koov/api_server.py` to skip signal handler installation when runni
    python3 scripts/start_api_server.py
    ```
 
-3. **Test again** - The meeting should open and Koov should start without errors!
+3. **Test again** - The meeting should open and Mechus should start without errors!
 
 The meeting link was successfully opened (I can see "Opening meeting link: https://meet.google.com/cdk-rmbz-hen" in your logs), so the integration is working - it just needed this fix.

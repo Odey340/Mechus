@@ -1,6 +1,6 @@
-# Deploying Koov to AWS
+# Deploying Mechus to AWS
 
-This guide walks you through deploying Koov to AWS step-by-step.
+This guide walks you through deploying Mechus to AWS step-by-step.
 
 ## Architecture Options
 
@@ -95,39 +95,39 @@ sudo apt install -y pulseaudio pulseaudio-utils xvfb
 pulseaudio --start --system=false
 
 # Create virtual audio devices
-pactl load-module module-null-sink sink_name=koov_input sink_properties=device.description="Koov Input"
-pactl load-module module-null-sink sink_name=koov_output sink_properties=device.description="Koov Output"
+pactl load-module module-null-sink sink_name=mechus_input sink_properties=device.description="Mechus Input"
+pactl load-module module-null-sink sink_name=mechus_output sink_properties=device.description="Mechus Output"
 
 # Make it persistent
-echo 'load-module module-null-sink sink_name=koov_input sink_properties=device.description="Koov Input"' | sudo tee -a /etc/pulse/default.pa
-echo 'load-module module-null-sink sink_name=koov_output sink_properties=device.description="Koov Output"' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_input sink_properties=device.description="Mechus Input"' | sudo tee -a /etc/pulse/default.pa
+echo 'load-module module-null-sink sink_name=mechus_output sink_properties=device.description="Mechus Output"' | sudo tee -a /etc/pulse/default.pa
 
 # Set up Xvfb for headless browser (virtual display)
 export DISPLAY=:99
 Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
 # Verify virtual audio devices
-pactl list sinks | grep -A 5 koov
+pactl list sinks | grep -A 5 mechus
 ```
 
-### 5. Deploy Koov Code
+### 5. Deploy Mechus Code
 
 **Option A: Clone from Git**
 ```bash
 # Clone your repository
-git clone https://github.com/yourusername/koovdemo.git
-cd koovdemo
+git clone https://github.com/yourusername/mechusdemo.git
+cd mechusdemo
 ```
 
 **Option B: Upload Files**
 ```bash
 # On your local machine, use SCP
-scp -i your-key.pem -r /path/to/koovdemo ubuntu@your-ec2-ip:/home/ubuntu/
+scp -i your-key.pem -r /path/to/mechusdemo ubuntu@your-ec2-ip:/home/ubuntu/
 ```
 
 **Set up Python environment:**
 ```bash
-cd koovdemo
+cd mechusdemo
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
@@ -147,35 +147,35 @@ nano .env
 Add your configuration:
 ```bash
 # Audio devices (virtual)
-KOOV_INPUT_DEVICE=koov_input
-KOOV_OUTPUT_DEVICE=koov_output
+MECHUS_INPUT_DEVICE=mechus_input
+MECHUS_OUTPUT_DEVICE=mechus_output
 
 # API Server
-KOOV_API_HOST=0.0.0.0
-KOOV_API_PORT=5000
+MECHUS_API_HOST=0.0.0.0
+MECHUS_API_PORT=5000
 
 # Wake word
-KOOV_WAKE_PHRASE=computer
-KOOV_WAKE_BACKEND=vosk
-KOOV_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15
+MECHUS_WAKE_PHRASE=computer
+MECHUS_WAKE_BACKEND=vosk
+MECHUS_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15
 
 # STT
-KOOV_STT_BACKEND=faster-whisper
-KOOV_WHISPER_MODEL=base.en
+MECHUS_STT_BACKEND=faster-whisper
+MECHUS_WHISPER_MODEL=base.en
 
 # TTS
-KOOV_TTS_BACKEND=elevenlabs
-KOOV_ELEVEN_API_KEY=your_key_here
-KOOV_ELEVEN_VOICE_ID=your_voice_id
+MECHUS_TTS_BACKEND=elevenlabs
+MECHUS_ELEVEN_API_KEY=your_key_here
+MECHUS_ELEVEN_VOICE_ID=your_voice_id
 
 # LLM
-KOOV_LLM_BACKEND=ollama
-KOOV_OLLAMA_HOST=http://127.0.0.1:11434
-KOOV_OLLAMA_MODEL=your_model
+MECHUS_LLM_BACKEND=ollama
+MECHUS_OLLAMA_HOST=http://127.0.0.1:11434
+MECHUS_OLLAMA_MODEL=your_model
 
 # Memory
-KOOV_MEMORY_MAX_CHARS=20000
-KOOV_MEMORY_RECENT_CHARS=4000
+MECHUS_MEMORY_MAX_CHARS=20000
+MECHUS_MEMORY_RECENT_CHARS=4000
 ```
 
 ### 7. Set Up Process Manager (PM2)
@@ -184,11 +184,11 @@ KOOV_MEMORY_RECENT_CHARS=4000
 # Install PM2 globally
 sudo npm install -g pm2
 
-# Start Koov API server
-cd /home/ubuntu/koovdemo
+# Start Mechus API server
+cd /home/ubuntu/mechusdemo
 source .venv/bin/activate
 export PYTHONPATH="$PWD"
-pm2 start scripts/start_api_server.py --name koov-api --interpreter python3
+pm2 start scripts/start_api_server.py --name mechus-api --interpreter python3
 
 # Save PM2 configuration
 pm2 save
@@ -205,7 +205,7 @@ pm2 startup
 sudo apt install -y nginx
 
 # Create Nginx configuration
-sudo nano /etc/nginx/sites-available/koov-api
+sudo nano /etc/nginx/sites-available/mechus-api
 ```
 
 Add this configuration:
@@ -234,7 +234,7 @@ server {
 
 Enable and test:
 ```bash
-sudo ln -s /etc/nginx/sites-available/koov-api /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mechus-api /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default  # Remove default if exists
 sudo nginx -t
 sudo systemctl restart nginx
@@ -281,9 +281,9 @@ http://your-ec2-public-ip
 
 In your dashboard `.env.local`:
 ```bash
-KOOV_API_URL=https://your-domain.com
+MECHUS_API_URL=https://your-domain.com
 # or
-KOOV_API_URL=http://your-ec2-public-ip:5000
+MECHUS_API_URL=http://your-ec2-public-ip:5000
 ```
 
 ## AWS ECS/Fargate (Alternative)
@@ -315,8 +315,8 @@ COPY . .
 
 # Set up virtual audio
 RUN pulseaudio --start && \
-    pactl load-module module-null-sink sink_name=koov_input && \
-    pactl load-module module-null-sink sink_name=koov_output
+    pactl load-module module-null-sink sink_name=mechus_input && \
+    pactl load-module module-null-sink sink_name=mechus_output
 
 # Expose port
 EXPOSE 5000
@@ -329,15 +329,15 @@ CMD ["python3", "scripts/start_api_server.py"]
 
 ```bash
 # Create ECR repository
-aws ecr create-repository --repository-name koov-api
+aws ecr create-repository --repository-name mechus-api
 
 # Get login token
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin your-account-id.dkr.ecr.us-east-1.amazonaws.com
 
 # Build and push
-docker build -t koov-api .
-docker tag koov-api:latest your-account-id.dkr.ecr.us-east-1.amazonaws.com/koov-api:latest
-docker push your-account-id.dkr.ecr.us-east-1.amazonaws.com/koov-api:latest
+docker build -t mechus-api .
+docker tag mechus-api:latest your-account-id.dkr.ecr.us-east-1.amazonaws.com/mechus-api:latest
+docker push your-account-id.dkr.ecr.us-east-1.amazonaws.com/mechus-api:latest
 ```
 
 ### 3. Create ECS Task Definition
@@ -381,7 +381,7 @@ Use AWS Console or CLI to create task definition with:
 **PM2 Monitoring:**
 ```bash
 pm2 monit
-pm2 logs koov-api
+pm2 logs mechus-api
 ```
 
 ## Troubleshooting
@@ -397,7 +397,7 @@ pm2 logs koov-api
 - Check .env audio device names
 
 **PM2 not starting:**
-- Check logs: `pm2 logs koov-api`
+- Check logs: `pm2 logs mechus-api`
 - Verify Python path
 - Check environment variables
 

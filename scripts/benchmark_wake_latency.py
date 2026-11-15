@@ -23,15 +23,15 @@ if _REPO not in sys.path:
 
 _env = os.path.join(_REPO, ".env")
 if os.path.exists(_env):
-    from koov.envfile import load_env_file
+    from mechus.envfile import load_env_file
 
     load_env_file(_env)
 
-from koov.audio import apply_f32_linear_fade_ends, trim_f32_silence_edges  # noqa: E402
-from koov.config import KoovConfig  # noqa: E402
-from koov.memory import ConversationMemory  # noqa: E402
-from koov.responder import OpenAIResponder, ResponseInput  # noqa: E402
-from koov.tts import ElevenLabsTTSEngine  # noqa: E402
+from mechus.audio import apply_f32_linear_fade_ends, trim_f32_silence_edges  # noqa: E402
+from mechus.config import MechusConfig  # noqa: E402
+from mechus.memory import ConversationMemory  # noqa: E402
+from mechus.responder import OpenAIResponder, ResponseInput  # noqa: E402
+from mechus.tts import ElevenLabsTTSEngine  # noqa: E402
 
 
 def _p50(xs: list[float]) -> float:
@@ -46,7 +46,7 @@ def _p95(xs: list[float]) -> float:
     return s[i]
 
 
-def _wake_state(config: KoovConfig) -> dict:
+def _wake_state(config: MechusConfig) -> dict:
     if not config.low_latency:
         return {}
     return {
@@ -59,7 +59,7 @@ def _wake_state(config: KoovConfig) -> dict:
 def _run_case(
     *,
     label: str,
-    config: KoovConfig,
+    config: MechusConfig,
     responder: OpenAIResponder,
     tts: ElevenLabsTTSEngine,
     request: str,
@@ -70,7 +70,7 @@ def _run_case(
         max_chars=config.memory_max_chars,
         recent_chars=config.memory_recent_chars,
     )
-    memory.add_segment("Alex: Koov, we need a quick status on the beta launch timeline.")
+    memory.add_segment("Alex: Mechus, we need a quick status on the beta launch timeline.")
     memory.add_segment("Sarah: Engineering is targeting July 25th for the release.")
 
     llm_ms: list[float] = []
@@ -157,7 +157,7 @@ def _run_case(
         print(f"  → LLM outliers (>{config.llm_outlier_log_ms:.0f}ms): {len(outliers)} runs")
 
 
-def _prep(audio_f32, tts_sr: int, config: KoovConfig):
+def _prep(audio_f32, tts_sr: int, config: MechusConfig):
     trimmed = trim_f32_silence_edges(audio_f32, tts_sr, pad_ms=22.0)
     if config.tts_fade_in_ms > 0 or config.tts_fade_out_ms > 0:
         trimmed = apply_f32_linear_fade_ends(
@@ -176,16 +176,16 @@ def main() -> int:
     ap.add_argument("--no-stream", action="store_true")
     args = ap.parse_args()
 
-    if not os.getenv("KOOV_LOW_LATENCY"):
-        os.environ["KOOV_LOW_LATENCY"] = "1"
+    if not os.getenv("MECHUS_LOW_LATENCY"):
+        os.environ["MECHUS_LOW_LATENCY"] = "1"
     if not args.no_stream:
-        os.environ.setdefault("KOOV_ELEVEN_TTS_STREAM", "1")
-    os.environ.setdefault("KOOV_WAKE_SPOKEN_MAX_WORDS", "12")
-    os.environ.setdefault("KOOV_WAKE_SPOKEN_MAX_CHARS", "40")
+        os.environ.setdefault("MECHUS_ELEVEN_TTS_STREAM", "1")
+    os.environ.setdefault("MECHUS_WAKE_SPOKEN_MAX_WORDS", "12")
+    os.environ.setdefault("MECHUS_WAKE_SPOKEN_MAX_CHARS", "40")
 
-    config = KoovConfig.from_env()
+    config = MechusConfig.from_env()
     if not config.openai_api_key or not config.eleven_api_key or not config.eleven_voice_id:
-        print("Need KOOV_OPENAI_API_KEY, KOOV_ELEVEN_API_KEY, KOOV_ELEVEN_VOICE_ID", file=sys.stderr)
+        print("Need MECHUS_OPENAI_API_KEY, MECHUS_ELEVEN_API_KEY, MECHUS_ELEVEN_VOICE_ID", file=sys.stderr)
         return 1
 
     stream = config.eleven_tts_stream and not args.no_stream
@@ -219,7 +219,7 @@ def main() -> int:
         f"{config.wake_spoken_max_chars}c  stream={stream}"
     )
     if not config.low_latency:
-        print("  WARNING: set KOOV_LOW_LATENCY=1 for production FaceTime wake limits")
+        print("  WARNING: set MECHUS_LOW_LATENCY=1 for production FaceTime wake limits")
     print("=" * 72)
 
     prompts = [

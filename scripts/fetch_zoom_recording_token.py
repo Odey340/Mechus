@@ -2,7 +2,7 @@
 """
 Fetch Zoom local recording join token for a meeting.
 
-Use this to get a recording_token to pass to Koov's POST /api/join-meeting so the bot
+Use this to get a recording_token to pass to Mechus's POST /api/join-meeting so the bot
 can receive raw audio without the host clicking "Allow recording."
 
 Requirements:
@@ -26,9 +26,9 @@ import json
 import os
 import sys
 
-# Reuse Koov's Zoom link parser so we accept link or numeric ID
+# Reuse Mechus's Zoom link parser so we accept link or numeric ID
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from koov.zoom_sdk_join import parse_zoom_link
+from mechus.zoom_sdk_join import parse_zoom_link
 
 
 def main() -> None:

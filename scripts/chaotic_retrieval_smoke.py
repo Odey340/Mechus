@@ -14,9 +14,9 @@ chapter rollups, prints ingest + retrieval + summary-build latency.
 
 Financial scrum (same API path as a live meeting — use `.env` like production):
 
-  # KOOV_OPENAI_API_KEY, KOOV_LLM_BACKEND=openai, KOOV_RETRIEVAL_MODE=hybrid, …
+  # MECHUS_OPENAI_API_KEY, MECHUS_LLM_BACKEND=openai, MECHUS_RETRIEVAL_MODE=hybrid, …
   python3 scripts/chaotic_retrieval_smoke.py --financial-scrum
-  # or: python3 scripts/simulate_financial_scrum_koov.py
+  # or: python3 scripts/simulate_financial_scrum_mechus.py
 """
 
 from __future__ import annotations
@@ -45,14 +45,14 @@ if _env_path.exists():
         if _line and not _line.startswith("#") and "=" in _line:
             _k, _, _v = _line.partition("=")
             os.environ.setdefault(_k.strip(), _v.strip())
-if os.environ.get("OPENAI_API_KEY") and not os.environ.get("KOOV_OPENAI_API_KEY"):
-    os.environ.setdefault("KOOV_OPENAI_API_KEY", os.environ["OPENAI_API_KEY"])
+if os.environ.get("OPENAI_API_KEY") and not os.environ.get("MECHUS_OPENAI_API_KEY"):
+    os.environ.setdefault("MECHUS_OPENAI_API_KEY", os.environ["OPENAI_API_KEY"])
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.meeting_chapters import ChapterRecord, append_chapter, load_chapters
-from koov.meeting_store import StoredChunk
-from koov.meeting_summary import build_summary_evidence_text
-from koov.retrieval import retrieve_for_question
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.meeting_chapters import ChapterRecord, append_chapter, load_chapters
+from mechus.meeting_store import StoredChunk
+from mechus.meeting_summary import build_summary_evidence_text
+from mechus.retrieval import retrieve_for_question
 
 
 def _ok(name: str, cond: bool, detail: str = "") -> bool:
@@ -153,10 +153,10 @@ def run_long_meeting_benchmark(
 ) -> None:
     """Print a detailed latency + size report for a simulated long meeting."""
     rng = random.Random(4242)
-    tmp = Path(tempfile.mkdtemp(prefix="koov_long_"))
+    tmp = Path(tempfile.mkdtemp(prefix="mechus_long_"))
     mid = "long_meeting_benchmark"
-    _prev_store = os.environ.get("KOOV_MEETING_STORE_DIR")
-    os.environ["KOOV_MEETING_STORE_DIR"] = str(tmp)
+    _prev_store = os.environ.get("MECHUS_MEETING_STORE_DIR")
+    os.environ["MECHUS_MEETING_STORE_DIR"] = str(tmp)
 
     print()
     print("=" * 72)
@@ -186,7 +186,7 @@ def run_long_meeting_benchmark(
         ("general", "How did people feel about the budget numbers?", {"max_chars": 3200}),
     ]
 
-    key = os.environ.get("KOOV_OPENAI_API_KEY", "").strip()
+    key = os.environ.get("MECHUS_OPENAI_API_KEY", "").strip()
     results: list[dict] = []
 
     def run_query(label: str, q: str, max_chars: int, mode: str) -> None:
@@ -243,7 +243,7 @@ def run_long_meeting_benchmark(
             run_query(label + "/hyb", q, kw["max_chars"], "hybrid")
     else:
         print("--- Retrieval (hybrid) ---")
-        print("  (skipped: set KOOV_OPENAI_API_KEY to measure embedding rerank latency)")
+        print("  (skipped: set MECHUS_OPENAI_API_KEY to measure embedding rerank latency)")
         for label, q, kw in queries[:3]:
             run_query(label + "/hyb-fallback", q, kw["max_chars"], "hybrid")
 
@@ -313,9 +313,9 @@ def run_long_meeting_benchmark(
     print()
     print("=" * 72)
     if _prev_store is None:
-        os.environ.pop("KOOV_MEETING_STORE_DIR", None)
+        os.environ.pop("MECHUS_MEETING_STORE_DIR", None)
     else:
-        os.environ["KOOV_MEETING_STORE_DIR"] = _prev_store
+        os.environ["MECHUS_MEETING_STORE_DIR"] = _prev_store
     try:
         import shutil
 
@@ -396,7 +396,7 @@ def run_all() -> int:
     failures += not _ok("tiny budget returns short context", len(b_tiny.formatted_context or "") < 8000)
 
     print("== 4) Recap + corrupt chapters file ==")
-    tmp = Path(tempfile.mkdtemp(prefix="koov_chaos_"))
+    tmp = Path(tempfile.mkdtemp(prefix="mechus_chaos_"))
     mid = "meet_X"
     ch_dir = tmp / mid
     ch_dir.mkdir(parents=True)
@@ -416,8 +416,8 @@ def run_all() -> int:
         f.write("not json!!!\n")
         f.write('{"broken": true}\n')
 
-    old_env = os.environ.get("KOOV_MEETING_STORE_DIR")
-    os.environ["KOOV_MEETING_STORE_DIR"] = str(tmp)
+    old_env = os.environ.get("MECHUS_MEETING_STORE_DIR")
+    os.environ["MECHUS_MEETING_STORE_DIR"] = str(tmp)
     try:
         eng2 = ContextIntegrityEngine(meeting_id=mid)
         eng2.ingest_chunk("hello", speaker_id="A", timestamp=0.0)
@@ -435,9 +435,9 @@ def run_all() -> int:
         failures += not _ok("load_chapters skips garbage", len(loaded) >= 1)
     finally:
         if old_env is None:
-            os.environ.pop("KOOV_MEETING_STORE_DIR", None)
+            os.environ.pop("MECHUS_MEETING_STORE_DIR", None)
         else:
-            os.environ["KOOV_MEETING_STORE_DIR"] = old_env
+            os.environ["MECHUS_MEETING_STORE_DIR"] = old_env
 
     print("== 5) build_summary_evidence chaos ==")
     chunks: list[StoredChunk] = []
@@ -476,7 +476,7 @@ def run_all() -> int:
     failures += not _ok("embed rerank not used without key", bh.meta.get("embed_rerank_used") is False)
 
     print("== 7) Optional live hybrid (OPENAI) ==")
-    key = os.environ.get("KOOV_OPENAI_API_KEY", "").strip()
+    key = os.environ.get("MECHUS_OPENAI_API_KEY", "").strip()
     if key:
         try:
             bh2 = retrieve_for_question(
@@ -496,7 +496,7 @@ def run_all() -> int:
             traceback.print_exc()
             failures += 1
     else:
-        print("  [SKIP] KOOV_OPENAI_API_KEY not set — hybrid live test skipped")
+        print("  [SKIP] MECHUS_OPENAI_API_KEY not set — hybrid live test skipped")
 
     print("== 8) More chaos: punctuation-only query, top_k=1, concurrent retrieves ==")
     bp = retrieve_for_question(
@@ -536,8 +536,8 @@ def run_all() -> int:
     failures += not _ok("24 concurrent retrieves OK", all(isinstance(x, str) for x in results))
 
     print("== 9) Recap with tiny max_chars (chapter prefix vs tail) ==")
-    _prev = os.environ.get("KOOV_MEETING_STORE_DIR")
-    os.environ["KOOV_MEETING_STORE_DIR"] = str(tmp)
+    _prev = os.environ.get("MECHUS_MEETING_STORE_DIR")
+    os.environ["MECHUS_MEETING_STORE_DIR"] = str(tmp)
     try:
         eng3 = ContextIntegrityEngine(meeting_id=mid)
         for i in range(15):
@@ -551,9 +551,9 @@ def run_all() -> int:
         failures += not _ok("tiny recap still returns", len(br_small.formatted_context or "") > 0)
     finally:
         if _prev is None:
-            os.environ.pop("KOOV_MEETING_STORE_DIR", None)
+            os.environ.pop("MECHUS_MEETING_STORE_DIR", None)
         else:
-            os.environ["KOOV_MEETING_STORE_DIR"] = _prev
+            os.environ["MECHUS_MEETING_STORE_DIR"] = _prev
 
     print("== 10) Extreme fusion weights ==")
     bw = retrieve_for_question(
@@ -607,10 +607,10 @@ def main() -> int:
     if args.financial_scrum:
         import importlib.util
 
-        scr = _ROOT / "scripts" / "simulate_financial_scrum_koov.py"
-        spec = importlib.util.spec_from_file_location("koov_financial_scrum_sim", scr)
+        scr = _ROOT / "scripts" / "simulate_financial_scrum_mechus.py"
+        spec = importlib.util.spec_from_file_location("mechus_financial_scrum_sim", scr)
         if spec is None or spec.loader is None:
-            print("Could not load simulate_financial_scrum_koov.py", file=sys.stderr)
+            print("Could not load simulate_financial_scrum_mechus.py", file=sys.stderr)
             return 1
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)

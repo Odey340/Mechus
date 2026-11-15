@@ -4,24 +4,24 @@ Copy and paste this into Cursor for your dashboard repo:
 
 ---
 
-I need to add status polling to update my meeting status from "Joining" to "Active" when Koov is actually working.
+I need to add status polling to update my meeting status from "Joining" to "Active" when Mechus is actually working.
 
 **Current situation:**
 - My dashboard shows "Joining" when a meeting starts
-- I need it to change to "Active" when Koov is actually listening and processing audio/transcripts
-- Koov API server is running on `http://127.0.0.1:5000`
+- I need it to change to "Active" when Mechus is actually listening and processing audio/transcripts
+- Mechus API server is running on `http://127.0.0.1:5000`
 
 **What I need:**
 
-1. **Poll the Koov status endpoint** (`GET http://127.0.0.1:5000/api/status`) every 2 seconds
-2. **Update the Supabase meeting status** based on Koov's status:
+1. **Poll the Mechus status endpoint** (`GET http://127.0.0.1:5000/api/status`) every 2 seconds
+2. **Update the Supabase meeting status** based on Mechus's status:
    - `joining` → Keep as `joining` in Supabase
    - `active` → Update Supabase to `live` (or `active` if that's your status)
    - `stopped` → Update Supabase to `ended`
    - `error` → Update Supabase to `failed`
 3. **Stop polling** when status becomes `active` or `stopped`
 
-**The Koov API status response:**
+**The Mechus API status response:**
 ```json
 {
   "active": true,
@@ -39,17 +39,17 @@ I need to add status polling to update my meeting status from "Joining" to "Acti
 **Option 1: Server-side polling in meeting start function**
 ```typescript
 async function startMeeting(meetingId: string) {
-  // ... existing code to call Koov API ...
+  // ... existing code to call Mechus API ...
   
-  // After calling Koov API, poll for status
-  const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+  // After calling Mechus API, poll for status
+  const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
   const maxAttempts = 30; // Poll for up to 60 seconds
   
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
     
-    const statusResponse = await fetch(`${koovApiUrl}/api/status`);
-    const koovStatus = await statusResponse.json();
+    const statusResponse = await fetch(`${mechusApiUrl}/api/status`);
+    const mechusStatus = await statusResponse.json();
     
     const statusMap: Record<string, string> = {
       'joining': 'joining',
@@ -58,7 +58,7 @@ async function startMeeting(meetingId: string) {
       'error': 'failed',
     };
     
-    const supabaseStatus = statusMap[koovStatus.status] || 'joining';
+    const supabaseStatus = statusMap[mechusStatus.status] || 'joining';
     
     await supabase
       .from('meetings')
@@ -66,7 +66,7 @@ async function startMeeting(meetingId: string) {
       .eq('id', meetingId);
     
     // Stop polling if active or stopped
-    if (koovStatus.status === 'active' || koovStatus.status === 'stopped') {
+    if (mechusStatus.status === 'active' || mechusStatus.status === 'stopped') {
       break;
     }
   }
@@ -75,22 +75,22 @@ async function startMeeting(meetingId: string) {
 
 **Option 2: Client-side polling with React hook**
 ```typescript
-// hooks/useKoovStatus.ts
+// hooks/useMechusStatus.ts
 'use client';
 
 import { useEffect, useState } from 'react';
 
-export function useKoovStatus(meetingId: string, enabled: boolean = true) {
+export function useMechusStatus(meetingId: string, enabled: boolean = true) {
   const [status, setStatus] = useState<any>(null);
   
   useEffect(() => {
     if (!enabled) return;
     
-    const koovApiUrl = process.env.NEXT_PUBLIC_KOOV_API_URL || 'http://127.0.0.1:5000';
+    const mechusApiUrl = process.env.NEXT_PUBLIC_MECHUS_API_URL || 'http://127.0.0.1:5000';
     
     const fetchStatus = async () => {
       try {
-        const response = await fetch(`${koovApiUrl}/api/status`);
+        const response = await fetch(`${mechusApiUrl}/api/status`);
         const data = await response.json();
         setStatus(data);
         
@@ -105,7 +105,7 @@ export function useKoovStatus(meetingId: string, enabled: boolean = true) {
           });
         }
       } catch (error) {
-        console.error('Failed to fetch Koov status:', error);
+        console.error('Failed to fetch Mechus status:', error);
       }
     };
     
@@ -122,25 +122,25 @@ export function useKoovStatus(meetingId: string, enabled: boolean = true) {
 Then use it in your component:
 ```typescript
 // In your meeting details component
-const koovStatus = useKoovStatus(meetingId, true);
+const mechusStatus = useMechusStatus(meetingId, true);
 
 // Update UI based on status
-const displayStatus = koovStatus?.status === 'active' ? 'Active' : 
-                     koovStatus?.status === 'joining' ? 'Joining' : 
+const displayStatus = mechusStatus?.status === 'active' ? 'Active' : 
+                     mechusStatus?.status === 'joining' ? 'Joining' : 
                      'Inactive';
 ```
 
 **Please:**
-1. Find where I'm starting meetings (look for meeting start function or `triggerKoovSessionStart`)
-2. Add status polling after the Koov API is called
-3. Update Supabase meeting status when Koov status becomes `active`
+1. Find where I'm starting meetings (look for meeting start function or `triggerMechusSessionStart`)
+2. Add status polling after the Mechus API is called
+3. Update Supabase meeting status when Mechus status becomes `active`
 4. Update the UI to show "Active" when status is `active`
 5. Stop polling when status is `active` or `stopped`
 6. Show me what files were changed
 
 **Key requirements:**
 - Poll every 2 seconds
-- Update Supabase status from `joining` to `live` (or `active`) when Koov status is `active`
+- Update Supabase status from `joining` to `live` (or `active`) when Mechus status is `active`
 - Update UI to show "Active" status
 - Stop polling once status is `active` or `stopped`
 

@@ -4,17 +4,17 @@ Copy and paste this into Cursor for your dashboard repo:
 
 ---
 
-I need to fetch meeting transcripts from the Koov API and display them beautifully in my dashboard with actionable items, summaries, and a clear format.
+I need to fetch meeting transcripts from the Mechus API and display them beautifully in my dashboard with actionable items, summaries, and a clear format.
 
 **Current situation:**
-- Koov API server is running on `http://127.0.0.1:5000`
+- Mechus API server is running on `http://127.0.0.1:5000`
 - Meetings are stored in Supabase with a `transcripts` table (or similar)
 - I need to fetch transcripts during/after meetings and store them in the database
 - Transcripts need to be displayed in a beautiful, easy-to-understand format
 
 **What I need:**
 
-1. **Fetch transcript from Koov API** (`GET http://127.0.0.1:5000/api/transcript?meeting_id=<meeting_id>`)
+1. **Fetch transcript from Mechus API** (`GET http://127.0.0.1:5000/api/transcript?meeting_id=<meeting_id>`)
 2. **Store transcript in Supabase** for the specific meeting and user
 3. **Display transcript beautifully** with:
    - Full meeting transcript with speakers and timestamps
@@ -22,7 +22,7 @@ I need to fetch meeting transcripts from the Koov API and display them beautiful
    - Meeting summary
    - Clean, readable format
 
-**The Koov API transcript response:**
+**The Mechus API transcript response:**
 ```json
 {
   "success": true,
@@ -49,7 +49,7 @@ I need to fetch meeting transcripts from the Koov API and display them beautiful
     {
       "ts": 1234568000.0,
       "kind": "wake_cycle",
-      "text": "User: summarize the meeting\nKoov: Here's a summary...",
+      "text": "User: summarize the meeting\nMechus: Here's a summary...",
       "meta": {
         "request": "summarize the meeting",
         "response": "Here's a summary..."
@@ -80,12 +80,12 @@ I need to fetch meeting transcripts from the Koov API and display them beautiful
      { params }: { params: { id: string } }
    ) {
      const meetingId = params.id;
-     const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+     const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
      const supabase = createClient();
      
      try {
-       // Fetch transcript from Koov API
-       const response = await fetch(`${koovApiUrl}/api/transcript?meeting_id=${meetingId}`);
+       // Fetch transcript from Mechus API
+       const response = await fetch(`${mechusApiUrl}/api/transcript?meeting_id=${meetingId}`);
        const transcriptData = await response.json();
        
        if (!response.ok) {
@@ -250,10 +250,10 @@ I need to fetch meeting transcripts from the Koov API and display them beautiful
            </div>
          </div>
          
-         {/* Wake Cycles (Koov interactions) */}
+         {/* Wake Cycles (Mechus interactions) */}
          {transcript.wake_cycles && transcript.wake_cycles.length > 0 && (
            <div className="bg-purple-50 border rounded-lg p-6">
-             <h3 className="font-semibold text-purple-900 mb-4">Koov Interactions</h3>
+             <h3 className="font-semibold text-purple-900 mb-4">Mechus Interactions</h3>
              <div className="space-y-3">
                {transcript.wake_cycles.map((cycle: any, idx: number) => (
                  <div key={idx} className="border-l-2 border-purple-400 pl-4">
@@ -296,21 +296,21 @@ I need to fetch meeting transcripts from the Koov API and display them beautiful
    ```
 
 **Please:**
-1. Create the transcript API route to fetch from Koov and store in Supabase
+1. Create the transcript API route to fetch from Mechus and store in Supabase
 2. Create a beautiful transcript display component with:
    - Summary section (highlighted)
    - Actionable items list (highlighted)
    - Full transcript with speakers and timestamps
-   - Koov interactions section
+   - Mechus interactions section
 3. Add polling to fetch transcript updates during active meetings
 4. Integrate transcript display into the meeting details page
 5. Make it visually appealing with proper styling
 6. Show me what files were changed
 
 **Key requirements:**
-- Fetch transcript from Koov API endpoint
+- Fetch transcript from Mechus API endpoint
 - Store in Supabase for the specific meeting
-- Display with clear sections: Summary, Action Items, Full Transcript, Koov Interactions
+- Display with clear sections: Summary, Action Items, Full Transcript, Mechus Interactions
 - Poll for updates during active meetings
 - Beautiful, readable formatting with proper styling
 

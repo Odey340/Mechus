@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.retrieval import retrieve_for_question
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.retrieval import retrieve_for_question
 
 
-@patch("koov.retrieval.classify_intent", return_value="general_query")
+@patch("mechus.retrieval.classify_intent", return_value="general_query")
 def test_split_original_vs_expanded(mock_ci: MagicMock) -> None:
     mem = MagicMock()
     mem.retrieve = MagicMock(return_value="")
@@ -46,7 +46,7 @@ def test_split_original_vs_expanded(mock_ci: MagicMock) -> None:
     assert b.meta.get("retrieval_effective_query") == expanded
 
 
-@patch("koov.retrieval.classify_intent", return_value="recap_query")
+@patch("mechus.retrieval.classify_intent", return_value="recap_query")
 def test_freeform_topic_hint_from_original_request_only(mock_ci: MagicMock) -> None:
     """Scoped recap hint (about X) must come from request_text, not retrieval_query."""
     mem = MagicMock()

@@ -1,5 +1,5 @@
 @echo off
-REM One-time local dev setup on Windows: creates .venv and installs Koov + Tiger Data deps.
+REM One-time local dev setup on Windows: creates .venv and installs Mechus + Tiger Data deps.
 REM Usage (from the repo folder):  setup_windows.bat
 setlocal
 cd /d "%~dp0"
@@ -27,8 +27,8 @@ call .venv\Scripts\activate.bat || goto :error
 python -m pip install --upgrade pip
 REM webrtcvad has no official Windows wheels; webrtcvad-wheels is a drop-in prebuilt copy.
 pip install webrtcvad-wheels
-findstr /v /i /r "^webrtcvad" requirements.txt > "%TEMP%\koov-req-win.txt"
-pip install -r "%TEMP%\koov-req-win.txt" -r requirements-prod.txt pytest || goto :error
+findstr /v /i /r "^webrtcvad" requirements.txt > "%TEMP%\mechus-req-win.txt"
+pip install -r "%TEMP%\mechus-req-win.txt" -r requirements-prod.txt pytest || goto :error
 
 if not exist .env if exist .env.example copy .env.example .env >nul
 

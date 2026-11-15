@@ -2,7 +2,7 @@
 
 ## Running Qwen-2.5-7B-Instruct on MacBook Pro M4 Max
 
-This guide shows how to optimize Koov for Apple Silicon (M1/M2/M3/M4) by running models locally with Metal GPU acceleration instead of using Ollama.
+This guide shows how to optimize Mechus for Apple Silicon (M1/M2/M3/M4) by running models locally with Metal GPU acceleration instead of using Ollama.
 
 ## Performance Comparison
 
@@ -51,11 +51,11 @@ pip install transformers==4.44.0 sentencepiece==0.2.0 accelerate==0.28.0
 Create a new responder that uses ONNX Runtime:
 
 ```python
-# koov/onnx_responder.py
+# mechus/onnx_responder.py
 import onnxruntime as ort
 from transformers import AutoTokenizer
 import numpy as np
-from koov.responder import Responder, ResponseInput
+from mechus.responder import Responder, ResponseInput
 
 class ONNXResponder(Responder):
     def __init__(self, model_path: str = "qwen-2.5-7b-instruct-8bit"):
@@ -114,10 +114,10 @@ pip install transformers==4.44.0 sentencepiece==0.2.0 accelerate==0.28.0 bitsand
 ### Implementation
 
 ```python
-# koov/pytorch_responder.py
+# mechus/pytorch_responder.py
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from koov.responder import Responder, ResponseInput
+from mechus.responder import Responder, ResponseInput
 
 class PyTorchMetalResponder(Responder):
     def __init__(self, model_path: str = "qwen-2.5-7b-instruct-8bit"):
@@ -172,11 +172,11 @@ class PyTorchMetalResponder(Responder):
 
 **Recommendation**: Use 8-bit for best balance of speed and quality.
 
-## Integration with Koov
+## Integration with Mechus
 
 ### Update Config
 
-Add to `koov/config.py`:
+Add to `mechus/config.py`:
 
 ```python
 llm_backend: str  # "ollama", "onnx", "pytorch"
@@ -187,15 +187,15 @@ use_metal: bool = True
 
 ### Update Agent
 
-Modify `koov/agent.py` to support multiple backends:
+Modify `mechus/agent.py` to support multiple backends:
 
 ```python
-def _build_responder(self, config: KoovConfig):
+def _build_responder(self, config: MechusConfig):
     if config.llm_backend == "onnx" and config.onnx_model_path:
-        from koov.onnx_responder import ONNXResponder
+        from mechus.onnx_responder import ONNXResponder
         return ONNXResponder(model_path=config.onnx_model_path)
     elif config.llm_backend == "pytorch" and config.pytorch_model_path:
-        from koov.pytorch_responder import PyTorchMetalResponder
+        from mechus.pytorch_responder import PyTorchMetalResponder
         return PyTorchMetalResponder(model_path=config.pytorch_model_path)
     elif config.llm_backend == "ollama" and config.ollama_model:
         return OllamaResponder(...)  # Current implementation
@@ -265,10 +265,10 @@ ollama pull qwen2.5:7b-instruct
 # 2. Verify Metal usage
 # Check Activity Monitor > GPU tab when running
 
-# 3. Configure Koov
-KOOV_LLM_BACKEND=ollama
-KOOV_OLLAMA_MODEL=qwen2.5:7b-instruct
-KOOV_OLLAMA_HOST=http://127.0.0.1:11434
+# 3. Configure Mechus
+MECHUS_LLM_BACKEND=ollama
+MECHUS_OLLAMA_MODEL=qwen2.5:7b-instruct
+MECHUS_OLLAMA_HOST=http://127.0.0.1:11434
 ```
 
 **Expected Latency**: ~500-800ms per response

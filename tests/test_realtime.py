@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from koov.realtime import (
+from mechus.realtime import (
     _expand_weather_query_locations,
     _extract_weather_location,
     _strip_weather_location_noise,
@@ -46,7 +46,7 @@ def test_substantive_find_me_not_vague() -> None:
     enriched = build_search_query(
         q,
         last_user="where can i get a taco for 5 in poolesville maryland",
-        last_koov="try the taco bar",
+        last_mechus="try the taco bar",
     )
     assert enriched == q
 
@@ -60,7 +60,7 @@ def test_who_won_not_vague_and_skips_dialog_bleed() -> None:
     enriched = build_search_query(
         "who won the",
         last_user="How didn't you see who I am?",
-        last_koov="Gautam was surprised",
+        last_mechus="Gautam was surprised",
     )
     assert "gautam" not in enriched.lower()
     assert "how didn" not in enriched.lower()
@@ -72,7 +72,7 @@ def test_build_search_query_uses_dialog_context() -> None:
     q = build_search_query(
         "can you find some for me",
         last_user="what is the best 4k 240hz monitor",
-        last_koov="I'd look at the ASUS PG27AQDM.",
+        last_mechus="I'd look at the ASUS PG27AQDM.",
     )
     assert "4k" in q.lower() or "240hz" in q.lower() or "monitor" in q.lower()
     assert build_search_query(
@@ -110,7 +110,7 @@ def test_weather_search_marks_current_only() -> None:
 
 
 def test_bare_weather_does_not_extract_time_as_place() -> None:
-    from koov.realtime import _extract_weather_location, _is_bare_weather_query
+    from mechus.realtime import _extract_weather_location, _is_bare_weather_query
 
     assert _extract_weather_location("what is the time right now") == ""
     assert _extract_weather_location("whats the weather like right now") == ""
@@ -118,7 +118,7 @@ def test_bare_weather_does_not_extract_time_as_place() -> None:
 
 
 def test_weather_city_from_context_rejects_noise() -> None:
-    from koov.realtime import _weather_city_from_context
+    from mechus.realtime import _weather_city_from_context
 
     assert _weather_city_from_context(context_location="time", fallback_timezone="America/New_York") == "New York,US"
 
@@ -155,14 +155,14 @@ def test_multi_location_time_query() -> None:
 
 
 def test_tell_me_about_solar_system_is_general_not_recap() -> None:
-    from koov.intent import INTENT_GENERAL, INTENT_RECAP, classify_intent
+    from mechus.intent import INTENT_GENERAL, INTENT_RECAP, classify_intent
 
     assert classify_intent("tell me about the solar system") == INTENT_GENERAL
     assert classify_intent("tell me about what we discussed") == INTENT_RECAP
 
 
 def test_bare_weather_query_uses_fallback_timezone() -> None:
-    from koov.realtime import _is_bare_weather_query, _weather_city_from_context
+    from mechus.realtime import _is_bare_weather_query, _weather_city_from_context
 
     assert _is_bare_weather_query("what's the weather right now")
     assert _weather_city_from_context(fallback_timezone="America/New_York") == "New York,US"

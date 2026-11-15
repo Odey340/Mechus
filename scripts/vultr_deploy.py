@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Provision a Vultr Cloud Compute server for Koov and wire it to `./run.sh deploy`.
+Provision a Vultr Cloud Compute server for Mechus and wire it to `./run.sh deploy`.
 
 Develop locally, deploy globally:
   1. Sign up (mlh.link/vultr-signup), then create an API key: Vultr console -> Account -> API.
@@ -76,7 +76,7 @@ def _ensure_ssh_key(pubkey_path: str | None) -> list[str]:
     for k in _api("GET", "/ssh-keys?per_page=500").get("ssh_keys", []):
         if k.get("ssh_key", "").strip() == pub:
             return [k["id"]]
-    created = _api("POST", "/ssh-keys", {"name": "koov-deploy", "ssh_key": pub})
+    created = _api("POST", "/ssh-keys", {"name": "mechus-deploy", "ssh_key": pub})
     return [created["ssh_key"]["id"]]
 
 
@@ -90,7 +90,7 @@ def cmd_create(args: argparse.Namespace) -> None:
         "hostname": args.label,
         "user_data": user_data,
         "enable_ipv6": True,
-        "tags": ["koov", "hackuta"],
+        "tags": ["mechus", "hackuta"],
     }
     ssh_ids = _ensure_ssh_key(args.ssh_pubkey)
     if ssh_ids:
@@ -167,12 +167,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    c = sub.add_parser("create", help="create a Koov server")
+    c = sub.add_parser("create", help="create a Mechus server")
     c.add_argument("--region", default=os.environ.get("VULTR_REGION", "dfw"))
     c.add_argument("--plan", default=os.environ.get("VULTR_PLAN", "vc2-2c-4gb"),
                    help="vc2-2c-4gb fits the API + Docker build; see `plans` (use a vcg-* plan for Cloud GPU)")
     c.add_argument("--os-id", type=int, default=UBUNTU_2404_OS_ID, help="2284 = Ubuntu 24.04 LTS x64")
-    c.add_argument("--label", default=os.environ.get("VULTR_LABEL", "koov-hackuta"))
+    c.add_argument("--label", default=os.environ.get("VULTR_LABEL", "mechus-hackuta"))
     c.add_argument("--ssh-pubkey", default=os.environ.get("VULTR_SSH_PUBKEY"),
                    help="path to your public key, e.g. ~/.ssh/id_ed25519.pub (recommended)")
     c.set_defaults(func=cmd_create)

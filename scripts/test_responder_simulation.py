@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Terminal-only test: run the meeting simulation through the responder and print
-Koov's outputs. No meeting, no audio — just feed transcript lines and see responses.
+Mechus's outputs. No meeting, no audio — just feed transcript lines and see responses.
 
 Loads .env from repo root; uses same memory + context engine + retrieval + responder
 as the real agent.
@@ -10,7 +10,7 @@ Usage (run from repo root):
   python scripts/test_responder_simulation.py              # Product Launch script, full output
   python scripts/test_responder_simulation.py --chaotic   # Chaotic stress-test
   python scripts/test_responder_simulation.py --rules-only # Rules-only (no OpenAI)
-  python scripts/test_responder_simulation.py -q           # Quiet: only Koov's responses
+  python scripts/test_responder_simulation.py -q           # Quiet: only Mechus's responses
 """
 
 from __future__ import annotations
@@ -20,61 +20,61 @@ import os
 import sys
 import time
 
-# Load .env before any koov imports that read config
+# Load .env before any mechus imports that read config
 _REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
-from koov.config import KoovConfig
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.memory import ConversationMemory
-from koov.responder import (
+from mechus.config import MechusConfig
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.memory import ConversationMemory
+from mechus.responder import (
     HybridResponder,
     OpenAIResponder,
     ResponseInput,
     RuleResponder,
 )
-from koov.retrieval import retrieve_for_question
+from mechus.retrieval import retrieve_for_question
 
 # Same script data as run_meeting_simulation.py
 PRODUCT_LAUNCH_SCRIPT: list[tuple[str, str, bool]] = [
     ("Alex", "Alright everyone, thanks for joining. The goal today is to finalize the launch plan for the beta release.", False),
     ("Sarah", "Yeah, engineering is mostly done with the core features, but we still need to decide the rollout date.", False),
-    ("Mike", "Koov, can you start taking notes for this meeting?", True),
+    ("Mike", "Mechus, can you start taking notes for this meeting?", True),
     ("Alex", "Okay so first topic is the launch timeline. Originally we said mid-July.", False),
     ("Sarah", "Engineering would actually prefer July 25th. That gives us time for one more QA cycle.", False),
     ("Mike", "From marketing's side July 25th works. That gives us two weeks to prepare the campaign.", False),
     ("Alex", "Alright let's lock it in then. The beta launch date will be July 25th.", False),
-    ("Sarah", "Koov, what did we just decide?", True),
+    ("Sarah", "Mechus, what did we just decide?", True),
     ("Mike", "I'll handle the launch announcement blog post.", False),
     ("Sarah", "Engineering will finish QA by July 20th.", False),
     ("Alex", "I'll coordinate the beta user invitations.", False),
-    ("Alex", "Koov, can you list the action items so far?", True),
+    ("Alex", "Mechus, can you list the action items so far?", True),
     ("Sarah", "One risk is that the payment integration hasn't been fully tested yet.", False),
     ("Mike", "Another concern is whether the onboarding flow is clear enough for new users.", False),
-    ("Mike", "Koov, have any risks been mentioned so far?", True),
+    ("Mike", "Mechus, have any risks been mentioned so far?", True),
     ("Alex", "Alright quick recap before we end.", False),
     ("Alex", "Launch date July 25th, engineering finishes QA by the 20th, marketing prepares the announcement, and we monitor those two risks.", False),
-    ("Sarah", "Koov, give us a quick recap of the meeting.", True),
+    ("Sarah", "Mechus, give us a quick recap of the meeting.", True),
 ]
 
 CHAOTIC_SCRIPT: list[tuple[str, str, bool]] = [
     ("Alex", "So we're thinking Q3 for the—", False),
-    ("Sarah", "Wait sorry, Koov, are you there?", True),
+    ("Sarah", "Wait sorry, Mechus, are you there?", True),
     ("Mike", "I thought we said Q2 last week.", False),
     ("Alex", "We did but then engineering said—", False),
-    ("Sarah", "Koov, what did we decide about the timeline?", True),
-    ("Mike", "Actually can we backtrack. Koov, what's the difference between a beta and an alpha release?", True),
+    ("Sarah", "Mechus, what did we decide about the timeline?", True),
+    ("Mike", "Actually can we backtrack. Mechus, what's the difference between a beta and an alpha release?", True),
     ("Alex", "So to be clear the date is June 15 now.", False),
-    ("Sarah", "Yeah June 15. Koov, can you give us the action items?", True),
+    ("Sarah", "Yeah June 15. Mechus, can you give us the action items?", True),
     ("Mike", "I'll do the blog post.", False),
-    ("Alex", "And I'll do the invites. Koov, quick one — what is two plus two?", True),
-    ("Sarah", "We're getting off track. Koov, recap what we decided today.", True),
+    ("Alex", "And I'll do the invites. Mechus, quick one — what is two plus two?", True),
+    ("Sarah", "We're getting off track. Mechus, recap what we decided today.", True),
 ]
 
 
 def _extract_request(line: str, wake_phrases: tuple[str, ...]) -> str:
-    """Strip 'Koov, ' / 'Koov ' and wake phrases to get the actual request."""
+    """Strip 'Mechus, ' / 'Mechus ' and wake phrases to get the actual request."""
     text = line.strip()
     for w in wake_phrases:
         w = w.strip()
@@ -82,14 +82,14 @@ def _extract_request(line: str, wake_phrases: tuple[str, ...]) -> str:
             text = text[len(w) + 1 :].strip()
         elif text.lower().startswith(w.lower() + " "):
             text = text[len(w) + 1 :].strip()
-    if text.lower().startswith("koov,"):
+    if text.lower().startswith("mechus,"):
         text = text[5:].strip()
-    elif text.lower().startswith("koov "):
+    elif text.lower().startswith("mechus "):
         text = text[4:].strip()
     return text
 
 
-def _build_responder(config: KoovConfig, rules_only: bool = False):
+def _build_responder(config: MechusConfig, rules_only: bool = False):
     rules = RuleResponder(max_response_words=config.max_response_words)
     if rules_only:
         return rules
@@ -110,7 +110,7 @@ def _build_responder(config: KoovConfig, rules_only: bool = False):
 
 def run_simulation(
     script: list[tuple[str, str, bool]],
-    config: KoovConfig,
+    config: MechusConfig,
     use_context_engine: bool = True,
     verbose: bool = True,
     rules_only: bool = False,
@@ -133,7 +133,7 @@ def run_simulation(
     print("=" * 70)
     print()
 
-    for i, (speaker, line, is_koov_question) in enumerate(script, 1):
+    for i, (speaker, line, is_mechus_question) in enumerate(script, 1):
         # Add this line to meeting context
         segment = f"{speaker}: {line}"
         memory.add_segment(segment)
@@ -143,7 +143,7 @@ def run_simulation(
         if verbose:
             print(f"  [{i}] {speaker}: {line}")
 
-        if not is_koov_question:
+        if not is_mechus_question:
             if verbose:
                 print()
             continue
@@ -174,7 +174,7 @@ def run_simulation(
         response = responder.respond(inp).strip()
 
         print()
-        print("  ---> Koov:")
+        print("  ---> Mechus:")
         if response:
             print(f"      {response}")
         else:
@@ -193,7 +193,7 @@ def main() -> None:
     # entire test process.
     env_path = os.path.join(_REPO_ROOT, ".env")
     if os.path.exists(env_path):
-        from koov.envfile import load_env_file
+        from mechus.envfile import load_env_file
 
         load_env_file(env_path)
     parser = argparse.ArgumentParser(
@@ -213,11 +213,11 @@ def main() -> None:
         "-q",
         "--quiet",
         action="store_true",
-        help="Only print Koov's responses, not the script lines.",
+        help="Only print Mechus's responses, not the script lines.",
     )
     args = parser.parse_args()
 
-    config = KoovConfig.from_env()
+    config = MechusConfig.from_env()
     script = CHAOTIC_SCRIPT if args.chaotic else PRODUCT_LAUNCH_SCRIPT
     run_simulation(
         script,

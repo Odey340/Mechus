@@ -9,10 +9,10 @@ Use this to have the **bot** join Zoom meetings from a Linux server (e.g. EC2 at
 **Option A: Clone on the server (if the repo is on GitHub)**
 
 ```bash
-ssh -i ~/Downloads/koov-key.pem ubuntu@3.16.207.181
+ssh -i ~/Downloads/mechus-key.pem ubuntu@3.16.207.181
 cd ~
-git clone https://github.com/YOUR_ORG/koovdemo.git   # or your repo URL
-cd koovdemo
+git clone https://github.com/YOUR_ORG/mechusdemo.git   # or your repo URL
+cd mechusdemo
 ```
 
 **Option B: Copy from your Mac with rsync**
@@ -20,15 +20,15 @@ cd koovdemo
 From your **Mac** (in a new terminal, from the repo root):
 
 ```bash
-rsync -avz -e "ssh -i ~/Downloads/koov-key.pem" \
+rsync -avz -e "ssh -i ~/Downloads/mechus-key.pem" \
   --exclude '.venv' --exclude '__pycache__' --exclude '.git' \
-  ./ ubuntu@3.16.207.181:~/koovdemo/
+  ./ ubuntu@3.16.207.181:~/mechusdemo/
 ```
 
 Then on the **server**:
 
 ```bash
-cd ~/koovdemo
+cd ~/mechusdemo
 ```
 
 ---
@@ -38,7 +38,7 @@ cd ~/koovdemo
 On the **server**:
 
 ```bash
-cd ~/koovdemo
+cd ~/mechusdemo
 cp .env.example .env
 nano .env   # or vim
 ```
@@ -50,13 +50,13 @@ Set at least:
   - `ZOOM_APP_CLIENT_SECRET=` your Meeting SDK app Client Secret  
 
 - **TTS (so the bot can speak):**
-  - `KOOV_TTS_BACKEND=elevenlabs`
-  - `KOOV_ELEVEN_API_KEY=` your ElevenLabs API key  
-  - `KOOV_ELEVEN_VOICE_ID=` your ElevenLabs voice ID  
+  - `MECHUS_TTS_BACKEND=elevenlabs`
+  - `MECHUS_ELEVEN_API_KEY=` your ElevenLabs API key  
+  - `MECHUS_ELEVEN_VOICE_ID=` your ElevenLabs voice ID  
 
 - **LLM (optional but recommended):**
-  - `KOOV_LLM_BACKEND=openai`
-  - `KOOV_OPENAI_API_KEY=` your OpenAI API key  
+  - `MECHUS_LLM_BACKEND=openai`
+  - `MECHUS_OPENAI_API_KEY=` your OpenAI API key  
 
 Save and exit.
 
@@ -67,7 +67,7 @@ Save and exit.
 On the **server**:
 
 ```bash
-cd ~/koovdemo
+cd ~/mechusdemo
 docker compose down
 # Or if you used the zoom script before:
 # docker compose -f docker-compose.yml -f docker-compose.zoom.yml down
@@ -80,7 +80,7 @@ docker compose down
 On the **server** (Linux has `docker compose`; no need for the Mac script):
 
 ```bash
-cd ~/koovdemo
+cd ~/mechusdemo
 docker compose -f docker-compose.yml -f docker-compose.zoom.yml up -d --build
 ```
 
@@ -129,13 +129,13 @@ curl -X POST http://3.16.207.181:5001/api/join-meeting \
 ## 7. Check logs on the server
 
 ```bash
-cd ~/koovdemo
-docker compose -f docker-compose.yml -f docker-compose.zoom.yml logs -f koov
+cd ~/mechusdemo
+docker compose -f docker-compose.yml -f docker-compose.zoom.yml logs -f mechus
 ```
 
 Look for:
 
-- `Zoom audio: first frame received; Koov can hear the meeting` → audio is working.  
+- `Zoom audio: first frame received; Mechus can hear the meeting` → audio is working.  
 - `CanStartRawRecording returned ... (host must allow recording)` → host has not allowed yet.
 
 ---
@@ -143,6 +143,6 @@ Look for:
 ## Troubleshooting
 
 - **"Zoom SDK is not available"** → You’re not using the Zoom image. Use the exact command in step 4 (both compose files).  
-- **Bot joins but no audio** → Host must allow recording when Zoom prompts; someone must be speaking; see [KOOV_HEAR_ME.md](KOOV_HEAR_ME.md).  
+- **Bot joins but no audio** → Host must allow recording when Zoom prompts; someone must be speaking; see [MECHUS_HEAR_ME.md](MECHUS_HEAR_ME.md).  
 - **Connection refused from Mac** → Security group or firewall must allow TCP 5001 from your IP.  
 - **Permission denied** on `docker-compose-up.sh` → On Linux you don’t need that script; use `docker compose -f docker-compose.yml -f docker-compose.zoom.yml` as above.

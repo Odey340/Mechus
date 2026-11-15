@@ -1,29 +1,29 @@
-# Koov API server – production-style (gunicorn, healthcheck, restart).
+# Mechus API server – production-style (gunicorn, healthcheck, restart).
 # Usage (Mac: use the script so docker-credential-desktop is in PATH):
 #   ./docker-compose-up.sh up --build
 #   ./docker-compose-up.sh build --no-cache && ./docker-compose-up.sh up -d
 # If "docker compose" fails with "executable file not found", use ./docker-compose-up.sh instead.
-#   Dashboard: POST http://localhost:5001/api/join-meeting (set KOOV_API_KEY in .env for auth).
+#   Dashboard: POST http://localhost:5001/api/join-meeting (set MECHUS_API_KEY in .env for auth).
 #   If port 5001 is in use, change "5001:5000" below to e.g. "5002:5000".
 #   Use join_backend=external (default): you join the meeting and route audio. For auto-join without browser see docs/ZOOM_SDK_SETUP.md.
 
 services:
-  koov:
+  mechus:
     build: .
     ports:
       - "5001:5000"   # host:container (5001 avoids conflict with other apps on 5000)
     env_file:
       - .env
     environment:
-      - KOOV_API_HOST=0.0.0.0
+      - MECHUS_API_HOST=0.0.0.0
       # Override .env so container uses internal path; .env may have host path.
-      - KOOV_VOSK_MODEL_PATH=/app/models/vosk-model-small-en-us-0.15
+      - MECHUS_VOSK_MODEL_PATH=/app/models/vosk-model-small-en-us-0.15
       # external = no browser; you join the meeting and route audio. For zoom_sdk (auto-join) use native Linux + Zoom SDK.
-      - KOOV_JOIN_BACKEND=external
-      - KOOV_OLLAMA_HOST=http://host.docker.internal:11434
+      - MECHUS_JOIN_BACKEND=external
+      - MECHUS_OLLAMA_HOST=http://host.docker.internal:11434
       # Use default audio devices in container; host .env often has "BlackHole 2ch" which does not exist in Linux.
-      - KOOV_INPUT_DEVICE=
-      - KOOV_OUTPUT_DEVICE=
+      - MECHUS_INPUT_DEVICE=
+      - MECHUS_OUTPUT_DEVICE=
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health')"]

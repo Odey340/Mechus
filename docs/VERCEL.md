@@ -20,7 +20,7 @@ Those backend jobs are long-running and stateful, so they should not be moved in
 4. On the backend, allow the Vercel site origin:
 
    ```text
-   KOOV_CORS_ORIGINS=https://your-project.vercel.app
+   MECHUS_CORS_ORIGINS=https://your-project.vercel.app
    ```
 
    Add the custom production domain too if one is configured. Use a comma-separated list if the backend supports both origins.
@@ -28,7 +28,7 @@ Those backend jobs are long-running and stateful, so they should not be moved in
 5. If generated report links should open through Vercel, set this on the backend:
 
    ```text
-   KOOV_PUBLIC_BASE_URL=https://your-project.vercel.app
+   MECHUS_PUBLIC_BASE_URL=https://your-project.vercel.app
    ```
 
 6. Deploy from the Vercel UI, or with the CLI:
@@ -76,7 +76,7 @@ The container backend still owns:
 | Variable | Set on | Purpose |
 | --- | --- | --- |
 | `MECHUS_API_ORIGIN` | Vercel | Public HTTPS origin of the Mechus backend |
-| `KOOV_CORS_ORIGINS` | Backend | Allows the deployed dashboard to call the backend |
-| `KOOV_PUBLIC_BASE_URL` | Backend | Makes report links use the Vercel domain |
+| `MECHUS_CORS_ORIGINS` | Backend | Allows the deployed dashboard to call the backend |
+| `MECHUS_PUBLIC_BASE_URL` | Backend | Makes report links use the Vercel domain |
 
 Do not copy `.env` into Vercel. Add only the required production values in Vercel project settings; `.vercelignore` excludes local secrets and heavyweight backend artifacts from CLI uploads.

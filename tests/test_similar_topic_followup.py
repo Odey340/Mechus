@@ -1,6 +1,6 @@
 """Similar-topic follow-up detection for answer variation."""
 
-from koov.dialog_memory import is_similar_topic_followup
+from mechus.dialog_memory import is_similar_topic_followup
 
 
 def test_favorite_planet_and_pick_are_similar():

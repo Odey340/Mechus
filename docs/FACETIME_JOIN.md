@@ -2,9 +2,9 @@
 
 > **Superseded:** FaceTime calls now go through the Chert FaceTime API by default when it is
 > configured. See [CHERT_FACETIME.md](CHERT_FACETIME.md). This browser-based backend remains as a
-> fallback (`join_backend=facetime_web`, or `KOOV_FACETIME_BACKEND=web`).
+> fallback (`join_backend=facetime_web`, or `MECHUS_FACETIME_BACKEND=web`).
 
-Koov cannot join FaceTime via an SDK (FaceTime has no bot API). This backend joins **FaceTime on the web** using a FaceTime link in Chromium, and routes audio via a per-container PulseAudio graph so Koov can hear/speak in the call.
+Mechus cannot join FaceTime via an SDK (FaceTime has no bot API). This backend joins **FaceTime on the web** using a FaceTime link in Chromium, and routes audio via a per-container PulseAudio graph so Mechus can hear/speak in the call.
 
 Apple's requirements for FaceTime on the web: Chrome/Edge and **host must admit** the participant. See Apple Support: `https://support.apple.com/en-us/109364`.
 
@@ -12,32 +12,32 @@ Apple's requirements for FaceTime on the web: Chrome/Edge and **host must admit*
 
 - API server spawns **one Docker container per meeting** when `join_backend=facetime_web`.
 - The worker container runs:
-  - **PulseAudio** with two null sinks (`call_sink`, `koov_sink`) and one remapped source (`koov_mic_source`)
+  - **PulseAudio** with two null sinks (`call_sink`, `mechus_sink`) and one remapped source (`mechus_mic_source`)
   - **Xvfb** (virtual display)
   - **Chromium + chromedriver** (Selenium) to open the FaceTime link and click Join
-  - `python -m koov.facetime_worker` (KoovAgent using sounddevice `pulse`)
+  - `python -m mechus.facetime_worker` (MechusAgent using sounddevice `pulse`)
 
 ### Audio routing
 
 - Chromium:
   - Speaker output → `call_sink`
-  - Microphone input ← `koov_mic_source` (which is `koov_sink.monitor`)
-- Koov:
+  - Microphone input ← `mechus_mic_source` (which is `mechus_sink.monitor`)
+- Mechus:
   - Input source = Pulse default source = `call_sink.monitor`
-  - Output sink = Pulse default sink = `koov_sink`
+  - Output sink = Pulse default sink = `mechus_sink`
 
 This is fully automatic: **no manual patching** of audio devices per meeting.
 
 ### Startup parallelism
 
-KoovAgent (Vosk/STT/TTS model loading, 15–60 s) now starts in a **background thread** as soon as Chromium launches. The main thread simultaneously navigates to the FaceTime link, enters the display name, and clicks Join. By the time the host taps Admit, model loading is usually done — eliminating dead air between admit and first transcript.
+MechusAgent (Vosk/STT/TTS model loading, 15–60 s) now starts in a **background thread** as soon as Chromium launches. The main thread simultaneously navigates to the FaceTime link, enters the display name, and clicks Join. By the time the host taps Admit, model loading is usually done — eliminating dead air between admit and first transcript.
 
 ## Build the worker image
 
 `scripts/restart-on-server.sh` (used by `./run.sh deploy`) runs this on the VM before starting the API container. You can also build manually from repo root:
 
 ```bash
-docker build -t koov-facetime-worker:latest -f docker/facetime-worker/Dockerfile .
+docker build -t mechus-facetime-worker:latest -f docker/facetime-worker/Dockerfile .
 ```
 
 The API server runs a preflight `docker image inspect` before spawning a container and returns HTTP 503 with a build hint if the image is missing.
@@ -49,14 +49,14 @@ If you run the API server itself in Docker, it must be able to spawn worker cont
 ```bash
 docker run --rm -p 5000:5000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v "$PWD/koov_notes:/app/koov_notes" \
-  -e KOOV_NOTES_DIR=/app/koov_notes \
-  -e "KOOV_NOTES_HOST_PATH=$(cd koov_notes && pwd)" \
-  -e KOOV_FACETIME_WORKER_IMAGE=koov-facetime-worker:latest \
-  koov-api:latest
+  -v "$PWD/mechus_notes:/app/mechus_notes" \
+  -e MECHUS_NOTES_DIR=/app/mechus_notes \
+  -e "MECHUS_NOTES_HOST_PATH=$(cd mechus_notes && pwd)" \
+  -e MECHUS_FACETIME_WORKER_IMAGE=mechus-facetime-worker:latest \
+  mechus-api:latest
 ```
 
-`KOOV_NOTES_HOST_PATH` must be the **host** absolute path that backs `/app/koov_notes` inside the API container, because `docker run -v` is resolved by the host daemon.
+`MECHUS_NOTES_HOST_PATH` must be the **host** absolute path that backs `/app/mechus_notes` inside the API container, because `docker run -v` is resolved by the host daemon.
 
 Also ensure the API server can see your `.env` file path (it passes it to `docker run --env-file` when present).
 
@@ -76,9 +76,9 @@ stat -c '%g' /var/run/docker.sock
 
 `scripts/restart-on-server.sh` will auto-export `DOCKER_GID` from the socket when it is not already set.
 
-Notes are bind-mounted from the host via `KOOV_HOST_NOTES_DIR` (defaults to `./koov_notes` relative to the compose project directory). `scripts/restart-on-server.sh` resolves that to an absolute path and exports `KOOV_NOTES_HOST_PATH` into the API container so `docker run -v "$KOOV_NOTES_HOST_PATH:/notes"` targets the same directory on the host.
+Notes are bind-mounted from the host via `MECHUS_HOST_NOTES_DIR` (defaults to `./mechus_notes` relative to the compose project directory). `scripts/restart-on-server.sh` resolves that to an absolute path and exports `MECHUS_NOTES_HOST_PATH` into the API container so `docker run -v "$MECHUS_NOTES_HOST_PATH:/notes"` targets the same directory on the host.
 
-The `koov-zoom` image includes the **Docker CLI** (client only) so `api_server.py` can run `docker …`.
+The `mechus-zoom` image includes the **Docker CLI** (client only) so `api_server.py` can run `docker …`.
 
 ## Start a FaceTime meeting (via link)
 
@@ -89,7 +89,7 @@ curl -X POST http://localhost:5000/api/join-meeting \
   -H 'Content-Type: application/json' \
   -d '{
     "meeting_link": "https://facetime.apple.com/join#....",
-    "display_name": "Koov",
+    "display_name": "Mechus",
     "join_backend": "facetime_web"
   }'
 ```
@@ -109,8 +109,8 @@ Important fields in the JSON response:
 | `status` | `joining \| active \| stopped \| error` |
 | `facetime_state` | `opening_link \| waiting_for_name \| waiting_for_join_click \| waiting_for_admit \| in_call \| error` |
 | `facetime_join_clicked` | `true` once the Join/Continue button was clicked (knock sent to host) |
-| `facetime_ready` | `true` while the join knock has been sent and Koov is still waiting for the host to tap Admit; clears after admission |
-| `facetime_mic_ok` | `true` once Chromium's mic track is routed to koov_mic_source |
+| `facetime_ready` | `true` while the join knock has been sent and Mechus is still waiting for the host to tap Admit; clears after admission |
+| `facetime_mic_ok` | `true` once Chromium's mic track is routed to mechus_mic_source |
 | `facetime_pulse_rewire_ok` | `true` once PulseAudio move-source-output succeeded |
 
 ### Correct polling loop
@@ -126,7 +126,7 @@ Important fields in the JSON response:
 
 ### Do NOT stop early
 
-Do **not** call `POST /api/stop` while `facetime_state` is still `joining`/`waiting_for_name` unless you pass `"force": true`. An early stop races with the browser phase and removes the container before the knock reaches Apple. The server guards against this for the first 90 s by default via `_facetime_early_stop_blocked` (`KOOV_FT_EARLY_STOP_GUARD_S` can override it), but cooperative polling is better.
+Do **not** call `POST /api/stop` while `facetime_state` is still `joining`/`waiting_for_name` unless you pass `"force": true`. An early stop races with the browser phase and removes the container before the knock reaches Apple. The server guards against this for the first 90 s by default via `_facetime_early_stop_blocked` (`MECHUS_FT_EARLY_STOP_GUARD_S` can override it), but cooperative polling is better.
 
 ## Stop a meeting
 
@@ -144,18 +144,18 @@ Both features are **off by default**. If they are off or fail, the bot joins and
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `KOOV_FT_CAMERA_FEATURE` | `0` | Server-wide switch. When `1`, every FaceTime worker gets its own virtual camera device (if one is free). |
-| `KOOV_FT_VIDEO_DEVICES` | — | Device pool, e.g. `/dev/video20,/dev/video21`. One device per concurrent bot. |
-| `KOOV_FT_CAMERA_AUTO_ON` | `0` | Initial camera state when the join request doesn't say. |
-| `KOOV_FT_CAMERA_REQUIRED` | `0` | Fail the join instead of falling back to audio-only. |
-| `KOOV_FT_CAMERA_DEFAULT_MODE` | `avatar` | `avatar`, `activity`, `listening`, `thinking`, `speaking`, `status_card`, `message_card`, `off`. |
-| `KOOV_FT_VIDEO_WIDTH` / `_HEIGHT` / `_FPS` | `640` / `360` / `12` | Generated stream format. |
-| `KOOV_FT_VISION_ENABLED` | `0` | Server-wide switch for visual questions. Meetings must also opt in. |
-| `KOOV_OPENAI_VISION_MODEL` | `gpt-4o-mini` | Vision-capable model. |
-| `KOOV_FT_VISION_DETAIL` | `auto` | `low` / `high` / `auto` image detail. Use `high` for small whiteboard text. |
-| `KOOV_FT_VISION_MAX_REQUESTS_PER_MINUTE` | `3` | Per-meeting limit (API and voice combined per worker). |
+| `MECHUS_FT_CAMERA_FEATURE` | `0` | Server-wide switch. When `1`, every FaceTime worker gets its own virtual camera device (if one is free). |
+| `MECHUS_FT_VIDEO_DEVICES` | — | Device pool, e.g. `/dev/video20,/dev/video21`. One device per concurrent bot. |
+| `MECHUS_FT_CAMERA_AUTO_ON` | `0` | Initial camera state when the join request doesn't say. |
+| `MECHUS_FT_CAMERA_REQUIRED` | `0` | Fail the join instead of falling back to audio-only. |
+| `MECHUS_FT_CAMERA_DEFAULT_MODE` | `avatar` | `avatar`, `activity`, `listening`, `thinking`, `speaking`, `status_card`, `message_card`, `off`. |
+| `MECHUS_FT_VIDEO_WIDTH` / `_HEIGHT` / `_FPS` | `640` / `360` / `12` | Generated stream format. |
+| `MECHUS_FT_VISION_ENABLED` | `0` | Server-wide switch for visual questions. Meetings must also opt in. |
+| `MECHUS_OPENAI_VISION_MODEL` | `gpt-4o-mini` | Vision-capable model. |
+| `MECHUS_FT_VISION_DETAIL` | `auto` | `low` / `high` / `auto` image detail. Use `high` for small whiteboard text. |
+| `MECHUS_FT_VISION_MAX_REQUESTS_PER_MINUTE` | `3` | Per-meeting limit (API and voice combined per worker). |
 
-Set `KOOV_API_KEY` whenever either feature is on.
+Set `MECHUS_API_KEY` whenever either feature is on.
 
 ### Join request
 
@@ -169,14 +169,14 @@ Set `KOOV_API_KEY` whenever either feature is on.
 
 `camera.enabled` sets only the *initial* state. A provisioned meeting can turn the camera on or off later. The response echoes `camera`, `vision`, and any `warnings` (for example, the feature is off on this server, or settings were ignored for a non-FaceTime link). If the device pool is exhausted, the worker joins audio-only and reports `facetime_camera_error_code=camera_pool_exhausted`.
 
-`activity` mode switches automatically between listening, thinking, and speaking based on what Koov is doing.
+`activity` mode switches automatically between listening, thinking, and speaking based on what Mechus is doing.
 
 ### Camera control
 
 ```bash
 curl -X POST http://localhost:5000/api/meetings/<meeting_id>/camera \
-  -H 'Content-Type: application/json' -H "X-API-Key: $KOOV_API_KEY" \
-  -d '{"action":"show_card","mode":"status_card","text":"Koov is preparing the summary","duration_seconds":10}'
+  -H 'Content-Type: application/json' -H "X-API-Key: $MECHUS_API_KEY" \
+  -d '{"action":"show_card","mode":"status_card","text":"Mechus is preparing the summary","duration_seconds":10}'
 ```
 
 | Action | Body |
@@ -192,7 +192,7 @@ Responses: `202` accepted, `400` invalid, `404` unknown meeting, `409` not FaceT
 
 ### Visual questions
 
-From voice: *"Koov, look at the whiteboard"*, *"Koov, read what I'm holding"*. A command must contain both a looking verb and a visible target, so "show me the action items" is answered normally.
+From voice: *"Mechus, look at the whiteboard"*, *"Mechus, read what I'm holding"*. A command must contain both a looking verb and a visible target, so "show me the action items" is answered normally.
 
 From the API:
 
@@ -215,23 +215,23 @@ Device paths, browser device IDs, and images are never exposed.
 
 ## E2E checklist
 
-- [ ] Ensure `koov-facetime-worker:latest` exists on the Docker host (`restart-on-server.sh` builds it; or `docker build` manually — the API server returns HTTP 503 with a build hint if the image is missing)
+- [ ] Ensure `mechus-facetime-worker:latest` exists on the Docker host (`restart-on-server.sh` builds it; or `docker build` manually — the API server returns HTTP 503 with a build hint if the image is missing)
 - [ ] Start API server with docker socket access
 - [ ] Create a FaceTime link from an Apple device and start the call
 - [ ] POST `/api/join-meeting` with `join_backend=facetime_web`
 - [ ] Poll `GET /api/status` — wait until `facetime_ready=true` or `facetime_state=waiting_for_admit`
-- [ ] Approve "Koov" in the FaceTime waiting room on the Apple device
-- [ ] Speak in the call; verify Koov transcribes within ~5 s and responds on its wake word
+- [ ] Approve "Mechus" in the FaceTime waiting room on the Apple device
+- [ ] Speak in the call; verify Mechus transcribes within ~5 s and responds on its wake word
 - [ ] Check transcript shows `Speaker N:` lines within ~10–30 s if async diarization is enabled
 
 ## Notes / limitations
 
 - Host-admit cannot be bypassed; someone must tap Admit on an Apple device.
 - DOM/selectors for FaceTime web may change. On join-click failure the worker saves diagnostic artifacts:
-  - `koov_notes/facetime-<meeting_id>-joinclick-miss.png`
-  - `koov_notes/facetime-<meeting_id>-joinclick-miss.html`
+  - `mechus_notes/facetime-<meeting_id>-joinclick-miss.png`
+  - `mechus_notes/facetime-<meeting_id>-joinclick-miss.html`
 - On any fatal error:
-  - `koov_notes/facetime-<meeting_id>-error.png`
-  - `koov_notes/facetime-<meeting_id>-error.html`
+  - `mechus_notes/facetime-<meeting_id>-error.png`
+  - `mechus_notes/facetime-<meeting_id>-error.html`
 - Camera selector/toggle failures save sanitized control markup once per meeting:
-  - `koov_notes/facetime-<meeting_id>-camera-dom.html`
+  - `mechus_notes/facetime-<meeting_id>-camera-dom.html`

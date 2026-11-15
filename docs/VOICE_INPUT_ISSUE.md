@@ -1,6 +1,6 @@
-# Why Koov Gets No Voice Input (Meeting SDK, No RTMS)
+# Why Mechus Gets No Voice Input (Meeting SDK, No RTMS)
 
-When you use the **Meeting SDK only** (no RTMS), Koov gets meeting audio through Zoom’s **local recording** subsystem. Four conditions must all be true, in the **correct order**, or you get no audio frames.
+When you use the **Meeting SDK only** (no RTMS), Mechus gets meeting audio through Zoom’s **local recording** subsystem. Four conditions must all be true, in the **correct order**, or you get no audio frames.
 
 ---
 
@@ -237,7 +237,7 @@ Without these, you cannot tell at which step the pipeline failed.
 **If the host has sound hardware** (`/dev/snd` exists):
 
 ```bash
-docker run --device /dev/snd --group-add audio -e ... your-koov-zoom-image
+docker run --device /dev/snd --group-add audio -e ... your-mechus-zoom-image
 ```
 
 **If the host is a cloud VM with no sound device**, load the ALSA loopback module on the host first, then expose the device:
@@ -290,7 +290,7 @@ Receive frames (onMixed… / onOneWay…)
 STT → Agent
 ```
 
-For OAuth, token fetch, and join code: **PRODUCTION_HEADLESS.md**, **scripts/fetch_zoom_recording_token.py**, **KOOV_HEAR_ME.md**.
+For OAuth, token fetch, and join code: **PRODUCTION_HEADLESS.md**, **scripts/fetch_zoom_recording_token.py**, **MECHUS_HEAR_ME.md**.
 
 ---
 
@@ -304,13 +304,13 @@ If the **meeting host** is on a Zoom **Basic (free)** account:
 **Practical options without the host having Pro:**
 
 1. **Meeting created by a Pro (or recording‑capable) account**  
-   Have meetings that Koov joins **scheduled or started by a Zoom account that has recording** (e.g. Pro). That account (or an OAuth app acting on its behalf) calls `GET /meetings/{meetingId}/jointoken/local_recording` and passes the token to Koov. **Basic users join as participants**; they don’t need Pro. Only the account that “owns” the meeting and gets the token needs to support recording.  
-   Example: one “Koov” or “team” Pro account creates the meeting and your backend uses that account’s OAuth to fetch the recording token; invitees can be Basic.
+   Have meetings that Mechus joins **scheduled or started by a Zoom account that has recording** (e.g. Pro). That account (or an OAuth app acting on its behalf) calls `GET /meetings/{meetingId}/jointoken/local_recording` and passes the token to Mechus. **Basic users join as participants**; they don’t need Pro. Only the account that “owns” the meeting and gets the token needs to support recording.  
+   Example: one “Mechus” or “team” Pro account creates the meeting and your backend uses that account’s OAuth to fetch the recording token; invitees can be Basic.
 
 2. **Reconsider RTMS (Zoom Apps)**  
-   If you’re open to it, **Real-Time Media Streams (RTMS)** use a different permission model: the **user** joins the meeting **with your Zoom App**. Zoom then streams audio to your backend. This can work when the host is Basic, because the user is authorizing your app, not the host granting “participant recording.” You said you don’t want RTMS; this is the main Zoom-first alternative if you need to support Basic hosts. See **RTMS_SETUP.md** and **ZOOM_APP_KOOVAPI_SETUP.md**.
+   If you’re open to it, **Real-Time Media Streams (RTMS)** use a different permission model: the **user** joins the meeting **with your Zoom App**. Zoom then streams audio to your backend. This can work when the host is Basic, because the user is authorizing your app, not the host granting “participant recording.” You said you don’t want RTMS; this is the main Zoom-first alternative if you need to support Basic hosts. See **RTMS_SETUP.md** and **ZOOM_APP_MECHUSAPI_SETUP.md**.
 
-3. **Single Pro account for Koov meetings**  
-   Use one Pro account only for creating/linking meetings that Koov joins. All other participants can stay on Basic. Your backend uses that Pro account’s OAuth to get the recording token and to join the bot. No need for every host to have Pro.
+3. **Single Pro account for Mechus meetings**  
+   Use one Pro account only for creating/linking meetings that Mechus joins. All other participants can stay on Basic. Your backend uses that Pro account’s OAuth to get the recording token and to join the bot. No need for every host to have Pro.
 
 **Summary:** Without any Pro account, the Meeting SDK raw-audio path (host prompt or recording token for a Basic‑hosted meeting) is unreliable or blocked. To support Basic hosts and still use the SDK, use a **Pro (or recording‑capable) account only for the meeting owner/token**, or use **RTMS** if you’re willing to switch to the in-client app flow.

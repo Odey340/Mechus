@@ -1,13 +1,13 @@
-# Security Policy – Koov
+# Security Policy – Mechus
 
-This document defines the security policy for the Koov application and supporting infrastructure. It supports Zoom App Beta compliance and internal security governance.
+This document defines the security policy for the Mechus application and supporting infrastructure. It supports Zoom App Beta compliance and internal security governance.
 
 ---
 
 ## 1. Purpose and Scope
 
-- **Purpose:** To establish security expectations and controls for Koov so that we protect data (including meeting and transcript data), maintain availability, and meet compliance requirements.
-- **Scope:** Applies to Koov source code, deployment environments, APIs, and any infrastructure or third-party services used to operate Koov (e.g. Zoom, optional STT/TTS/LLM providers).
+- **Purpose:** To establish security expectations and controls for Mechus so that we protect data (including meeting and transcript data), maintain availability, and meet compliance requirements.
+- **Scope:** Applies to Mechus source code, deployment environments, APIs, and any infrastructure or third-party services used to operate Mechus (e.g. Zoom, optional STT/TTS/LLM providers).
 
 ---
 
@@ -23,7 +23,7 @@ This document defines the security policy for the Koov application and supportin
 ## 3. Access Control
 
 - **Production and secrets:** Access to production systems and to secrets (API keys, Zoom credentials, etc.) is restricted to personnel who need it for their role. Secrets are stored in a secure mechanism (e.g. secrets manager, environment injection) and never committed to source control.
-- **API:** When the Koov API is exposed beyond localhost, authentication is required (e.g. API key via `X-API-Key` or `Authorization: Bearer`). Public routes are limited to `/health` and `/ready` (see PRODUCTION.md).
+- **API:** When the Mechus API is exposed beyond localhost, authentication is required (e.g. API key via `X-API-Key` or `Authorization: Bearer`). Public routes are limited to `/health` and `/ready` (see PRODUCTION.md).
 - **CORS:** In production, CORS is restricted to allowed origins (e.g. the dashboard domain) to prevent unauthorised cross-origin access.
 
 ---

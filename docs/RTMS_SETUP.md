@@ -1,4 +1,4 @@
-# Zoom RTMS Setup for Koov
+# Zoom RTMS Setup for Mechus
 
 Zoom RTMS (Realtime Media Streams) delivers **real-time audio and transcript** from meetings when users have your Zoom App installed. No bot joins for *input*—Zoom streams the meeting to your server.
 
@@ -8,12 +8,12 @@ You can use **both**: RTMS for **live diarization and transcription** (audio in)
 
 | Role | How |
 |------|-----|
-| **Hear + transcribe (live diarization)** | **RTMS** streams real-time audio (and optional transcript) to Koov. No "allow recording" prompt; Zoom sends audio when the user joins with your Zoom App. Koov does STT and diarization on this stream. |
-| **Speak in the meeting** | A **muted** Meeting SDK **bot** joins the same meeting. Koov unmutes the bot only when it plays a response (wake word / "Koov" / question), then mutes again. |
+| **Hear + transcribe (live diarization)** | **RTMS** streams real-time audio (and optional transcript) to Mechus. No "allow recording" prompt; Zoom sends audio when the user joins with your Zoom App. Mechus does STT and diarization on this stream. |
+| **Speak in the meeting** | A **muted** Meeting SDK **bot** joins the same meeting. Mechus unmutes the bot only when it plays a response (wake word / "Mechus" / question), then mutes again. |
 
-This is the **RTMS + Meeting SDK hybrid** (section 4 below). Requirements: **Linux** (for Meeting SDK bot), both a **General App** (RTMS) and a **Meeting SDK** app (TTS), and RTMS enabled for your Zoom account. On macOS you can run RTMS-only (Koov hears and responds, but output is logged only—no TTS in the meeting).
+This is the **RTMS + Meeting SDK hybrid** (section 4 below). Requirements: **Linux** (for Meeting SDK bot), both a **General App** (RTMS) and a **Meeting SDK** app (TTS), and RTMS enabled for your Zoom account. On macOS you can run RTMS-only (Mechus hears and responds, but output is logged only—no TTS in the meeting).
 
-**Want “paste a meeting link, Koov joins on its own in Docker”?** Use the **Zoom Meeting SDK** only: [RUN_KOOV_DOCKER.md](RUN_KOOV_DOCKER.md) (section “Docker with audio (Zoom SDK)”). RTMS is for the flow where the user starts the meeting *with* your Zoom App and you use RTMS for input + optional SDK bot for TTS.
+**Want “paste a meeting link, Mechus joins on its own in Docker”?** Use the **Zoom Meeting SDK** only: [RUN_MECHUS_DOCKER.md](RUN_MECHUS_DOCKER.md) (section “Docker with audio (Zoom SDK)”). RTMS is for the flow where the user starts the meeting *with* your Zoom App and you use RTMS for input + optional SDK bot for TTS.
 
 ---
 
@@ -54,12 +54,12 @@ Once Zoom confirms RTMS is enabled for your account:
 
 ### 3. App is "Draft" or "General app" – is that OK?
 
-- **For RTMS:** You need a **General app** (not Meeting SDK). So a **General app** like koovapi is correct. **Draft** is usually fine for development; add Event Subscriptions (e.g. `meeting.rtms.started`, `meeting.rtms.stopped`), webhook URL, and RTMS scopes in the app config. RTMS still only works after Zoom enables RTMS for your account.
-- **For “paste link → Koov joins” (listen + virtual mic):** That flow uses the **Meeting SDK**, not a General app. You need a **Meeting SDK** app (create a second app in Marketplace → Build App → **Meeting SDK**). Use that app’s Client ID and Client Secret in Koov’s `.env` as `ZOOM_APP_CLIENT_ID` and `ZOOM_APP_CLIENT_SECRET`. Your existing General app (koovapi) can stay for RTMS; use the Meeting SDK app for the bot-join flow.
+- **For RTMS:** You need a **General app** (not Meeting SDK). So a **General app** like mechusapi is correct. **Draft** is usually fine for development; add Event Subscriptions (e.g. `meeting.rtms.started`, `meeting.rtms.stopped`), webhook URL, and RTMS scopes in the app config. RTMS still only works after Zoom enables RTMS for your account.
+- **For “paste link → Mechus joins” (listen + virtual mic):** That flow uses the **Meeting SDK**, not a General app. You need a **Meeting SDK** app (create a second app in Marketplace → Build App → **Meeting SDK**). Use that app’s Client ID and Client Secret in Mechus’s `.env` as `ZOOM_APP_CLIENT_ID` and `ZOOM_APP_CLIENT_SECRET`. Your existing General app (mechusapi) can stay for RTMS; use the Meeting SDK app for the bot-join flow.
 
 ### 4. If you can’t get RTMS yet
 
-Use the **Meeting SDK** path instead: paste meeting link → Koov joins as a bot → host allows recording once. See [RUN_KOOV_HEAR_ME.md](RUN_KOOV_HEAR_ME.md) (Production option 1). No RTMS required.
+Use the **Meeting SDK** path instead: paste meeting link → Mechus joins as a bot → host allows recording once. See [RUN_MECHUS_HEAR_ME.md](RUN_MECHUS_HEAR_ME.md) (Production option 1). No RTMS required.
 
 ---
 
@@ -89,7 +89,7 @@ Use the **Meeting SDK** path instead: paste meeting link → Koov joins as a bot
 ```
 
 This runs:
-- **Koov API** on port 5001 (dashboard: join-meeting, set-meeting-for-rtms)
+- **Mechus API** on port 5001 (dashboard: join-meeting, set-meeting-for-rtms)
 - **RTMS webhook** on port 8080 (Zoom sends meeting.rtms_started here)
 
 **Webhooks from Zoom need a public URL.** When running locally:
@@ -104,7 +104,7 @@ When deployed (cloud), set the webhook to `https://your-domain.com/webhook` and 
 ```bash
 source .venv/bin/activate
 pip install -r requirements.txt -r requirements-rtms.txt
-python scripts/rtms_koov.py
+python scripts/rtms_mechus.py
 ```
 
 Same webhook setup: Zoom needs a reachable URL (ngrok for local).
@@ -116,14 +116,14 @@ Same webhook setup: Zoom needs a reachable URL (ngrok for local).
 1. User installs your Zoom App
 2. User starts a Zoom meeting (as host or participant)
 3. Zoom fires `meeting.rtms_started` → your server receives it
-4. Koov connects to the RTMS stream and receives real-time audio
-5. Koov listens for wake phrase (e.g. "computer"), transcribes, responds
+4. Mechus connects to the RTMS stream and receives real-time audio
+5. Mechus listens for wake phrase (e.g. "computer"), transcribes, responds
 
 ---
 
 ## 4. RTMS + Meeting SDK Hybrid (TTS in meeting)
 
-**rtms_koov.py** can use RTMS for audio in and Meeting SDK for audio out: RTMS = no recording prompt, real-time audio in; Meeting SDK bot joins muted and unmutes only when Koov responds. Requires Linux, both Zoom apps (General + Meeting SDK), and meeting number/password. On macOS: RTMS-only (no TTS).
+**rtms_mechus.py** can use RTMS for audio in and Meeting SDK for audio out: RTMS = no recording prompt, real-time audio in; Meeting SDK bot joins muted and unmutes only when Mechus responds. Requires Linux, both Zoom apps (General + Meeting SDK), and meeting number/password. On macOS: RTMS-only (no TTS).
 
 ### Dashboard paste flow
 
@@ -133,11 +133,11 @@ When your dashboard lets users **paste a meeting link**:
    ```bash
    ./docker-compose-rtms.sh up -d --build
    ```
-   Or run API and rtms_koov separately (native); both must share the same directory so the store file matches.
+   Or run API and rtms_mechus separately (native); both must share the same directory so the store file matches.
 
 2. **Dashboard** – when user pastes link:
    ```javascript
-   const res = await fetch(`${KOOV_API_URL}/api/set-meeting-for-rtms`, {
+   const res = await fetch(`${MECHUS_API_URL}/api/set-meeting-for-rtms`, {
      method: 'POST',
      headers: { 'Content-Type': 'application/json' },
      body: JSON.stringify({
@@ -154,20 +154,20 @@ When your dashboard lets users **paste a meeting link**:
    ```
    **Avoid** `data.success` without checks—if the request fails or returns non-JSON, `data` can be undefined and cause "Cannot read properties of undefined (reading 'success')". Use `data?.success` and handle failures.
 
-3. **User** joins that meeting with the Zoom App. RTMS webhook fires → rtms_koov uses the stored meeting for the Meeting SDK join (TTS).
+3. **User** joins that meeting with the Zoom App. RTMS webhook fires → rtms_mechus uses the stored meeting for the Meeting SDK join (TTS).
 
-4. **TTL:** Stored meeting expires after 10 min (configurable via `KOOV_RTMS_MEETING_TTL`).
+4. **TTL:** Stored meeting expires after 10 min (configurable via `MECHUS_RTMS_MEETING_TTL`).
 
 ---
 
 ## 4b. RTMS-only (no TTS)
 
-**RTMS is receive-only.** Koov can hear the meeting and generate responses, but cannot speak back into the meeting through RTMS. Responses are logged.
+**RTMS is receive-only.** Mechus can hear the meeting and generate responses, but cannot speak back into the meeting through RTMS. Responses are logged.
 
-To have Koov speak in the meeting:
-- Use **Meeting SDK** (`join_backend=zoom_sdk`) — Koov joins as a bot and uses virtual mic for TTS
+To have Mechus speak in the meeting:
+- Use **Meeting SDK** (`join_backend=zoom_sdk`) — Mechus joins as a bot and uses virtual mic for TTS
 - Or **Recall.ai** — full bidirectional audio
-- Or build a **Zoom App UI** that displays Koov’s text responses and optionally plays TTS locally
+- Or build a **Zoom App UI** that displays Mechus’s text responses and optionally plays TTS locally
 
 ---
 
@@ -183,18 +183,18 @@ To have Koov speak in the meeting:
 | `ZM_MEETING_PASSWORD` | Meeting password (hybrid mode) |
 | `ZOOM_APP_CLIENT_ID` | Meeting SDK app ID (hybrid mode) |
 | `ZOOM_APP_CLIENT_SECRET` | Meeting SDK app secret (hybrid mode) |
-| `KOOV_RTMS_MEETING_STORE` | Path to store file (default `.rtms_meetings.json`) |
-| `KOOV_RTMS_MEETING_TTL` | Seconds until stored meeting expires (default 600) |
+| `MECHUS_RTMS_MEETING_STORE` | Path to store file (default `.rtms_meetings.json`) |
+| `MECHUS_RTMS_MEETING_TTL` | Seconds until stored meeting expires (default 600) |
 
 ---
 
 ## 6. Troubleshooting
 
-**“It’s not working”** – See **[NOT_WORKING.md](NOT_WORKING.md)** and use section 2 (RTMS flow). Check: webhook URL reachable (ngrok), `ZM_RTMS_CLIENT` / `ZM_RTMS_SECRET` in `.env`, user joined with Zoom App, RTMS enabled for account. RTMS container logs: `docker logs koovdemo-rtms-1 -f` (look for `[RTMS] Webhook received`, `[RTMS] Join failed`).
+**“It’s not working”** – See **[NOT_WORKING.md](NOT_WORKING.md)** and use section 2 (RTMS flow). Check: webhook URL reachable (ngrok), `ZM_RTMS_CLIENT` / `ZM_RTMS_SECRET` in `.env`, user joined with Zoom App, RTMS enabled for account. RTMS container logs: `docker logs mechusdemo-rtms-1 -f` (look for `[RTMS] Webhook received`, `[RTMS] Join failed`).
 
-- **"Cannot read properties of undefined (reading 'success')"** – Dashboard code is reading `response.success` or `data.success` when the parsed body is undefined. Causes: wrong `KOOV_API_URL` (returns HTML/404), CORS blocking the request, or network failure. Fix: use `data?.success` and `data?.error`; handle non-OK responses: `if (!res.ok) throw new Error(\`API error: \${res.status}\`);` before `res.json()`.
+- **"Cannot read properties of undefined (reading 'success')"** – Dashboard code is reading `response.success` or `data.success` when the parsed body is undefined. Causes: wrong `MECHUS_API_URL` (returns HTML/404), CORS blocking the request, or network failure. Fix: use `data?.success` and `data?.error`; handle non-OK responses: `if (!res.ok) throw new Error(\`API error: \${res.status}\`);` before `res.json()`.
 - **No webhook received:** Zoom must reach your webhook URL from the internet. `localhost:8080` does **not** work. Use ngrok (`ngrok http 8080`) and set the Zoom App webhook to `https://YOUR_NGROK_URL/webhook`. Or deploy to a server with a public URL.
 - **Check webhook is reachable:** `curl -X POST https://YOUR_URL/webhook -H "Content-Type: application/json" -d '{"event":"test"}'` — should return 200. Or check ngrok's request log.
-- **Docker:** `docker logs koovdemo-rtms-1 -f` — should show "Listening for webhook events at http://0.0.0.0:8080/webhook". If Zoom still doesn't reach it, the webhook URL is wrong or behind a firewall.
+- **Docker:** `docker logs mechusdemo-rtms-1 -f` — should show "Listening for webhook events at http://0.0.0.0:8080/webhook". If Zoom still doesn't reach it, the webhook URL is wrong or behind a firewall.
 - **Join fails:** Check ZM_RTMS_CLIENT and ZM_RTMS_SECRET. Ensure RTMS is enabled for your account.
 - **No audio:** Verify the meeting has your Zoom App active. Check logs for "RTMS audio: first frame received".

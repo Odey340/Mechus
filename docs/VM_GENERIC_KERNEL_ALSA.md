@@ -1,6 +1,6 @@
-# Switch VM to Generic Kernel for ALSA (so Koov can hear)
+# Switch VM to Generic Kernel for ALSA (so Mechus can hear)
 
-On Ubuntu 24.04 **AWS** EC2, the default kernel (`6.17.0-1007-aws`) does not include sound modules, so `snd-aloop` is not available and Koov cannot receive raw audio in Docker. Switching to the **generic** kernel and loading `snd-aloop` can fix this — **but on many EC2 AMIs the generic kernel cannot mount the root filesystem** (missing block drivers in initramfs), leading to kernel panic and an unreachable instance.
+On Ubuntu 24.04 **AWS** EC2, the default kernel (`6.17.0-1007-aws`) does not include sound modules, so `snd-aloop` is not available and Mechus cannot receive raw audio in Docker. Switching to the **generic** kernel and loading `snd-aloop` can fix this — **but on many EC2 AMIs the generic kernel cannot mount the root filesystem** (missing block drivers in initramfs), leading to kernel panic and an unreachable instance.
 
 ---
 
@@ -41,7 +41,7 @@ After recovery, the instance will be back on the AWS kernel; `snd-aloop` will st
 
 ## Step 1: SSH into the VM
 
-From your Mac (in the koovdemo repo):
+From your Mac (in the mechusdemo repo):
 
 ```bash
 ./run.sh ssh
@@ -134,18 +134,18 @@ echo snd-aloop | sudo tee /etc/modules-load.d/snd-aloop.conf
 
 ---
 
-## Step 6: Expose ALSA to the Koov container
+## Step 6: Expose ALSA to the Mechus container
 
 The repo’s `docker-compose.zoom.yml` already includes `devices: ["/dev/snd"]` and `group_add: ["audio"]`. If you deploy **before** Steps 1–4 (generic kernel + snd-aloop), the container may fail to start because `/dev/snd` does not exist on the host. Do the kernel and modprobe steps first, then deploy.
 
-If you prefer to edit only on the VM, add the following under the `koov` service.
+If you prefer to edit only on the VM, add the following under the `mechus` service.
 
 ```bash
-cd ~/koovdemo
+cd ~/mechusdemo
 nano docker-compose.zoom.yml
 ```
 
-Add under the `koov` service (same level as `image:`, `build:`, `environment:`), with correct indentation (2 spaces):
+Add under the `mechus` service (same level as `image:`, `build:`, `environment:`), with correct indentation (2 spaces):
 
 ```yaml
     devices:
@@ -160,13 +160,13 @@ If the file is managed from your Mac (you deploy with `./run.sh deploy`), add th
 
 ---
 
-## Step 7: Rebuild and restart Koov on the VM
+## Step 7: Rebuild and restart Mechus on the VM
 
 **Option A — You edited on the VM:**  
 On the VM:
 
 ```bash
-cd ~/koovdemo
+cd ~/mechusdemo
 docker-compose -f docker-compose.yml -f docker-compose.zoom.yml down
 docker-compose -f docker-compose.yml -f docker-compose.zoom.yml up -d --build
 ```
@@ -195,7 +195,7 @@ This syncs the repo (including the updated `docker-compose.zoom.yml`) and runs t
 
 3. **Stream logs from Mac:**  
    `./run.sh ssh-logs`  
-   (or SSH in and run `docker-compose -f docker-compose.yml -f docker-compose.zoom.yml logs -f koov`).
+   (or SSH in and run `docker-compose -f docker-compose.yml -f docker-compose.zoom.yml logs -f mechus`).
 
 ---
 
@@ -208,8 +208,8 @@ This syncs the repo (including the updated `docker-compose.zoom.yml`) and runs t
 | 3    | Mac    | Wait 1–2 min, then `./run.sh ssh`; on VM run `uname -r` (expect `-generic`) |
 | 4    | VM     | `sudo apt install -y linux-modules-extra-$(uname -r)`, `sudo modprobe snd-aloop`, `ls /dev/snd` |
 | 5    | VM     | (Optional) `echo snd-aloop | sudo tee /etc/modules-load.d/snd-aloop.conf` |
-| 6    | VM or Mac | Add `devices: ["/dev/snd"]` and `group_add: ["audio"]` to `docker-compose.zoom.yml` under `koov` |
+| 6    | VM or Mac | Add `devices: ["/dev/snd"]` and `group_add: ["audio"]` to `docker-compose.zoom.yml` under `mechus` |
 | 7    | VM or Mac | Restart stack (on VM: docker-compose down/up; or from Mac: `./run.sh deploy`) |
 | 8    | Mac    | Test join + check logs for “first frame” |
 
-After this, Koov on the VM can receive Zoom raw audio (assuming recording is allowed or you use a recording token). Host must still allow recording when prompted, or you pass a recording token from your backend.
+After this, Mechus on the VM can receive Zoom raw audio (assuming recording is allowed or you use a recording token). Host must still allow recording when prompted, or you pass a recording token from your backend.

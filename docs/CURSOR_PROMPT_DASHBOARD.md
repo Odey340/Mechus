@@ -4,14 +4,14 @@ Copy and paste this entire prompt into Cursor for your dashboard repo:
 
 ---
 
-I have a Next.js dashboard that uses Supabase to store meetings. Users can paste meeting links (Zoom/Google Meet) into the dashboard. I need to integrate with a Koov API server that's running on `http://127.0.0.1:5000`.
+I have a Next.js dashboard that uses Supabase to store meetings. Users can paste meeting links (Zoom/Google Meet) into the dashboard. I need to integrate with a Mechus API server that's running on `http://127.0.0.1:5000`.
 
 **What I need:**
 
 1. When a user pastes a meeting link and clicks "Start" (or similar button), the dashboard should:
-   - Call the Koov API server at `http://127.0.0.1:5000/api/join-meeting`
+   - Call the Mechus API server at `http://127.0.0.1:5000/api/join-meeting`
    - Send the meeting link in the request body
-   - The Koov API will automatically open the meeting in the browser and start the Koov voice agent
+   - The Mechus API will automatically open the meeting in the browser and start the Mechus voice agent
 
 2. The API endpoint expects:
    ```json
@@ -20,44 +20,44 @@ I have a Next.js dashboard that uses Supabase to store meetings. Users can paste
      "meeting_link": "https://zoom.us/j/123456789",
      "user_id": "user-123",  // REQUIRED - from Supabase auth
      "meeting_id": "meeting-123",  // optional, auto-generated if not provided
-     "display_name": "Koov"  // optional
+     "display_name": "Mechus"  // optional
    }
    ```
    
    **Important:** Each user can only have **one active meeting** at a time. If a user tries to start a second meeting, the API will return a `409 Conflict` error.
 
 3. I need you to:
-   - Find where meetings are started in my codebase (look for `triggerKoovSessionStart` function or meeting start actions)
-   - Add code to call the Koov API when a meeting is started
+   - Find where meetings are started in my codebase (look for `triggerMechusSessionStart` function or meeting start actions)
+   - Add code to call the Mechus API when a meeting is started
    - Handle errors gracefully
-   - Optionally update the Supabase meeting status to reflect Koov session state
+   - Optionally update the Supabase meeting status to reflect Mechus session state
 
 **Current setup:**
 - Dashboard is Next.js with Supabase
 - Meetings are stored in Supabase `meetings` table
-- There's likely a `triggerKoovSessionStart` function or similar that's currently a placeholder
+- There's likely a `triggerMechusSessionStart` function or similar that's currently a placeholder
 - Users paste meeting links in a form/input field
 
 **What to implement:**
 
-1. Create a Next.js API route at `app/api/koov/join/route.ts` that:
+1. Create a Next.js API route at `app/api/mechus/join/route.ts` that:
    - Accepts POST requests with `{ meeting_link: string, display_name?: string }`
    - Calls `http://127.0.0.1:5000/api/join-meeting`
-   - Returns the response from Koov API
+   - Returns the response from Mechus API
    - Handles errors
 
 2. Update the meeting start function to:
-   - Call the new API route (or call Koov API directly)
+   - Call the new API route (or call Mechus API directly)
    - Update Supabase meeting status appropriately
    - Show user feedback (loading, success, error states)
 
 3. Add environment variable:
-   - `KOOV_API_URL=http://127.0.0.1:5000` to `.env.local`
+   - `MECHUS_API_URL=http://127.0.0.1:5000` to `.env.local`
 
 **Example code structure:**
 
 ```typescript
-// app/api/koov/join/route.ts
+// app/api/mechus/join/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
@@ -84,9 +84,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const koovApiUrl = process.env.KOOV_API_URL || 'http://127.0.0.1:5000';
+    const mechusApiUrl = process.env.MECHUS_API_URL || 'http://127.0.0.1:5000';
     
-    const response = await fetch(`${koovApiUrl}/api/join-meeting`, {
+    const response = await fetch(`${mechusApiUrl}/api/join-meeting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         meeting_link,
         user_id: user.id, // REQUIRED - from Supabase auth
         meeting_id: meeting_id, // Optional: from your Supabase meeting record
-        display_name: display_name || 'Koov',
+        display_name: display_name || 'Mechus',
       }),
     });
     
@@ -107,9 +107,9 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error calling Koov API:', error);
+    console.error('Error calling Mechus API:', error);
     return NextResponse.json(
-      { error: 'Failed to start Koov session' },
+      { error: 'Failed to start Mechus session' },
       { status: 500 }
     );
   }
@@ -119,16 +119,16 @@ export async function POST(request: NextRequest) {
 Then in your meeting start function:
 
 ```typescript
-// Update your triggerKoovSessionStart or meeting start function
-async function triggerKoovSessionStart(meeting: any, userId: string): Promise<void> {
-  const response = await fetch('/api/koov/join', {
+// Update your triggerMechusSessionStart or meeting start function
+async function triggerMechusSessionStart(meeting: any, userId: string): Promise<void> {
+  const response = await fetch('/api/mechus/join', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       meeting_link: meeting.meeting_link,
       meeting_id: meeting.id, // Use your Supabase meeting ID
       user_id: userId, // REQUIRED - from Supabase auth
-      display_name: 'Koov',
+      display_name: 'Mechus',
     }),
   });
   
@@ -144,16 +144,16 @@ async function triggerKoovSessionStart(meeting: any, userId: string): Promise<vo
   }
   
   const data = await response.json();
-  console.log('Koov session started:', data);
+  console.log('Mechus session started:', data);
 }
 ```
 
 **IMPORTANT: Status Polling Requirement**
 
-After calling the Koov API to join a meeting, the dashboard needs to:
+After calling the Mechus API to join a meeting, the dashboard needs to:
 
-1. **Poll the Koov status endpoint** (`GET http://127.0.0.1:5000/api/status?meeting_id=<meeting_id>`) every 2 seconds
-2. **Update the Supabase meeting status** based on Koov's status:
+1. **Poll the Mechus status endpoint** (`GET http://127.0.0.1:5000/api/status?meeting_id=<meeting_id>`) every 2 seconds
+2. **Update the Supabase meeting status** based on Mechus's status:
    - `joining` → Keep as `joining` in Supabase
    - `active` → Update Supabase to `live` (or `active` if that's your status)
    - `stopped` → Update Supabase to `ended`
@@ -161,7 +161,7 @@ After calling the Koov API to join a meeting, the dashboard needs to:
 
 3. **Stop polling** when status becomes `active` or `stopped`
 
-The Koov API status response looks like:
+The Mechus API status response looks like:
 ```json
 {
   "active": true,
@@ -176,9 +176,9 @@ The Koov API status response looks like:
 
 **Status Flow:**
 - User clicks "Start" → Dashboard status: `joining`
-- Koov API called → Koov status: `joining`
+- Mechus API called → Mechus status: `joining`
 - Dashboard polls status every 2 seconds
-- When Koov status becomes `active` → Dashboard status: `live` (or `active`)
+- When Mechus status becomes `active` → Dashboard status: `live` (or `active`)
 - Stop polling once status is `active` or `stopped`
 
 **Implementation Options:**
@@ -186,7 +186,7 @@ The Koov API status response looks like:
 **Option 1: Poll in server action after starting meeting**
 ```typescript
 async function startMeeting(meetingId: string) {
-  // ... call Koov API ...
+  // ... call Mechus API ...
   
   // Poll for status updates
   const pollStatus = async () => {
@@ -213,8 +213,8 @@ async function startMeeting(meetingId: string) {
 
 **Option 2: Use React hook to poll status (client-side)**
 ```typescript
-// hooks/useKoovStatus.ts
-export function useKoovStatus(meetingId: string) {
+// hooks/useMechusStatus.ts
+export function useMechusStatus(meetingId: string) {
   const [status, setStatus] = useState(null);
   
   useEffect(() => {
@@ -246,9 +246,9 @@ export function useKoovStatus(meetingId: string) {
 
 **Please:**
 1. Find my existing meeting start code
-2. Integrate the Koov API call
-3. Add status polling to update Supabase when Koov becomes active
-4. Update the meeting status display to show "Active" when Koov status is "active"
+2. Integrate the Mechus API call
+3. Add status polling to update Supabase when Mechus becomes active
+4. Update the meeting status display to show "Active" when Mechus status is "active"
 5. Add proper error handling
 6. Show me what files were changed
 

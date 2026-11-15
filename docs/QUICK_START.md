@@ -12,23 +12,23 @@ Create or update your `.env` file:
 
 ```bash
 # LLM Configuration
-KOOV_LLM_BACKEND=ollama
-KOOV_OLLAMA_HOST=http://127.0.0.1:11434
-KOOV_OLLAMA_MODEL=qwen2.5:7b-instruct
+MECHUS_LLM_BACKEND=ollama
+MECHUS_OLLAMA_HOST=http://127.0.0.1:11434
+MECHUS_OLLAMA_MODEL=qwen2.5:7b-instruct
 
 # Wake Word
-KOOV_WAKE_PHRASE=koov
+MECHUS_WAKE_PHRASE=mechus
 
 # STT (Speech-to-Text)
-KOOV_STT_BACKEND=faster-whisper
-KOOV_WHISPER_MODEL=base.en
+MECHUS_STT_BACKEND=faster-whisper
+MECHUS_WHISPER_MODEL=base.en
 
 # TTS (Text-to-Speech)
-KOOV_TTS_BACKEND=piper
+MECHUS_TTS_BACKEND=piper
 # Or use ElevenLabs for better quality:
-# KOOV_TTS_BACKEND=elevenlabs
-# KOOV_ELEVEN_API_KEY=your_key
-# KOOV_ELEVEN_VOICE_ID=your_voice_id
+# MECHUS_TTS_BACKEND=elevenlabs
+# MECHUS_ELEVEN_API_KEY=your_key
+# MECHUS_ELEVEN_VOICE_ID=your_voice_id
 ```
 
 ## Start Ollama (if not running)
@@ -41,13 +41,13 @@ curl http://127.0.0.1:11434/api/tags
 ollama serve
 ```
 
-## Run Koov
+## Run Mechus
 
 ```bash
 # Activate virtual environment (if using one)
 source .venv/bin/activate
 
-# Run Koov
+# Run Mechus
 python main.py
 ```
 
@@ -66,8 +66,8 @@ With `qwen2.5:7b-instruct` on M4 Max:
    ollama run qwen2.5:7b-instruct "Hello, test"
    ```
 
-2. **Test Koov wake word**:
-   - Say "Koov, what can you do?"
+2. **Test Mechus wake word**:
+   - Say "Mechus, what can you do?"
    - Should respond in ~1-2 seconds
 
 3. **Check logs**:
@@ -99,6 +99,6 @@ ollama pull qwen2.5:7b-instruct
 
 ## Next Steps
 
-- See [HOW_TO_RUN_KOOV.md](HOW_TO_RUN_KOOV.md) for detailed setup
+- See [HOW_TO_RUN_MECHUS.md](HOW_TO_RUN_MECHUS.md) for detailed setup
 - See [HIGH_ACCURACY_LOW_LATENCY.md](HIGH_ACCURACY_LOW_LATENCY.md) for optimization
 - See [APPLE_SILICON_OPTIMIZATION.md](APPLE_SILICON_OPTIMIZATION.md) for M4 Max tips

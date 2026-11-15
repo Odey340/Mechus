@@ -4,7 +4,7 @@ import pytest
 
 rtc = pytest.importorskip("livekit.rtc")
 
-from koov.chert_livekit import LiveKitVideoCard
+from mechus.chert_livekit import LiveKitVideoCard
 
 
 def test_capture_pushes_frame_into_real_video_source():

@@ -28,23 +28,23 @@ def _agent_and_config():
             read=lambda *args, **kwargs: (np.zeros((0,), dtype=np.float32), 16000)
         )
 
-    from koov.agent import KoovAgent
-    from koov.config import KoovConfig
+    from mechus.agent import MechusAgent
+    from mechus.config import MechusConfig
 
-    return KoovAgent, KoovConfig
+    return MechusAgent, MechusConfig
 
 
 def _agent_with_preroll_enabled():
-    KoovAgent, KoovConfig = _agent_and_config()
-    cfg = KoovConfig.from_env()
-    agent = object.__new__(KoovAgent)
+    MechusAgent, MechusConfig = _agent_and_config()
+    cfg = MechusConfig.from_env()
+    agent = object.__new__(MechusAgent)
     agent._config = cfg
     agent._config = cfg.__class__(**{**cfg.__dict__, "thinking_preroll_enabled": True, "wake_opener_enabled": True})
     agent._thinking_preroll_thread = None
     agent._wake_opener_thread = None
     agent._audio_out = MagicMock()
     agent._personas = MagicMock()
-    agent._personas.default.return_value = SimpleNamespace(id="koov", filler_phrases=("one moment",))
+    agent._personas.default.return_value = SimpleNamespace(id="mechus", filler_phrases=("one moment",))
     agent._play_cached_thinking_preroll = MagicMock(return_value=True)
     return agent
 

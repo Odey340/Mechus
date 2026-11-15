@@ -1,14 +1,14 @@
 # Meeting Simulation Script (Human-Style)
 
-Use this to test Koov like a real meeting: **one line at a time**, with pauses, so Koov processes it like live audio.
+Use this to test Mechus like a real meeting: **one line at a time**, with pauses, so Mechus processes it like live audio.
 
-**Do not paste the whole script.** Speak (or paste) one line → wait 3–5 seconds → next line. For lines that are questions to Koov, wait for Koov to respond before continuing.
+**Do not paste the whole script.** Speak (or paste) one line → wait 3–5 seconds → next line. For lines that are questions to Mechus, wait for Mechus to respond before continuing.
 
 ---
 
 ## Meeting: Product Launch Planning
 
-**Participants:** Alex (PM), Sarah (Engineering), Mike (Marketing), Koov (assistant)
+**Participants:** Alex (PM), Sarah (Engineering), Mike (Marketing), Mechus (assistant)
 
 ---
 
@@ -26,12 +26,12 @@ Yeah, engineering is mostly done with the core features, but we still need to de
 
 ---
 
-### 2. First question to Koov
+### 2. First question to Mechus
 
 **Mike:**  
-Koov, can you start taking notes for this meeting?
+Mechus, can you start taking notes for this meeting?
 
-*(wait for Koov response)*
+*(wait for Mechus response)*
 
 ---
 
@@ -63,12 +63,12 @@ Alright let's lock it in then. The beta launch date will be July 25th.
 
 ---
 
-### 5. Ask Koov
+### 5. Ask Mechus
 
 **Sarah:**  
-Koov, what did we just decide?
+Mechus, what did we just decide?
 
-*(wait for Koov response)*
+*(wait for Mechus response)*
 
 ---
 
@@ -91,12 +91,12 @@ I'll coordinate the beta user invitations.
 
 ---
 
-### 7. Ask Koov again
+### 7. Ask Mechus again
 
 **Alex:**  
-Koov, can you list the action items so far?
+Mechus, can you list the action items so far?
 
-*(wait for Koov response)*
+*(wait for Mechus response)*
 
 ---
 
@@ -114,10 +114,10 @@ Another concern is whether the onboarding flow is clear enough for new users.
 
 ---
 
-### 9. Ask Koov again
+### 9. Ask Mechus again
 
 **Mike:**  
-Koov, have any risks been mentioned so far?
+Mechus, have any risks been mentioned so far?
 
 *(wait for response)*
 
@@ -137,10 +137,10 @@ Launch date July 25th, engineering finishes QA by the 20th, marketing prepares t
 
 ---
 
-### Final Koov query
+### Final Mechus query
 
 **Sarah:**  
-Koov, give us a quick recap of the meeting.
+Mechus, give us a quick recap of the meeting.
 
 *(wait for response)*
 
@@ -152,15 +152,15 @@ Use these during or after the meeting to test edge cases.
 
 | Test | Line |
 |------|------|
-| **General knowledge** | Mike: Koov, quick question — what is the difference between machine learning and AI? |
-| **Interruption** | Sarah: Wait sorry Alex, before we move on — Koov, what were the action items again? |
-| **Ambiguous phrasing** | Alex: Koov, what did we land on earlier about the launch date? |
+| **General knowledge** | Mike: Mechus, quick question — what is the difference between machine learning and AI? |
+| **Interruption** | Sarah: Wait sorry Alex, before we move on — Mechus, what were the action items again? |
+| **Ambiguous phrasing** | Alex: Mechus, what did we land on earlier about the launch date? |
 
 ---
 
 ## Tips
 
 - Run `python scripts/run_meeting_simulation.py` to step through the script line-by-line with timing.
-- Speak each line in the meeting (or paste into your meeting chat if it feeds Koov).
+- Speak each line in the meeting (or paste into your meeting chat if it feeds Mechus).
 - Pauses mimic real cadence and test: wake word, context tracking, intent routing, grounding, action items, decisions.
 - For a harder test, use the chaotic simulation: `python scripts/run_meeting_simulation.py --chaotic`

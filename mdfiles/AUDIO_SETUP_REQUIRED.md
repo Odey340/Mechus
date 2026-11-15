@@ -2,7 +2,7 @@
 
 ## Important: Audio Devices Must Be Set Up Once
 
-**Koov cannot automatically configure audio devices.** You need to set this up **once** in your Zoom/Meet settings, and it will be remembered for future meetings.
+**Mechus cannot automatically configure audio devices.** You need to set this up **once** in your Zoom/Meet settings, and it will be remembered for future meetings.
 
 ## One-Time Setup Steps
 
@@ -25,12 +25,12 @@ Follow instructions in `SETUP_MACOS.txt` to install BlackHole virtual audio devi
 4. **Speaker:** Select your Multi-Output device
 5. **Save** - These settings will be remembered
 
-### 3. Verify Koov Configuration
+### 3. Verify Mechus Configuration
 
 In your `.env` file:
 ```
-KOOV_INPUT_DEVICE=BlackHole 2ch
-KOOV_OUTPUT_DEVICE=BlackHole 2ch
+MECHUS_INPUT_DEVICE=BlackHole 2ch
+MECHUS_OUTPUT_DEVICE=BlackHole 2ch
 ```
 
 ## After One-Time Setup
@@ -42,12 +42,12 @@ Once configured:
 
 ## Current Limitations
 
-**What Koov CAN do:**
+**What Mechus CAN do:**
 - ✅ Open meeting link automatically
 - ✅ Auto-click "Join" button (with browser automation)
 - ✅ Start listening automatically
 
-**What Koov CANNOT do:**
+**What Mechus CANNOT do:**
 - ❌ Automatically set audio devices in Zoom/Meet (must be done manually once)
 - ❌ Bypass browser security to control audio settings
 

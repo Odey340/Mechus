@@ -12,17 +12,17 @@ import uuid
 
 import pytest
 
-from koov import openai_compat, tiger_store
-from koov.meeting_store import MeetingStore
+from mechus import openai_compat, tiger_store
+from mechus.meeting_store import MeetingStore
 
 
 @pytest.fixture
 def clean_env(monkeypatch):
     for k in (
-        "TIGER_DATABASE_URL", "KOOV_TIGER_DATABASE_URL", "TIMESCALE_SERVICE_URL", "KOOV_TIGER_ENABLED",
-        "KOOV_LLM_PROVIDER", "KOOV_OPENAI_BASE_URL", "KOOV_OPENAI_API_KEY", "VULTR_INFERENCE_API_KEY",
-        "VULTR_INFERENCE_MODEL", "KOOV_OPENAI_CHAT_MODEL", "KOOV_OPENAI_RESPONSE_MODEL",
-        "KOOV_OPENAI_THINKING_MODEL", "KOOV_LLM_BACKEND", "KOOV_LLM_JSON_MODE",
+        "TIGER_DATABASE_URL", "MECHUS_TIGER_DATABASE_URL", "TIMESCALE_SERVICE_URL", "MECHUS_TIGER_ENABLED",
+        "MECHUS_LLM_PROVIDER", "MECHUS_OPENAI_BASE_URL", "MECHUS_OPENAI_API_KEY", "VULTR_INFERENCE_API_KEY",
+        "VULTR_INFERENCE_MODEL", "MECHUS_OPENAI_CHAT_MODEL", "MECHUS_OPENAI_RESPONSE_MODEL",
+        "MECHUS_OPENAI_THINKING_MODEL", "MECHUS_LLM_BACKEND", "MECHUS_LLM_JSON_MODE",
     ):
         monkeypatch.delenv(k, raising=False)
     return monkeypatch
@@ -38,7 +38,7 @@ def test_tiger_disabled_without_url(clean_env):
 
 def test_tiger_can_be_switched_off(clean_env):
     clean_env.setenv("TIGER_DATABASE_URL", "postgres://u:p@localhost:1/tsdb")
-    clean_env.setenv("KOOV_TIGER_ENABLED", "0")
+    clean_env.setenv("MECHUS_TIGER_ENABLED", "0")
     assert tiger_store.is_enabled() is False
 
 
@@ -69,7 +69,7 @@ def test_meeting_store_mirrors_to_sink(clean_env, tmp_path, monkeypatch):
 
 def test_analytics_routes_report_disabled(clean_env):
     try:
-        from koov.api_server import app
+        from mechus.api_server import app
     except OSError as exc:  # e.g. PortAudio missing on a headless CI box
         pytest.skip(f"api_server needs audio libs here: {exc}")
 
@@ -87,7 +87,7 @@ def test_tiger_round_trip():
     now = time.time()
     sink.record_chunk(mid, "alex", "we decided to deploy on vultr", now - 60, topic="deploy")
     sink.record_chunk(mid, "sam", "great, tiger data stores every line", now - 30, topic="data")
-    sink.record_event(mid, "koov_response", 812.0, {"intent": "test"})
+    sink.record_event(mid, "mechus_response", 812.0, {"intent": "test"})
     sink.flush()
     out = tiger_store.meeting_analytics(mid)
     assert out["totals"]["lines"] == 2
@@ -104,37 +104,37 @@ def test_default_provider_is_openai(clean_env):
 
 
 def test_vultr_provider_preset(clean_env):
-    clean_env.setenv("KOOV_LLM_PROVIDER", "vultr")
+    clean_env.setenv("MECHUS_LLM_PROVIDER", "vultr")
     clean_env.setenv("VULTR_INFERENCE_API_KEY", "vk-test")
     clean_env.setenv("VULTR_INFERENCE_MODEL", "some-model")
     openai_compat.apply_provider_env()
     assert openai_compat.chat_completions_url() == "https://api.vultrinference.com/v1/chat/completions"
-    assert os.environ["KOOV_OPENAI_API_KEY"] == "vk-test"
-    assert os.environ["KOOV_OPENAI_CHAT_MODEL"] == "some-model"
-    assert os.environ["KOOV_LLM_BACKEND"] == "openai"
+    assert os.environ["MECHUS_OPENAI_API_KEY"] == "vk-test"
+    assert os.environ["MECHUS_OPENAI_CHAT_MODEL"] == "some-model"
+    assert os.environ["MECHUS_LLM_BACKEND"] == "openai"
     assert openai_compat.supports_json_mode() is False
     assert openai_compat.origin() == "https://api.vultrinference.com/"
 
 
 def test_explicit_openai_key_wins(clean_env):
-    clean_env.setenv("KOOV_LLM_PROVIDER", "vultr")
+    clean_env.setenv("MECHUS_LLM_PROVIDER", "vultr")
     clean_env.setenv("VULTR_INFERENCE_API_KEY", "vk-test")
-    clean_env.setenv("KOOV_OPENAI_API_KEY", "already-set")
+    clean_env.setenv("MECHUS_OPENAI_API_KEY", "already-set")
     openai_compat.apply_provider_env()
-    assert os.environ["KOOV_OPENAI_API_KEY"] == "already-set"
+    assert os.environ["MECHUS_OPENAI_API_KEY"] == "already-set"
 
 
 def test_custom_base_url_for_vultr_gpu(clean_env):
-    clean_env.setenv("KOOV_OPENAI_BASE_URL", "http://10.0.0.5:8000/v1/")
+    clean_env.setenv("MECHUS_OPENAI_BASE_URL", "http://10.0.0.5:8000/v1/")
     assert openai_compat.chat_completions_url() == "http://10.0.0.5:8000/v1/chat/completions"
 
 
 def test_config_picks_up_vultr_preset(clean_env):
-    from koov.config import KoovConfig
+    from mechus.config import MechusConfig
 
-    clean_env.setenv("KOOV_LLM_PROVIDER", "vultr")
+    clean_env.setenv("MECHUS_LLM_PROVIDER", "vultr")
     clean_env.setenv("VULTR_INFERENCE_API_KEY", "vk-test")
     clean_env.setenv("VULTR_INFERENCE_MODEL", "some-model")
-    cfg = KoovConfig.from_env()
+    cfg = MechusConfig.from_env()
     assert cfg.openai_api_key == "vk-test"
     assert cfg.llm_backend == "openai"

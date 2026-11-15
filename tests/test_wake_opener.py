@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 
 
-def _koov_agent_class():
+def _mechus_agent_class():
     if "sounddevice" not in sys.modules:
         sys.modules["sounddevice"] = types.SimpleNamespace(
             PortAudioError=Exception,
@@ -30,9 +30,9 @@ def _koov_agent_class():
             read=lambda *args, **kwargs: (_np_zeros(), 16000)
         )
 
-    from koov.agent import KoovAgent
+    from mechus.agent import MechusAgent
 
-    return KoovAgent
+    return MechusAgent
 
 
 def _np_zeros():
@@ -43,42 +43,42 @@ def _np_zeros():
 
 class TestWakeOpenerConfig(unittest.TestCase):
     def test_low_latency_default_opener_cap_about_one_second(self) -> None:
-        with patch.dict(os.environ, {"KOOV_LOW_LATENCY": "1"}, clear=False):
-            from koov.config import KoovConfig
+        with patch.dict(os.environ, {"MECHUS_LOW_LATENCY": "1"}, clear=False):
+            from mechus.config import MechusConfig
 
-            c = KoovConfig.from_env()
+            c = MechusConfig.from_env()
         self.assertGreaterEqual(c.wake_opener_max_audio_s, 1.0)
         self.assertTrue(c.wake_opener_enabled)
 
     def test_low_latency_default_extend_cap_bridges_llm_wait(self) -> None:
-        with patch.dict(os.environ, {"KOOV_LOW_LATENCY": "1"}, clear=False):
-            from koov.config import KoovConfig
+        with patch.dict(os.environ, {"MECHUS_LOW_LATENCY": "1"}, clear=False):
+            from mechus.config import MechusConfig
 
-            c = KoovConfig.from_env()
+            c = MechusConfig.from_env()
         self.assertGreaterEqual(c.wake_opener_extend_cap_s, 2.5)
 
     def test_non_low_latency_extend_cap_moderate_by_default(self) -> None:
-        with patch.dict(os.environ, {"KOOV_LOW_LATENCY": "0"}, clear=False):
-            from koov.config import KoovConfig
+        with patch.dict(os.environ, {"MECHUS_LOW_LATENCY": "0"}, clear=False):
+            from mechus.config import MechusConfig
 
-            c = KoovConfig.from_env()
+            c = MechusConfig.from_env()
         self.assertGreaterEqual(c.wake_opener_extend_cap_s, 3.0)
 
     def test_extend_cap_override_via_env(self) -> None:
         with patch.dict(
             os.environ,
-            {"KOOV_LOW_LATENCY": "1", "KOOV_WAKE_OPENER_EXTEND_CAP_S": "1.7"},
+            {"MECHUS_LOW_LATENCY": "1", "MECHUS_WAKE_OPENER_EXTEND_CAP_S": "1.7"},
             clear=False,
         ):
-            from koov.config import KoovConfig
+            from mechus.config import MechusConfig
 
-            c = KoovConfig.from_env()
+            c = MechusConfig.from_env()
         self.assertAlmostEqual(c.wake_opener_extend_cap_s, 1.7, places=2)
 
 
 class TestWakeOpenerPhrasePick(unittest.TestCase):
     def test_prefers_acknowledgment_phrases(self) -> None:
-        KoovAgent = _koov_agent_class()
+        MechusAgent = _mechus_agent_class()
 
         pool = [
             "On it.",
@@ -86,7 +86,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
             "Yeah, give me a moment.",
             "Let me pull that up.",
         ]
-        agent = object.__new__(KoovAgent)
+        agent = object.__new__(MechusAgent)
         picks = {
             agent._pick_thinking_phrase(pool, prefer_acknowledgment=True) for _ in range(40)
         }
@@ -96,7 +96,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
         )
 
     def test_fact_questions_prefer_lookup_phrases(self) -> None:
-        KoovAgent = _koov_agent_class()
+        MechusAgent = _mechus_agent_class()
 
         pool = [
             "Oh, good question.",
@@ -104,7 +104,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
             "Sure, let me check that.",
             "Let's look that up.",
         ]
-        agent = object.__new__(KoovAgent)
+        agent = object.__new__(MechusAgent)
         picks = {
             agent._pick_thinking_phrase(pool, request_text="what's the weather in Solon")
             for _ in range(40)
@@ -112,7 +112,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
         self.assertTrue(all("check" in p.lower() or "look" in p.lower() for p in picks))
 
     def test_opinion_questions_prefer_reflective_phrases(self) -> None:
-        KoovAgent = _koov_agent_class()
+        MechusAgent = _mechus_agent_class()
 
         pool = [
             "Sure, let me check that.",
@@ -120,7 +120,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
             "Oh, good question.",
             "Wow, that's interesting.",
         ]
-        agent = object.__new__(KoovAgent)
+        agent = object.__new__(MechusAgent)
         picks = {
             agent._pick_thinking_phrase(pool, request_text="what do you think about this")
             for _ in range(40)
@@ -128,7 +128,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
         self.assertTrue(all("question" in p.lower() or "interesting" in p.lower() for p in picks))
 
     def test_meeting_questions_prefer_recall_phrases(self) -> None:
-        KoovAgent = _koov_agent_class()
+        MechusAgent = _mechus_agent_class()
 
         pool = [
             "Sure, let me check that.",
@@ -136,7 +136,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
             "Right, from what we said.",
             "As we talked about it.",
         ]
-        agent = object.__new__(KoovAgent)
+        agent = object.__new__(MechusAgent)
         picks = {
             agent._pick_thinking_phrase(pool, request_text="what did we decide in the meeting")
             for _ in range(40)
@@ -144,7 +144,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
         self.assertTrue(all("said" in p.lower() or "talked" in p.lower() for p in picks))
 
     def test_wake_opener_deprioritizes_bare_yeah(self) -> None:
-        KoovAgent = _koov_agent_class()
+        MechusAgent = _mechus_agent_class()
 
         pool = [
             "Yeah, give me a moment.",
@@ -152,7 +152,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
             "Let me check.",
             "Walking back through that now.",
         ]
-        agent = object.__new__(KoovAgent)
+        agent = object.__new__(MechusAgent)
         picks = {
             agent._pick_thinking_phrase(
                 pool,
@@ -164,7 +164,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
         self.assertTrue(all("question" in p.lower() or "think" in p.lower() for p in picks))
 
     def test_fact_tell_me_about_uses_lookup_phrases(self) -> None:
-        KoovAgent = _koov_agent_class()
+        MechusAgent = _mechus_agent_class()
 
         pool = [
             "Oh, good question.",
@@ -172,7 +172,7 @@ class TestWakeOpenerPhrasePick(unittest.TestCase):
             "Right, from what we said.",
             "Walking back through that now.",
         ]
-        agent = object.__new__(KoovAgent)
+        agent = object.__new__(MechusAgent)
         picks = {
             agent._pick_thinking_phrase(
                 pool,
@@ -188,8 +188,8 @@ class TestWakeOpenerExtend(unittest.TestCase):
     """Opener plays once, then holds the stream until reply TTS (no filler loop)."""
 
     def _make_agent(self, *, extend_cap_s: float, max_audio_cap_s: float = 0.5):
-        KoovAgent = _koov_agent_class()
-        agent = object.__new__(KoovAgent)
+        MechusAgent = _mechus_agent_class()
+        agent = object.__new__(MechusAgent)
 
         agent._tts_playing = False
         agent._wake_opener_played = False
@@ -271,7 +271,7 @@ class TestWakeOpenerExtend(unittest.TestCase):
             args=(object(),),
             kwargs={
                 "source": "transcript_stt",
-                "trigger_text": "koov weather",
+                "trigger_text": "mechus weather",
                 "stop_evt": stop_evt,
             },
             daemon=True,
@@ -294,7 +294,7 @@ class TestWakeOpenerExtend(unittest.TestCase):
         agent._run_wake_opener(
             object(),
             source="transcript_stt",
-            trigger_text="koov weather",
+            trigger_text="mechus weather",
             stop_evt=stop_evt,
         )
 
@@ -302,8 +302,8 @@ class TestWakeOpenerExtend(unittest.TestCase):
         self.assertTrue(agent._bridge_finale_preroll_played)
 
     def test_gapless_empty_cache_falls_back_to_per_clip_blocking(self) -> None:
-        KoovAgent = _koov_agent_class()
-        agent = object.__new__(KoovAgent)
+        MechusAgent = _mechus_agent_class()
+        agent = object.__new__(MechusAgent)
         agent._tts_playing = False
         agent._wake_opener_played = False
         agent._bridge_finale_preroll_played = False
@@ -350,14 +350,14 @@ class TestWakeOpenerExtend(unittest.TestCase):
         agent._run_wake_opener(
             object(),
             source="transcript_stt",
-            trigger_text="koov weather",
+            trigger_text="mechus weather",
             stop_evt=stop_evt,
         )
         self.assertIn("opener", blocking_calls, "empty gapless bridge should fall back to blocking opener")
 
     def test_gapless_bridge_uses_single_play_streaming_on_zoom(self) -> None:
-        KoovAgent = _koov_agent_class()
-        agent = object.__new__(KoovAgent)
+        MechusAgent = _mechus_agent_class()
+        agent = object.__new__(MechusAgent)
         agent._tts_playing = False
         agent._wake_opener_played = False
         agent._bridge_finale_preroll_played = False
@@ -401,7 +401,7 @@ class TestWakeOpenerExtend(unittest.TestCase):
         agent._run_wake_opener(
             object(),
             source="vosk",
-            trigger_text="koov weather",
+            trigger_text="mechus weather",
             stop_evt=stop_evt,
         )
         self.assertEqual(len(stream_calls), 1, "Zoom bridge should use one play_streaming call")
@@ -411,8 +411,8 @@ class TestWakeOpenerExtend(unittest.TestCase):
         self.assertTrue(agent._bridge_finale_preroll_played)
 
     def test_gapless_bridge_uses_single_play_streaming_on_pulse(self) -> None:
-        KoovAgent = _koov_agent_class()
-        agent = object.__new__(KoovAgent)
+        MechusAgent = _mechus_agent_class()
+        agent = object.__new__(MechusAgent)
         agent._tts_playing = False
         agent._wake_opener_played = False
         agent._bridge_finale_preroll_played = False
@@ -447,7 +447,7 @@ class TestWakeOpenerExtend(unittest.TestCase):
         agent._run_wake_opener(
             object(),
             source="transcript_stt",
-            trigger_text="koov weather",
+            trigger_text="mechus weather",
             stop_evt=stop_evt,
         )
         self.assertEqual(len(stream_calls), 1, "Pulse bridge should use one play_streaming call")

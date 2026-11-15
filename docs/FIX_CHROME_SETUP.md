@@ -63,7 +63,7 @@ python3 scripts/start_api_server.py
 
 Try joining a meeting from your dashboard. It should now:
 - ✅ Open Chrome (not Safari)
-- ✅ Use the Koov Chrome profile (`~/.koov-chrome-profile`)
+- ✅ Use the Mechus Chrome profile (`~/.mechus-chrome-profile`)
 - ✅ Remember audio device settings after first setup
 
 ## Alternative: Use Visible Browser for Setup
@@ -72,7 +72,7 @@ If you want to see the browser during setup (to configure audio devices):
 
 ```bash
 # Set environment variable before starting server
-export KOOV_SHOW_BROWSER=true
+export MECHUS_SHOW_BROWSER=true
 python3 scripts/start_api_server.py
 ```
 
@@ -111,7 +111,7 @@ sudo spctl --master-disable  # Temporarily disable Gatekeeper
 2. Verify ChromeDriver is in PATH: `which chromedriver`
 3. Try setting Chrome path explicitly in `.env`:
    ```
-   KOOV_CHROME_BINARY=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+   MECHUS_CHROME_BINARY=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome
    ```
 
 ### Want to use Safari instead?
@@ -130,4 +130,4 @@ Once Chrome is working:
    - Speaker: Your Multi-Output device
 3. Chrome saves these settings
 4. Future meetings use saved settings automatically
-5. You can set `KOOV_SHOW_BROWSER=false` to run headless
+5. You can set `MECHUS_SHOW_BROWSER=false` to run headless

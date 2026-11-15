@@ -18,7 +18,7 @@ _root = os.path.dirname(_script_dir)
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
-from koov.context_integrity_engine import (
+from mechus.context_integrity_engine import (
     ContextIntegrityEngine,
     format_final_report,
     format_memory_update,

@@ -6,8 +6,8 @@ import os
 import unittest
 from unittest.mock import patch
 
-from koov.facetime_env import apply_multilingual_env_defaults, apply_production_latency_env_defaults
-from koov.language import (
+from mechus.facetime_env import apply_multilingual_env_defaults, apply_production_latency_env_defaults
+from mechus.language import (
     guess_language_from_text,
     is_english_language,
     normalize_language_code,
@@ -48,37 +48,37 @@ class TestLanguageHelpers(unittest.TestCase):
 
 class TestMultilingualConfig(unittest.TestCase):
     def test_multilingual_default_auto_detect(self) -> None:
-        with patch.dict(os.environ, {"KOOV_MULTILINGUAL": "1"}, clear=False):
-            os.environ.pop("KOOV_WHISPER_LANGUAGE", None)
-            from koov.config import KoovConfig
+        with patch.dict(os.environ, {"MECHUS_MULTILINGUAL": "1"}, clear=False):
+            os.environ.pop("MECHUS_WHISPER_LANGUAGE", None)
+            from mechus.config import MechusConfig
 
-            c = KoovConfig.from_env()
+            c = MechusConfig.from_env()
         self.assertTrue(c.multilingual)
         self.assertIsNone(c.whisper_language)
 
     def test_multilingual_off_defaults_english(self) -> None:
-        with patch.dict(os.environ, {"KOOV_MULTILINGUAL": "0"}, clear=True):
-            from koov.config import KoovConfig
+        with patch.dict(os.environ, {"MECHUS_MULTILINGUAL": "0"}, clear=True):
+            from mechus.config import MechusConfig
 
-            c = KoovConfig.from_env()
+            c = MechusConfig.from_env()
         self.assertFalse(c.multilingual)
         self.assertEqual(c.whisper_language, "en")
 
     def test_apply_multilingual_env_strips_english_lock(self) -> None:
-        with patch.dict(os.environ, {"KOOV_WHISPER_LANGUAGE": "en"}, clear=True):
+        with patch.dict(os.environ, {"MECHUS_WHISPER_LANGUAGE": "en"}, clear=True):
             apply_multilingual_env_defaults()
-            self.assertNotIn("KOOV_WHISPER_LANGUAGE", os.environ)
+            self.assertNotIn("MECHUS_WHISPER_LANGUAGE", os.environ)
 
     def test_apply_multilingual_env_keeps_explicit_override(self) -> None:
-        with patch.dict(os.environ, {"KOOV_WHISPER_LANGUAGE": "es"}, clear=True):
+        with patch.dict(os.environ, {"MECHUS_WHISPER_LANGUAGE": "es"}, clear=True):
             apply_multilingual_env_defaults()
-            self.assertEqual(os.environ.get("KOOV_WHISPER_LANGUAGE"), "es")
+            self.assertEqual(os.environ.get("MECHUS_WHISPER_LANGUAGE"), "es")
 
     def test_production_latency_enables_multilingual(self) -> None:
-        with patch.dict(os.environ, {"KOOV_WHISPER_LANGUAGE": "en"}, clear=True):
+        with patch.dict(os.environ, {"MECHUS_WHISPER_LANGUAGE": "en"}, clear=True):
             apply_production_latency_env_defaults()
-            self.assertEqual(os.environ.get("KOOV_MULTILINGUAL"), "1")
-            self.assertNotIn("KOOV_WHISPER_LANGUAGE", os.environ)
+            self.assertEqual(os.environ.get("MECHUS_MULTILINGUAL"), "1")
+            self.assertNotIn("MECHUS_WHISPER_LANGUAGE", os.environ)
 
 
 if __name__ == "__main__":

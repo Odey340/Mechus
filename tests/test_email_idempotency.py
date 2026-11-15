@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from unittest.mock import patch
 
-from koov.email_sender import _load_reminders, process_due_deadline_reminders, send_meeting_emails
+from mechus.email_sender import _load_reminders, process_due_deadline_reminders, send_meeting_emails
 
 
 class _FakeSMTP:
@@ -39,16 +39,16 @@ class _FailingSMTP(_FakeSMTP):
 def test_worker_and_api_paths_send_only_once(tmp_path) -> None:
     _FakeSMTP.sent = []
     env = {
-        "KOOV_EMAIL_ENABLED": "1",
-        "KOOV_EMAIL_USERNAME": "koov@example.com",
-        "KOOV_EMAIL_PASSWORD": "app-password",
-        "KOOV_EMAIL_RECIPIENTS": "",
-        "KOOV_NOTES_DIR": str(tmp_path),
+        "MECHUS_EMAIL_ENABLED": "1",
+        "MECHUS_EMAIL_USERNAME": "mechus@example.com",
+        "MECHUS_EMAIL_PASSWORD": "app-password",
+        "MECHUS_EMAIL_RECIPIENTS": "",
+        "MECHUS_NOTES_DIR": str(tmp_path),
     }
     summary = {"executive_summary": "Done", "action_items": []}
 
     with patch.dict(os.environ, env, clear=False), patch(
-        "koov.email_sender.smtplib.SMTP", _FakeSMTP
+        "mechus.email_sender.smtplib.SMTP", _FakeSMTP
     ):
         first = send_meeting_emails(
             summary,
@@ -70,23 +70,23 @@ def test_worker_and_api_paths_send_only_once(tmp_path) -> None:
 def test_failed_attempt_releases_reservation_for_api_retry(tmp_path) -> None:
     _FakeSMTP.sent = []
     env = {
-        "KOOV_EMAIL_ENABLED": "1",
-        "KOOV_EMAIL_USERNAME": "koov@example.com",
-        "KOOV_EMAIL_PASSWORD": "app-password",
-        "KOOV_EMAIL_RECIPIENTS": "person@example.com",
-        "KOOV_NOTES_DIR": str(tmp_path),
+        "MECHUS_EMAIL_ENABLED": "1",
+        "MECHUS_EMAIL_USERNAME": "mechus@example.com",
+        "MECHUS_EMAIL_PASSWORD": "app-password",
+        "MECHUS_EMAIL_RECIPIENTS": "person@example.com",
+        "MECHUS_NOTES_DIR": str(tmp_path),
     }
     summary = {"executive_summary": "Done", "action_items": []}
 
     with patch.dict(os.environ, env, clear=False), patch(
-        "koov.email_sender.smtplib.SMTP", _FailingSMTP
+        "mechus.email_sender.smtplib.SMTP", _FailingSMTP
     ):
         assert send_meeting_emails(summary, "meeting-retry") is False
 
     assert not (tmp_path / "email_delivery" / "meeting-retry.sending").exists()
 
     with patch.dict(os.environ, env, clear=False), patch(
-        "koov.email_sender.smtplib.SMTP", _FakeSMTP
+        "mechus.email_sender.smtplib.SMTP", _FakeSMTP
     ):
         assert send_meeting_emails(summary, "meeting-retry") is True
 
@@ -96,17 +96,17 @@ def test_failed_attempt_releases_reservation_for_api_retry(tmp_path) -> None:
 def test_deadline_reminder_queue_round_trip(tmp_path) -> None:
     _FakeSMTP.sent = []
     env = {
-        "KOOV_EMAIL_ENABLED": "1",
-        "KOOV_EMAIL_USERNAME": "mechus@example.com",
-        "KOOV_EMAIL_PASSWORD": "app-password",
-        "KOOV_EMAIL_RECIPIENTS": "",
-        "KOOV_NOTES_DIR": str(tmp_path),
+        "MECHUS_EMAIL_ENABLED": "1",
+        "MECHUS_EMAIL_USERNAME": "mechus@example.com",
+        "MECHUS_EMAIL_PASSWORD": "app-password",
+        "MECHUS_EMAIL_RECIPIENTS": "",
+        "MECHUS_NOTES_DIR": str(tmp_path),
     }
     summary = {
         "action_items": [{"owner": "Avery", "task": "Inspect the sink", "deadline": "2020-01-01"}]
     }
     with patch.dict(os.environ, env, clear=False), patch(
-        "koov.email_sender.smtplib.SMTP", _FakeSMTP
+        "mechus.email_sender.smtplib.SMTP", _FakeSMTP
     ):
         assert send_meeting_emails(
             summary, "meeting-deadline", speaker_emails={"Avery": "avery@example.com"}

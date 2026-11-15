@@ -67,7 +67,7 @@ Deterministic question classification (NO LLM):
 
 ### WakeWordDetector
 Deterministic wake word detection (NO LLM):
-- Primary wake word: "koov" (case-insensitive)
+- Primary wake word: "mechus" (case-insensitive)
 - Activation valid ONLY if:
   1. Segment is is_final = true
   2. Wake word appears with question/command
@@ -87,14 +87,14 @@ Grounded answer synthesis:
 ### Basic Example
 
 ```python
-from koov.context_engine import ContextEventEngine
+from mechus.context_engine import ContextEventEngine
 
 # Initialize engine
 engine = ContextEventEngine(
     meeting_id="meeting_123",
     ollama_host="http://127.0.0.1:11434",
     ollama_model="qwen2.5:7b-instruct",
-    wake_word="koov",
+    wake_word="mechus",
 )
 
 # Ingest streaming transcript segments
@@ -102,13 +102,13 @@ event = engine.ingest_segment(
     meeting_id="meeting_123",
     timestamp=1700000000.12,
     speaker_id="spk_1",
-    text="Koov what did we decide about pricing",
+    text="Mechus what did we decide about pricing",
     is_final=True,
 )
 
 # Process wake word
 wake_result = engine.process_wake_word(
-    segment_text="Koov what did we decide about pricing",
+    segment_text="Mechus what did we decide about pricing",
     is_final=True,
 )
 
@@ -126,9 +126,9 @@ print(f"LLM calls/min: {metrics['llm_calls_per_minute']}")
 print(f"P95 ingest latency: {metrics['p95_ingest_latency_ms']}ms")
 ```
 
-### Integration with KoovAgent
+### Integration with MechusAgent
 
-The Context Event Engine can be integrated into the existing KoovAgent to replace or augment the current memory and response system.
+The Context Event Engine can be integrated into the existing MechusAgent to replace or augment the current memory and response system.
 
 ## Latency Constraints
 
@@ -214,7 +214,7 @@ Tracked metrics:
 The engine supports replay for deterministic event regeneration:
 
 ```python
-from koov.context_metrics import ReplayEngine
+from mechus.context_metrics import ReplayEngine
 
 replay = ReplayEngine(engine)
 segments = replay.load_transcript_log("transcript.jsonl")

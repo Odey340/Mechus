@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from koov.api_server import infer_join_backend_from_meeting_link
+from mechus.api_server import infer_join_backend_from_meeting_link
 
 
 @pytest.mark.parametrize(

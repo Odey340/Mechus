@@ -1,8 +1,8 @@
-# Fix: Koov Not Auto-Joining Meetings
+# Fix: Mechus Not Auto-Joining Meetings
 
 ## Problem
 
-Koov opens the meeting link but doesn't automatically click "Join" - you have to do it manually.
+Mechus opens the meeting link but doesn't automatically click "Join" - you have to do it manually.
 
 ## Root Cause
 
@@ -57,7 +57,7 @@ After installing, restart your API server:
 
 1. ✅ Meeting link opens in **Chrome** (not Safari)
 2. ✅ Chrome automatically clicks "Join" button
-3. ✅ Koov joins the meeting automatically
+3. ✅ Mechus joins the meeting automatically
 4. ✅ No manual clicking needed
 
 ## Test It
@@ -70,7 +70,7 @@ After installing, restart your API server:
    Opened meeting link in browser
    Clicked Join button (Google Meet)  # or Zoom
    ```
-3. Check if Koov joined automatically
+3. Check if Mechus joined automatically
 
 ## Troubleshooting
 
@@ -100,7 +100,7 @@ xattr -d com.apple.quarantine $(which chromedriver)
 2. Verify ChromeDriver is in PATH: `which chromedriver`
 3. Try setting Chrome path explicitly:
    ```bash
-   export KOOV_CHROME_BINARY="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+   export MECHUS_CHROME_BINARY="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
    ```
 
 ### Want to see the browser during setup?
@@ -108,7 +108,7 @@ xattr -d com.apple.quarantine $(which chromedriver)
 For first-time audio device setup, show the browser:
 
 ```bash
-export KOOV_SHOW_BROWSER=true
+export MECHUS_SHOW_BROWSER=true
 ./START_SERVER.sh
 ```
 

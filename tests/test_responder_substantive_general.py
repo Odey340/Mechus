@@ -1,5 +1,5 @@
 """Substantive general questions must not use the 12-word wake brevity cap."""
-from koov.responder import _general_wants_substantive_answer
+from mechus.responder import _general_wants_substantive_answer
 
 
 def test_substantive_who_what_how():
@@ -10,8 +10,8 @@ def test_substantive_who_what_how():
 
 
 def test_intent_wants_extended_spoken():
-    from koov.responder import intent_wants_extended_spoken
-    from koov.intent import INTENT_RECAP
+    from mechus.responder import intent_wants_extended_spoken
+    from mechus.intent import INTENT_RECAP
 
     assert intent_wants_extended_spoken(INTENT_RECAP, "recap the meeting")
     assert intent_wants_extended_spoken("general", "how far is uranus from neptune")

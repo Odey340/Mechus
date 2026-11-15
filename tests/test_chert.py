@@ -10,8 +10,8 @@ import time
 
 import pytest
 
-from koov.chert.client import ChertClient, ChertConfig, ChertError, sign
-from koov.chert.webhooks import EventDeduper, InboundMessage, InboundReaction, parse_event, verify_signature
+from mechus.chert.client import ChertClient, ChertConfig, ChertError, sign
+from mechus.chert.webhooks import EventDeduper, InboundMessage, InboundReaction, parse_event, verify_signature
 
 
 class FakeResp(io.BytesIO):
@@ -36,7 +36,7 @@ def make_client(responses):
             raise nxt
         return FakeResp(nxt)
 
-    cfg = ChertConfig(signing_secret="s3cret", tenant="koov", line_phone="+15550000000", line_id="line-1", base_url="https://chert.test/api/v1")
+    cfg = ChertConfig(signing_secret="s3cret", tenant="mechus", line_phone="+15550000000", line_id="line-1", base_url="https://chert.test/api/v1")
     return ChertClient(cfg, opener=opener), calls
 
 
@@ -60,7 +60,7 @@ def test_send_text_with_effect_and_signed_headers():
     sig = req.get_header("X-chert-signature")
     v, ts, hexd = sig.split(",")
     assert v == "v1" and hexd == hmac.new(b"s3cret", f"{ts}.".encode() + req.data, hashlib.sha256).hexdigest()
-    assert req.get_header("X-chert-tenant") == "koov"
+    assert req.get_header("X-chert-tenant") == "mechus"
     assert res["chat_id"] == "c1"
 
 

@@ -1,6 +1,6 @@
 """Tests for live on-the-spot meeting recap (dashboard during call)."""
 
-from koov.meeting_summary import (
+from mechus.meeting_summary import (
     build_live_partial_summary,
     live_recap_to_transcript_payload,
 )

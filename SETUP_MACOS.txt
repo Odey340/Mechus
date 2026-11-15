@@ -1,13 +1,13 @@
-Koov + Zoom demo setup (macOS)
+Mechus + Zoom demo setup (macOS)
 
 Goal:
-- Koov listens to Zoom speaker audio via a virtual device
-- Koov speaks into Zoom as a virtual microphone
-- Koov only speaks after wake word "koov"
+- Mechus listens to Zoom speaker audio via a virtual device
+- Mechus speaks into Zoom as a virtual microphone
+- Mechus only speaks after wake word "mechus"
 
 This setup uses 2 separate virtual devices to avoid echo:
-- BlackHole 16ch: for capturing Zoom speaker output (Koov listens here)
-- BlackHole 2ch: for injecting Koov speech into Zoom microphone (Zoom listens here)
+- BlackHole 16ch: for capturing Zoom speaker output (Mechus listens here)
+- BlackHole 2ch: for injecting Mechus speech into Zoom microphone (Zoom listens here)
 
 1) Install virtual audio devices (BlackHole)
    - Install BlackHole 16ch
@@ -31,13 +31,13 @@ This setup uses 2 separate virtual devices to avoid echo:
    - Speaker: select your Multi-Output device ("Zoom Speakers (Headphones + BH16)")
    - Microphone: select "BlackHole 2ch"
    - Disable "Automatically adjust microphone volume"
-   - If available: enable "Original Sound" / lower aggressive noise suppression so Koov speech is not mangled
+   - If available: enable "Original Sound" / lower aggressive noise suppression so Mechus speech is not mangled
 
 Important:
 - With this routing, Zoom audio goes to your headphones AND to BlackHole 16ch.
-- Koov listens on BlackHole 16ch so it hears the meeting.
-- Koov speaks to BlackHole 2ch so Zoom microphone transmits Koov to the meeting.
-- Koov does not capture from BlackHole 2ch, so it won't re-trigger on its own output.
+- Mechus listens on BlackHole 16ch so it hears the meeting.
+- Mechus speaks to BlackHole 2ch so Zoom microphone transmits Mechus to the meeting.
+- Mechus does not capture from BlackHole 2ch, so it won't re-trigger on its own output.
 
 4) Install Python deps
    - In the repo folder:
@@ -59,27 +59,27 @@ Important:
    - Create an ElevenLabs account and API key
    - Pick a voice and note its voice ID
    - In .env set:
-     - KOOV_TTS_BACKEND=elevenlabs
-     - KOOV_ELEVEN_API_KEY=<your-api-key>
-     - KOOV_ELEVEN_VOICE_ID=<your-voice-id>
-     - (optional) KOOV_ELEVEN_MODEL_ID=<model-id>
+     - MECHUS_TTS_BACKEND=elevenlabs
+     - MECHUS_ELEVEN_API_KEY=<your-api-key>
+     - MECHUS_ELEVEN_VOICE_ID=<your-voice-id>
+     - (optional) MECHUS_ELEVEN_MODEL_ID=<model-id>
    Option B: Piper (fully local)
    - You need:
      - the "piper" CLI in your PATH (so `piper --help` works)
      - a voice model file: *.onnx (example: en_US-lessac-medium.onnx)
    - Put the voice model somewhere under ./models/piper/ (recommended)
    - In .env set:
-     - KOOV_TTS_BACKEND=piper
-     - KOOV_PIPER_MODEL_PATH=./models/piper/<your-voice>.onnx
+     - MECHUS_TTS_BACKEND=piper
+     - MECHUS_PIPER_MODEL_PATH=./models/piper/<your-voice>.onnx
 
 7) Create your .env and set device names
    - Copy:
      - cp .env.example .env
    - Edit .env and set at minimum:
-     - KOOV_INPUT_DEVICE=BlackHole 16ch
-     - KOOV_OUTPUT_DEVICE=BlackHole 2ch
-     - KOOV_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15
-   - Leave KOOV_SAMPLE_RATE_HZ=48000
+     - MECHUS_INPUT_DEVICE=BlackHole 16ch
+     - MECHUS_OUTPUT_DEVICE=BlackHole 2ch
+     - MECHUS_VOSK_MODEL_PATH=./models/vosk-model-small-en-us-0.15
+   - Leave MECHUS_SAMPLE_RATE_HZ=48000
 
 8) Start the demo (paste the Zoom link)
    - source .venv/bin/activate
@@ -89,25 +89,25 @@ Important:
 
 9) Use it live
    - Preferred (single utterance):
-     - "koov summarize"
-     - "koov action items"
-     - "koov what did they say about pricing"
+     - "mechus summarize"
+     - "mechus action items"
+     - "mechus what did they say about pricing"
    - Also supported (two-step):
-     - "koov"
+     - "mechus"
      - then your request
-   - If only the wake word is spoken and no request follows, Koov stays silent and returns dormant.
-   - Koov will wait for a speaking gap, speak once, and return dormant.
+   - If only the wake word is spoken and no request follows, Mechus stays silent and returns dormant.
+   - Mechus will wait for a speaking gap, speak once, and return dormant.
 
 Troubleshooting
-- If Koov never wakes:
-  - Confirm KOOV_WAKE_BACKEND=vosk
-  - Confirm KOOV_VOSK_MODEL_PATH points to a real folder
+- If Mechus never wakes:
+  - Confirm MECHUS_WAKE_BACKEND=vosk
+  - Confirm MECHUS_VOSK_MODEL_PATH points to a real folder
   - Confirm Zoom speaker is the Multi-Output device and that it includes BlackHole 16ch
 - If the meeting hears itself echo:
   - Zoom microphone must be BlackHole 2ch (not BlackHole 16ch)
   - Zoom speaker must NOT be BlackHole 2ch
-- If Koov speech is not heard in Zoom:
+- If Mechus speech is not heard in Zoom:
   - Confirm Zoom microphone is BlackHole 2ch
-  - Confirm KOOV_OUTPUT_DEVICE is BlackHole 2ch
+  - Confirm MECHUS_OUTPUT_DEVICE is BlackHole 2ch
   - If using Piper, confirm `piper --help` works
-  - If using ElevenLabs, confirm KOOV_ELEVEN_API_KEY and KOOV_ELEVEN_VOICE_ID are set
+  - If using ElevenLabs, confirm MECHUS_ELEVEN_API_KEY and MECHUS_ELEVEN_VOICE_ID are set

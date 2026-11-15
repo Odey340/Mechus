@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from koov.context_integrity_engine import ContextIntegrityEngine
-from koov.dialog_memory import (
+from mechus.context_integrity_engine import ContextIntegrityEngine
+from mechus.dialog_memory import (
     build_retrieval_query,
     extract_salient_terms,
     is_dialog_continuation,
@@ -17,7 +17,7 @@ from koov.dialog_memory import (
     merge_salient,
     qualifies_as_transcript_followup_without_wake,
 )
-from koov.retrieval import retrieve_for_question
+from mechus.retrieval import retrieve_for_question
 
 
 @pytest.mark.parametrize(
@@ -84,7 +84,7 @@ def test_build_retrieval_query_filters_noise_in_salient_terms() -> None:
     q = build_retrieval_query(
         "same thing for H1B?",
         last_user="Who owns Sprint 24 follow-ups?",
-        last_koov=None,
+        last_mechus=None,
         salient_terms=["Sprint 24", "follow-ups", "more", "H1B"],
     )
     # Verbatim Context user may still contain words from the prior line; Salient line must not repeat noise.
@@ -124,7 +124,7 @@ def test_build_retrieval_query_format_and_cap() -> None:
     q = build_retrieval_query(
         "what about that?",
         last_user="What did Alice say about the NIH rollout blockers?",
-        last_koov="You mentioned three blockers: funding, security review, and ownership.",
+        last_mechus="You mentioned three blockers: funding, security review, and ownership.",
         salient_terms=["NIH rollout", "Alice", "security review"],
         max_chars=400,
     )
@@ -143,7 +143,7 @@ def test_dialog_continuation_monitor_thread() -> None:
     q = build_retrieval_query(
         "can you find some for me",
         last_user="how can i get a better monitor",
-        last_koov="Identify your needs like size, resolution, and refresh rate.",
+        last_mechus="Identify your needs like size, resolution, and refresh rate.",
         salient_terms=["monitor"],
     )
     assert "Context user:" in q
@@ -162,11 +162,11 @@ def test_prior_exchange_reference_and_retrieval_query() -> None:
     q = build_retrieval_query(
         "I thought you told me it's sunny",
         last_user="what's the weather in Chennai",
-        last_koov="Yeah, it is sunny in Chennai right now.",
+        last_mechus="Yeah, it is sunny in Chennai right now.",
         salient_terms=["Chennai"],
     )
     assert "Context user:" in q
-    assert "Context koov:" in q
+    assert "Context mechus:" in q
     assert "Chennai" in q or "sunny" in q.lower()
 
 
@@ -174,7 +174,7 @@ def test_build_retrieval_query_preserves_original_only_when_no_extra() -> None:
     q = build_retrieval_query(
         "explain the Supabase persistence concerns in detail",
         last_user=None,
-        last_koov=None,
+        last_mechus=None,
         salient_terms=[],
     )
     assert q == "explain the Supabase persistence concerns in detail"

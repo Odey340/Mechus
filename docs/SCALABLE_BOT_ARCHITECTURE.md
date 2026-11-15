@@ -28,7 +28,7 @@ Everything else (STT, LLM, TTS, wake word, context) lives elsewhere.
 
 ```
               ┌───────────────────────────┐
-              │        Koov API           │
+              │        Mechus API           │
               │  (scheduler + sessions)   │
               └───────────┬───────────────┘
                           │
@@ -45,11 +45,11 @@ Everything else (STT, LLM, TTS, wake word, context) lives elsewhere.
 │       │            │            │                │
 │       └──────┬─────┴─────┬─────┘                │
 │              ▼           ▼                       │
-│         WebSocket to Koov API                    │
+│         WebSocket to Mechus API                    │
 └─────────────────────────────────────────────────┘
 ```
 
-Koov API streams audio to:
+Mechus API streams audio to:
 
 - STT provider  
 - OpenAI LLM  
@@ -92,7 +92,7 @@ Each meeting bot runs as a **separate process or container** with:
 
 - `meeting_id`  
 - Join token / SDK creds  
-- WebSocket URL to Koov API  
+- WebSocket URL to Mechus API  
 - Minimal logging  
 
 **No** DB, OpenAI key, ElevenLabs key, or STT logic in the bot.
@@ -101,7 +101,7 @@ If the bot crashes, it restarts and reconnects.
 
 ### 2) Session orchestrator (scheduler)
 
-A small service in Koov API that:
+A small service in Mechus API that:
 
 - Tracks bot hosts  
 - Assigns new meetings to the least-loaded host  
@@ -148,7 +148,7 @@ Without Docker, use systemd slices.
 
 ### Step B — Docker layout on host
 
-- `koov-host-agent` (1 container)  
+- `mechus-host-agent` (1 container)  
 - Bot containers (N)
 
 ### Step C — Bot container interface
@@ -157,10 +157,10 @@ Without Docker, use systemd slices.
 
 - `MEETING_ID`  
 - `RECORDING_TOKEN` (optional)  
-- `KOOV_WS_URL` (required)  
+- `MECHUS_WS_URL` (required)  
 - `ZOOM_CLIENT_ID` / `ZOOM_CLIENT_SECRET` (or SDK auth material)  
 
-**WebSocket to Koov API:**
+**WebSocket to Mechus API:**
 
 - **Uplink:** PCM frames + events (join, leave, participants)  
 - **Downlink:** PCM frames to play + "mute/unmute/speak now" events  
@@ -222,7 +222,7 @@ That gets you multi-meeting on one server in days, not weeks.
 
 ---
 
-## Current Koov codebase: answers (so you don’t design wrong)
+## Current Mechus codebase: answers (so you don’t design wrong)
 
 ### 1. One process per meeting, or multiplexed in one process?
 

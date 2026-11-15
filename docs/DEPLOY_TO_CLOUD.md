@@ -1,17 +1,17 @@
-# Deploying Koov to the Cloud
+# Deploying Mechus to the Cloud
 
-This guide shows how to deploy Koov to a cloud server so it can run 24/7 and handle multiple meetings simultaneously.
+This guide shows how to deploy Mechus to a cloud server so it can run 24/7 and handle multiple meetings simultaneously.
 
 ## Architecture Overview
 
 **Current (Local):**
 ```
-Your Computer → Koov API Server → Koov Agent → Meeting
+Your Computer → Mechus API Server → Mechus Agent → Meeting
 ```
 
 **Cloud (Deployed):**
 ```
-Dashboard → Cloud Server → Koov API Server → Multiple Koov Agents → Multiple Meetings
+Dashboard → Cloud Server → Mechus API Server → Multiple Mechus Agents → Multiple Meetings
 ```
 
 ## Deployment Options
@@ -95,22 +95,22 @@ apt install -y build-essential portaudio19-dev libasound2-dev
 apt install -y pulseaudio pulseaudio-module-null
 
 # Create virtual audio device
-pactl load-module module-null-sink sink_name=koov_input sink_properties=device.description="Koov Input"
-pactl load-module module-null-sink sink_name=koov_output sink_properties=device.description="Koov Output"
+pactl load-module module-null-sink sink_name=mechus_input sink_properties=device.description="Mechus Input"
+pactl load-module module-null-sink sink_name=mechus_output sink_properties=device.description="Mechus Output"
 ```
 
 **Update your `.env` file:**
 ```bash
-KOOV_INPUT_DEVICE=koov_input
-KOOV_OUTPUT_DEVICE=koov_output
+MECHUS_INPUT_DEVICE=mechus_input
+MECHUS_OUTPUT_DEVICE=mechus_output
 ```
 
-### 4. Deploy Koov Code
+### 4. Deploy Mechus Code
 
 ```bash
 # Clone your repo (or upload files)
-git clone https://github.com/yourusername/koovdemo.git
-cd koovdemo
+git clone https://github.com/yourusername/mechusdemo.git
+cd mechusdemo
 
 # Create virtual environment
 python3.11 -m venv .venv
@@ -133,17 +133,17 @@ nano .env
 Add your configuration:
 ```bash
 # Audio devices (virtual)
-KOOV_INPUT_DEVICE=koov_input
-KOOV_OUTPUT_DEVICE=koov_output
+MECHUS_INPUT_DEVICE=mechus_input
+MECHUS_OUTPUT_DEVICE=mechus_output
 
 # API Server
-KOOV_API_HOST=0.0.0.0  # Listen on all interfaces
-KOOV_API_PORT=5000
+MECHUS_API_HOST=0.0.0.0  # Listen on all interfaces
+MECHUS_API_PORT=5000
 
 # Your other config...
-KOOV_WAKE_PHRASE=computer
-KOOV_TTS_BACKEND=elevenlabs
-KOOV_ELEVEN_API_KEY=your_key
+MECHUS_WAKE_PHRASE=computer
+MECHUS_TTS_BACKEND=elevenlabs
+MECHUS_ELEVEN_API_KEY=your_key
 # etc.
 ```
 
@@ -156,10 +156,10 @@ KOOV_ELEVEN_API_KEY=your_key
 npm install -g pm2
 
 # Start API server with PM2
-cd /path/to/koovdemo
+cd /path/to/mechusdemo
 source .venv/bin/activate
 export PYTHONPATH="$PWD"
-pm2 start scripts/start_api_server.py --name koov-api --interpreter python3
+pm2 start scripts/start_api_server.py --name mechus-api --interpreter python3
 
 # Save PM2 configuration
 pm2 save
@@ -170,21 +170,21 @@ pm2 startup  # Follow instructions to enable on boot
 
 Create service file:
 ```bash
-sudo nano /etc/systemd/system/koov-api.service
+sudo nano /etc/systemd/system/mechus-api.service
 ```
 
 ```ini
 [Unit]
-Description=Koov API Server
+Description=Mechus API Server
 After=network.target
 
 [Service]
 Type=simple
 User=your-username
-WorkingDirectory=/path/to/koovdemo
-Environment="PATH=/path/to/koovdemo/.venv/bin"
-Environment="PYTHONPATH=/path/to/koovdemo"
-ExecStart=/path/to/koovdemo/.venv/bin/python3 scripts/start_api_server.py
+WorkingDirectory=/path/to/mechusdemo
+Environment="PATH=/path/to/mechusdemo/.venv/bin"
+Environment="PYTHONPATH=/path/to/mechusdemo"
+ExecStart=/path/to/mechusdemo/.venv/bin/python3 scripts/start_api_server.py
 Restart=always
 RestartSec=10
 
@@ -194,9 +194,9 @@ WantedBy=multi-user.target
 
 Enable and start:
 ```bash
-sudo systemctl enable koov-api
-sudo systemctl start koov-api
-sudo systemctl status koov-api
+sudo systemctl enable mechus-api
+sudo systemctl start mechus-api
+sudo systemctl status mechus-api
 ```
 
 ### 7. Set Up Reverse Proxy (Nginx)
@@ -206,7 +206,7 @@ sudo systemctl status koov-api
 apt install -y nginx
 
 # Create Nginx config
-sudo nano /etc/nginx/sites-available/koov-api
+sudo nano /etc/nginx/sites-available/mechus-api
 ```
 
 ```nginx
@@ -229,7 +229,7 @@ server {
 
 Enable and restart:
 ```bash
-sudo ln -s /etc/nginx/sites-available/koov-api /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mechus-api /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -249,9 +249,9 @@ sudo certbot --nginx -d your-domain.com
 **In your dashboard `.env.local`:**
 ```bash
 # Change from localhost to your server
-KOOV_API_URL=https://your-domain.com
+MECHUS_API_URL=https://your-domain.com
 # or
-KOOV_API_URL=http://your-server-ip:5000
+MECHUS_API_URL=http://your-server-ip:5000
 ```
 
 ## Handling Multiple Meetings
@@ -265,19 +265,19 @@ The current API server only handles one meeting at a time. To support multiple m
 Run multiple instances on different ports:
 ```bash
 # Server 1
-KOOV_API_PORT=5000 pm2 start scripts/start_api_server.py --name koov-api-1
+MECHUS_API_PORT=5000 pm2 start scripts/start_api_server.py --name mechus-api-1
 
 # Server 2
-KOOV_API_PORT=5001 pm2 start scripts/start_api_server.py --name koov-api-2
+MECHUS_API_PORT=5001 pm2 start scripts/start_api_server.py --name mechus-api-2
 ```
 
 ### Option B: Modify API Server for Multiple Sessions (Better)
 
-Update `koov/api_server.py` to support multiple concurrent sessions:
+Update `mechus/api_server.py` to support multiple concurrent sessions:
 
 ```python
 # Change from single session to session dictionary
-_active_sessions: dict[str, KoovSession] = {}  # keyed by meeting_id
+_active_sessions: dict[str, MechusSession] = {}  # keyed by meeting_id
 
 @app.route("/api/join-meeting", methods=["POST"])
 def join_meeting():
@@ -285,7 +285,7 @@ def join_meeting():
     meeting_id = request.json.get("meeting_id")
     
     # Create session for this meeting
-    _active_sessions[meeting_id] = KoovSession(...)
+    _active_sessions[meeting_id] = MechusSession(...)
     
     # ... rest of code
 ```
@@ -322,7 +322,7 @@ ufw enable
 ```
 
 2. **API Authentication:**
-   - Add API keys to Koov API server
+   - Add API keys to Mechus API server
    - Use JWT tokens
    - Rate limiting
 
@@ -344,10 +344,10 @@ pm2 web
 **Logs:**
 ```bash
 # View logs
-pm2 logs koov-api
+pm2 logs mechus-api
 
 # Or systemd
-journalctl -u koov-api -f
+journalctl -u mechus-api -f
 ```
 
 ## Cost Estimation
@@ -367,7 +367,7 @@ journalctl -u koov-api -f
 - [ ] Set up VPS (Ubuntu 22.04)
 - [ ] Install Python and dependencies
 - [ ] Set up virtual audio devices
-- [ ] Deploy Koov code
+- [ ] Deploy Mechus code
 - [ ] Configure environment variables
 - [ ] Set up process manager (PM2 or systemd)
 - [ ] Configure reverse proxy (Nginx)

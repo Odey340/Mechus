@@ -4,7 +4,7 @@ Stress-test and benchmark latency on the production hot path:
 
   classify_intent → ContextIntegrityEngine.ingest_chunk → retrieve_for_question
 
-No network calls unless --hybrid-retrieval and KOOV_OPENAI_API_KEY is set (embedding rerank).
+No network calls unless --hybrid-retrieval and MECHUS_OPENAI_API_KEY is set (embedding rerank).
 
 Examples:
   # Default: large meeting + many retrieval iterations (lexical only, CPU-bound)
@@ -19,11 +19,11 @@ Examples:
   # Compare hybrid (embeddings API) vs lexical — expect higher p95 for hybrid
   python3 scripts/stress_test_latency.py --hybrid-retrieval --iterations 20
 
-Lowest latency in production: set KOOV_LOW_LATENCY=1 (see koov/config.py) or manually:
-  KOOV_RETRIEVAL_MODE=lexical
-  KOOV_RETRIEVAL_EMBED_WEIGHT=0
-  KOOV_RETRIEVAL_MAX_CHARS=3000
-  KOOV_RESPONSE_OPENAI_TIMEOUT_S=12
+Lowest latency in production: set MECHUS_LOW_LATENCY=1 (see mechus/config.py) or manually:
+  MECHUS_RETRIEVAL_MODE=lexical
+  MECHUS_RETRIEVAL_EMBED_WEIGHT=0
+  MECHUS_RETRIEVAL_MAX_CHARS=3000
+  MECHUS_RESPONSE_OPENAI_TIMEOUT_S=12
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ def _percentiles_ms(samples: list[float]) -> dict[str, float]:
 
 
 def _bench_intent(iterations: int) -> dict[str, float]:
-    from koov.intent import classify_intent
+    from mechus.intent import classify_intent
 
     phrases = [
         "recap the last five minutes",
@@ -85,7 +85,7 @@ def _build_engine(
     *,
     seed: float = 1_700_000_000.0,
 ) -> tuple[object, list[str]]:
-    from koov.context_integrity_engine import ContextIntegrityEngine
+    from mechus.context_integrity_engine import ContextIntegrityEngine
 
     eng = ContextIntegrityEngine(meeting_id="stress-latency")
     lines: list[str] = []
@@ -108,7 +108,7 @@ def _bench_retrieval_one(
     mode: str,
     api_key: str | None,
 ) -> dict[str, float]:
-    from koov.retrieval import retrieve_for_question
+    from mechus.retrieval import retrieve_for_question
 
     lat: list[float] = []
     for i in range(iterations):
@@ -140,7 +140,7 @@ def _worker_retrieval(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Stress-test Koov retrieval + intent latency.")
+    ap = argparse.ArgumentParser(description="Stress-test Mechus retrieval + intent latency.")
     ap.add_argument("--chunks", type=int, default=400, help="Transcript chunks per simulated meeting")
     ap.add_argument("--iterations", type=int, default=80, help="Retrieval calls per engine / worker")
     ap.add_argument("--intent-iterations", type=int, default=5000, help="classify_intent calls")
@@ -149,7 +149,7 @@ def main() -> int:
     ap.add_argument(
         "--hybrid-retrieval",
         action="store_true",
-        help="Use hybrid retrieval (requires KOOV_OPENAI_API_KEY for embeddings)",
+        help="Use hybrid retrieval (requires MECHUS_OPENAI_API_KEY for embeddings)",
     )
     args = ap.parse_args()
 
@@ -160,23 +160,23 @@ def main() -> int:
         args.workers = min(args.workers, 2)
 
     mode = "hybrid" if args.hybrid_retrieval else "lexical"
-    api_key = (os.getenv("KOOV_OPENAI_API_KEY") or "").strip() or None
+    api_key = (os.getenv("MECHUS_OPENAI_API_KEY") or "").strip() or None
     if mode == "hybrid" and not api_key:
-        print("Warning: --hybrid-retrieval but KOOV_OPENAI_API_KEY unset; falling back to lexical.")
+        print("Warning: --hybrid-retrieval but MECHUS_OPENAI_API_KEY unset; falling back to lexical.")
         mode = "lexical"
 
     queries = [
-        "Koov give me a recap of the meeting",
+        "Mechus give me a recap of the meeting",
         "what did we say about budget",
         "recap the last 10 minutes",
         "list action items",
         "what risks were mentioned",
     ]
 
-    print("Koov latency stress")
+    print("Mechus latency stress")
     print(f"  chunks={args.chunks}  retrieval_iters={args.iterations}  intent_iters={args.intent_iterations}")
     print(f"  workers={args.workers}  retrieval_mode={mode}")
-    print(f"  KOOV_LOW_LATENCY={os.getenv('KOOV_LOW_LATENCY', '')!r}")
+    print(f"  MECHUS_LOW_LATENCY={os.getenv('MECHUS_LOW_LATENCY', '')!r}")
     print()
 
     # 1) Intent
@@ -221,10 +221,10 @@ def main() -> int:
         print()
 
     print("Tips for lowest latency:")
-    print("  export KOOV_LOW_LATENCY=1")
-    print("  # or: KOOV_RETRIEVAL_MODE=lexical, KOOV_RETRIEVAL_EMBED_WEIGHT=0")
+    print("  export MECHUS_LOW_LATENCY=1")
+    print("  # or: MECHUS_RETRIEVAL_MODE=lexical, MECHUS_RETRIEVAL_EMBED_WEIGHT=0")
     print("  # STT: smaller whisper model / faster compute; shorter transcript chunks")
-    print("  # LLM: lower KOOV_RESPONSE_OPENAI_MAX_TOKENS, shorter KOOV_RESPONSE_PROMPT_MAX_CHARS")
+    print("  # LLM: lower MECHUS_RESPONSE_OPENAI_MAX_TOKENS, shorter MECHUS_RESPONSE_PROMPT_MAX_CHARS")
     return 0
 
 

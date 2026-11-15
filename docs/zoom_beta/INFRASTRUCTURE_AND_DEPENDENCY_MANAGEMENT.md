@@ -1,13 +1,13 @@
-# Infrastructure and Dependency Management Policy – Koov
+# Infrastructure and Dependency Management Policy – Mechus
 
-This document defines how we manage infrastructure and dependencies for the Koov application. It supports Zoom App Beta compliance and operational consistency.
+This document defines how we manage infrastructure and dependencies for the Mechus application. It supports Zoom App Beta compliance and operational consistency.
 
 ---
 
 ## 1. Purpose and Scope
 
 - **Purpose:** To ensure infrastructure and dependencies are selected, updated, and operated in a secure and maintainable way, and to minimise risk from supply-chain and configuration issues.
-- **Scope:** Applies to (a) third-party libraries and packages used by Koov (Python and related), (b) container images and base OS, (c) deployment and runtime environment (e.g. cloud, load balancer, secrets), and (d) tooling used for build and CI.
+- **Scope:** Applies to (a) third-party libraries and packages used by Mechus (Python and related), (b) container images and base OS, (c) deployment and runtime environment (e.g. cloud, load balancer, secrets), and (d) tooling used for build and CI.
 
 ---
 
@@ -43,7 +43,7 @@ This document defines how we manage infrastructure and dependencies for the Koov
 
 ### 4.1 Runtime environment
 
-- **Execution:** Koov runs as a single process (e.g. gunicorn with one worker for Zoom SDK compatibility) or in containers. We use health (`/health`) and readiness (`/ready`) endpoints for orchestration and load balancers.
+- **Execution:** Mechus runs as a single process (e.g. gunicorn with one worker for Zoom SDK compatibility) or in containers. We use health (`/health`) and readiness (`/ready`) endpoints for orchestration and load balancers.
 - **Configuration:** Production configuration is driven by environment variables or a secure config mechanism. We follow [PRODUCTION.md](../PRODUCTION.md): API key when exposed, CORS restricted, TLS at the edge, secrets from a secrets store.
 
 ### 4.2 Networking and TLS

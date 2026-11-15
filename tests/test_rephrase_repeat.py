@@ -1,9 +1,9 @@
-"""Repeat requests should rephrase the prior Koov line, not replay verbatim."""
+"""Repeat requests should rephrase the prior Mechus line, not replay verbatim."""
 
 from __future__ import annotations
 
-from koov.dialog_memory import is_repeat_request
-from koov.responder import rephrase_repeat_spoken
+from mechus.dialog_memory import is_repeat_request
+from mechus.responder import rephrase_repeat_spoken
 
 
 def test_is_repeat_request_matches_common_phrases() -> None:

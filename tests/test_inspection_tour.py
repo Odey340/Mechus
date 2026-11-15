@@ -1,7 +1,7 @@
 """Guided tour: Mechus leads room by room, one stop at a time, and wraps up."""
 import json
 
-from koov.inspection import Inspector, LocalInspectionStore, Tour, build_prompt, parse_target_seen, parse_tour
+from mechus.inspection import Inspector, LocalInspectionStore, Tour, build_prompt, parse_target_seen, parse_tour
 
 TOUR = "kitchen: counters, floor; bathroom: sink"
 CRACK = {"surface": "counter", "issue": "burn mark on the counter", "severity": "medium",

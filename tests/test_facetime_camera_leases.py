@@ -2,7 +2,7 @@ import threading
 
 import pytest
 
-from koov.facetime_camera_lease import CameraLease, CameraLeaseManager, configured_video_devices
+from mechus.facetime_camera_lease import CameraLease, CameraLeaseManager, configured_video_devices
 
 
 def test_configured_video_devices_validates_and_deduplicates():
@@ -38,20 +38,20 @@ def test_reconcile_keeps_fresh_unconfirmed_lease(tmp_path):
     """Join A leased a device but its container is not running yet; join B
     reconciles. A's lease must survive so B cannot receive the same device."""
     manager = CameraLeaseManager(tmp_path, ["/dev/video20", "/dev/video21"])
-    a = manager.acquire("meeting-a", "koov-facetime-a")
+    a = manager.acquire("meeting-a", "mechus-facetime-a")
     assert a is not None
     manager.reconcile([], grace_s=180)  # docker ps shows nothing yet
-    b = manager.acquire("meeting-b", "koov-facetime-b")
+    b = manager.acquire("meeting-b", "mechus-facetime-b")
     assert b is not None and b.device != a.device
 
 
 def test_reconcile_drops_stale_unconfirmed_lease(tmp_path):
     manager = CameraLeaseManager(tmp_path, ["/dev/video20"])
-    lease = manager.acquire("old", "koov-facetime-old")
+    lease = manager.acquire("old", "mechus-facetime-old")
     assert lease is not None
     kept = manager.reconcile([], grace_s=180, now=lease.acquired_at + 600)
     assert kept == []
-    assert manager.acquire("new", "koov-facetime-new") is not None
+    assert manager.acquire("new", "mechus-facetime-new") is not None
 
 
 def test_reconcile_running_claim_wins_over_conflicting_lease(tmp_path):

@@ -1,6 +1,6 @@
 """FaceTime worker heartbeat fields remain stable across incremental writes."""
 
-from koov.facetime_worker import _facetime_status_payload
+from mechus.facetime_worker import _facetime_status_payload
 
 
 def test_ready_persists_while_waiting_and_clears_after_admission() -> None:
@@ -40,28 +40,28 @@ def test_ready_persists_while_waiting_and_clears_after_admission() -> None:
     assert admitted["facetime_phase"] == "in_meeting"
 
 
-def test_env_file_quotes_are_stripped_for_koov_keys() -> None:
-    from koov.facetime_worker import _strip_env_file_quotes
+def test_env_file_quotes_are_stripped_for_mechus_keys() -> None:
+    from mechus.facetime_worker import _strip_env_file_quotes
 
     env = {
-        "KOOV_ELEVEN_VOICE_ID": '"abc123"',
-        "KOOV_ACTIONABLE_PHRASES": "'a, b'",
-        "KOOV_PLAIN": "value",
-        "KOOV_MISMATCHED": "\"oops'",
-        "KOOV_ONE": '"',
+        "MECHUS_ELEVEN_VOICE_ID": '"abc123"',
+        "MECHUS_ACTIONABLE_PHRASES": "'a, b'",
+        "MECHUS_PLAIN": "value",
+        "MECHUS_MISMATCHED": "\"oops'",
+        "MECHUS_ONE": '"',
         "PATH": '"/usr/bin"',
     }
     changed = _strip_env_file_quotes(env)
-    assert sorted(changed) == ["KOOV_ACTIONABLE_PHRASES", "KOOV_ELEVEN_VOICE_ID"]
-    assert env["KOOV_ELEVEN_VOICE_ID"] == "abc123"
-    assert env["KOOV_ACTIONABLE_PHRASES"] == "a, b"
-    assert env["KOOV_MISMATCHED"] == "\"oops'"
-    assert env["KOOV_ONE"] == '"'
+    assert sorted(changed) == ["MECHUS_ACTIONABLE_PHRASES", "MECHUS_ELEVEN_VOICE_ID"]
+    assert env["MECHUS_ELEVEN_VOICE_ID"] == "abc123"
+    assert env["MECHUS_ACTIONABLE_PHRASES"] == "a, b"
+    assert env["MECHUS_MISMATCHED"] == "\"oops'"
+    assert env["MECHUS_ONE"] == '"'
     assert env["PATH"] == '"/usr/bin"'
 
 
 def test_admit_timeout_ignores_stalls_but_has_a_hard_cap() -> None:
-    from koov.facetime_worker import _admit_timed_out
+    from mechus.facetime_worker import _admit_timed_out
 
     # Normal wait: times out once active time reaches the limit.
     assert not _admit_timed_out(elapsed_s=179, stalled_s=0, current_pass_s=1, timeout_s=180)

@@ -8,8 +8,8 @@ import pytest
 
 pytest.importorskip("flask_cors")
 
-from koov import api_server as api  # noqa: E402
-from koov.facetime_control import read_camera_control  # noqa: E402
+from mechus import api_server as api  # noqa: E402
+from mechus.facetime_control import read_camera_control  # noqa: E402
 
 FT_LINK = "https://facetime.apple.com/join#v=1&p=abc123&k=def456"
 
@@ -18,9 +18,9 @@ FT_LINK = "https://facetime.apple.com/join#v=1&p=abc123&k=def456"
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(api, "_notes_dir", lambda: str(tmp_path))
     monkeypatch.setattr(api, "_API_KEY", None)
-    monkeypatch.setenv("KOOV_FT_VIDEO_DEVICES", "/dev/video20,/dev/video21")
-    for key in ("KOOV_FT_CAMERA_FEATURE", "KOOV_FT_VISION_ENABLED", "KOOV_FT_CAMERA_AUTO_ON",
-                "KOOV_FT_CAMERA_REQUIRED"):
+    monkeypatch.setenv("MECHUS_FT_VIDEO_DEVICES", "/dev/video20,/dev/video21")
+    for key in ("MECHUS_FT_CAMERA_FEATURE", "MECHUS_FT_VISION_ENABLED", "MECHUS_FT_CAMERA_AUTO_ON",
+                "MECHUS_FT_CAMERA_REQUIRED"):
         monkeypatch.delenv(key, raising=False)
     # Never shell out to docker from tests.
     monkeypatch.setattr(api, "_reconcile_facetime_camera_leases", lambda: None)
@@ -40,10 +40,10 @@ def _worker_status(tmp_path, meeting_id, **fields):
 
 
 def _session(meeting_id, backend="facetime_web", device="/dev/video20", vision=False):
-    sess = api.KoovSession(meeting_link=FT_LINK, user_id="u")
+    sess = api.MechusSession(meeting_link=FT_LINK, user_id="u")
     sess.join_backend = backend
     sess.status = "active"
-    sess.worker_container = f"koov-facetime-{meeting_id}"
+    sess.worker_container = f"mechus-facetime-{meeting_id}"
     sess.facetime_camera_device = device
     sess.facetime_vision_requested = vision
     with api._session_lock:
@@ -60,13 +60,13 @@ def test_camera_endpoint_disabled_returns_503(client):
 
 
 def test_camera_endpoint_unknown_meeting_404(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_CAMERA_FEATURE", "1")
+    monkeypatch.setenv("MECHUS_FT_CAMERA_FEATURE", "1")
     r = client.post("/api/meetings/nope/camera", json={"action": "turn_on"})
     assert r.status_code == 404
 
 
 def test_camera_endpoint_rejects_non_facetime(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_CAMERA_FEATURE", "1")
+    monkeypatch.setenv("MECHUS_FT_CAMERA_FEATURE", "1")
     _session("z1", backend="zoom_sdk")
     r = client.post("/api/meetings/z1/camera", json={"action": "turn_on"})
     assert r.status_code == 409
@@ -74,7 +74,7 @@ def test_camera_endpoint_rejects_non_facetime(client, monkeypatch):
 
 
 def test_camera_endpoint_rejects_unprovisioned_worker(client, monkeypatch, tmp_path):
-    monkeypatch.setenv("KOOV_FT_CAMERA_FEATURE", "1")
+    monkeypatch.setenv("MECHUS_FT_CAMERA_FEATURE", "1")
     _session("m1", device="")
     r = client.post("/api/meetings/m1/camera", json={"action": "turn_on"})
     assert r.status_code == 409
@@ -87,7 +87,7 @@ def test_camera_endpoint_rejects_unprovisioned_worker(client, monkeypatch, tmp_p
 
 
 def test_camera_endpoint_writes_revisions(client, monkeypatch, tmp_path):
-    monkeypatch.setenv("KOOV_FT_CAMERA_FEATURE", "1")
+    monkeypatch.setenv("MECHUS_FT_CAMERA_FEATURE", "1")
     _session("m1")
     r = client.post("/api/meetings/m1/camera", json={"action": "turn_on"})
     assert r.status_code == 202
@@ -99,7 +99,7 @@ def test_camera_endpoint_writes_revisions(client, monkeypatch, tmp_path):
 
     r = client.post(
         "/api/meetings/m1/camera",
-        json={"action": "show_card", "text": "Koov is summarizing", "duration_seconds": 10},
+        json={"action": "show_card", "text": "Mechus is summarizing", "duration_seconds": 10},
     )
     assert r.status_code == 202
     state = read_camera_control(tmp_path, "m1")
@@ -123,14 +123,14 @@ def test_camera_endpoint_writes_revisions(client, monkeypatch, tmp_path):
     ],
 )
 def test_camera_endpoint_validation(client, monkeypatch, body):
-    monkeypatch.setenv("KOOV_FT_CAMERA_FEATURE", "1")
+    monkeypatch.setenv("MECHUS_FT_CAMERA_FEATURE", "1")
     _session("m1")
     r = client.post("/api/meetings/m1/camera", json=body)
     assert r.status_code == 400
 
 
 def test_camera_endpoint_requires_api_key_when_configured(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_CAMERA_FEATURE", "1")
+    monkeypatch.setenv("MECHUS_FT_CAMERA_FEATURE", "1")
     monkeypatch.setattr(api, "_API_KEY", "secret")
     _session("m1")
     assert client.post("/api/meetings/m1/camera", json={"action": "turn_on"}).status_code == 401
@@ -148,15 +148,15 @@ def test_vision_disabled_503(client):
 
 
 def test_vision_requires_meeting_opt_in(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_VISION_ENABLED", "1")
+    monkeypatch.setenv("MECHUS_FT_VISION_ENABLED", "1")
     _session("m1", vision=False)
     r = client.post("/api/meetings/m1/vision/query", json={"question": "What is visible?"})
     assert r.status_code == 409
 
 
 def test_vision_query_rate_limit_and_status(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_VISION_ENABLED", "1")
-    monkeypatch.setenv("KOOV_FT_VISION_MAX_REQUESTS_PER_MINUTE", "2")
+    monkeypatch.setenv("MECHUS_FT_VISION_ENABLED", "1")
+    monkeypatch.setenv("MECHUS_FT_VISION_MAX_REQUESTS_PER_MINUTE", "2")
     _session("m1", vision=True)
     ids = []
     for _ in range(2):
@@ -172,7 +172,7 @@ def test_vision_query_rate_limit_and_status(client, monkeypatch):
 
 
 def test_vision_query_validation(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_VISION_ENABLED", "1")
+    monkeypatch.setenv("MECHUS_FT_VISION_ENABLED", "1")
     _session("m1", vision=True)
     assert client.post("/api/meetings/m1/vision/query", json={"question": ""}).status_code == 400
     assert client.post("/api/meetings/m1/vision/query", json={"question": "x" * 501}).status_code == 400
@@ -206,13 +206,13 @@ def test_join_required_camera_when_feature_off_is_503(client):
 
 
 def test_launch_args_with_lease(client, monkeypatch):
-    env, args, lease = api._facetime_camera_launch_args("m1", "koov-facetime-m1", provision=True, required=False)
+    env, args, lease = api._facetime_camera_launch_args("m1", "mechus-facetime-m1", provision=True, required=False)
     assert lease is not None and lease.device == "/dev/video20"
-    assert env["KOOV_FT_VIDEO_DEVICE"] == "/dev/video20"
-    assert env["KOOV_FT_CAMERA_FEATURE"] == "1"
+    assert env["MECHUS_FT_VIDEO_DEVICE"] == "/dev/video20"
+    assert env["MECHUS_FT_CAMERA_FEATURE"] == "1"
     assert "--device" in args and "/dev/video20:/dev/video20:rwm" in args
-    assert "koov.video_device=/dev/video20" in args
-    assert "koov.meeting_id=m1" in args
+    assert "mechus.video_device=/dev/video20" in args
+    assert "mechus.meeting_id=m1" in args
 
     api._release_facetime_camera_lease("m1")
     env2, _, lease2 = api._facetime_camera_launch_args("m2", "c2", provision=True, required=False)
@@ -222,22 +222,22 @@ def test_launch_args_with_lease(client, monkeypatch):
 def test_launch_args_without_provision_has_no_device(client):
     env, args, lease = api._facetime_camera_launch_args("m1", "c1", provision=False, required=False)
     assert lease is None
-    assert "--device" not in args and "KOOV_FT_VIDEO_DEVICE" not in env
-    assert env["KOOV_FT_CAMERA_FEATURE"] == "0"
-    assert "koov.facetime=1" in args
+    assert "--device" not in args and "MECHUS_FT_VIDEO_DEVICE" not in env
+    assert env["MECHUS_FT_CAMERA_FEATURE"] == "0"
+    assert "mechus.facetime=1" in args
 
 
 def test_launch_args_pool_exhausted(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_VIDEO_DEVICES", "/dev/video20")
+    monkeypatch.setenv("MECHUS_FT_VIDEO_DEVICES", "/dev/video20")
     api._facetime_camera_launch_args("m1", "c1", provision=True, required=False)
     env, args, lease = api._facetime_camera_launch_args("m2", "c2", provision=True, required=False)
-    assert lease is None and env["KOOV_FT_CAMERA_ERROR_CODE"] == "camera_pool_exhausted"
+    assert lease is None and env["MECHUS_FT_CAMERA_ERROR_CODE"] == "camera_pool_exhausted"
     with pytest.raises(RuntimeError):
         api._facetime_camera_launch_args("m3", "c3", provision=True, required=True)
 
 
 def test_launch_args_misconfigured_pool_degrades(client, monkeypatch):
-    monkeypatch.setenv("KOOV_FT_VIDEO_DEVICES", "/etc/passwd")
+    monkeypatch.setenv("MECHUS_FT_VIDEO_DEVICES", "/etc/passwd")
     env, args, lease = api._facetime_camera_launch_args("m1", "c1", provision=True, required=False)
     assert lease is None and "--device" not in args
 

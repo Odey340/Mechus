@@ -3,25 +3,25 @@
 ## Implemented Optimizations
 
 ### 1. ✅ STT Parameter Optimization
-**File**: `koov/stt.py`
+**File**: `mechus/stt.py`
 **Change**: Reduced `beam_size` from 5 to 1, `best_of` from 5 to 1, disabled `condition_on_previous_text`
 **Impact**: ~100-300ms faster STT
 **Trade-off**: Slight accuracy reduction (~1-2%)
 
 ### 2. ✅ LLM Token Reduction
-**File**: `koov/responder.py`
+**File**: `mechus/responder.py`
 **Change**: Reduced `max_predict` from 150/80 to 100/60
 **Impact**: ~200-500ms faster LLM responses
 **Trade-off**: Slightly shorter responses (usually fine)
 
 ### 3. ✅ Context Size Reduction
-**File**: `koov/responder.py`
+**File**: `mechus/responder.py`
 **Change**: Reduced context from 2000 to 1000 chars, memory from 4000 to 2000 chars
 **Impact**: ~100-300ms faster LLM processing
 **Trade-off**: Less context available (usually sufficient)
 
 ### 4. ✅ TTS Pre-warming
-**File**: `koov/agent.py`
+**File**: `mechus/agent.py`
 **Change**: Pre-warm TTS engine on initialization
 **Impact**: ~50-100ms saved on first TTS call
 **Trade-off**: None

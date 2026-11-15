@@ -7,7 +7,7 @@ import subprocess
 import sys
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-from koov.envfile import load_env_file
+from mechus.envfile import load_env_file
 
 
 def _open_link(link: str) -> None:
@@ -25,7 +25,7 @@ def _open_link(link: str) -> None:
 
 
 def _maybe_with_display_name(link: str, display_name: str | None) -> str:
-    """For Zoom browser links, add a display name so Koov shows up as itself."""
+    """For Zoom browser links, add a display name so Mechus shows up as itself."""
     if not link or not display_name:
         return link
 
@@ -44,7 +44,7 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--env", default=".env")
     p.add_argument("--link", default=None)
-    p.add_argument("--name", default="Koov", help="Display name to pass to Zoom browser links")
+    p.add_argument("--name", default="Mechus", help="Display name to pass to Zoom browser links")
     p.add_argument("--no-open", action="store_true")
     args = p.parse_args()
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from koov.audio import apply_f32_linear_fade_ends
+from mechus.audio import apply_f32_linear_fade_ends
 
 
 def test_fade_in_and_out_shapes_energy() -> None:

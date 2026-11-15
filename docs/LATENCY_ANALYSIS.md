@@ -1,4 +1,4 @@
-# Koov Latency Analysis
+# Mechus Latency Analysis
 
 ## Current Latency Breakdown (After Cleanup)
 
@@ -126,7 +126,7 @@ llm_latency = (time.time() - start) * 1000
 
 ### Current Status: Latency Tracking Enabled
 
-**Latency is now tracked** in the main KoovAgent for each wake cycle:
+**Latency is now tracked** in the main MechusAgent for each wake cycle:
 
 - **stt_ms**: Request audio → STT (speech-to-text) for the user’s question.
 - **context_ms**: Optional context-window transcription (when “summarize” / “what did” etc. are used).
@@ -151,4 +151,4 @@ llm_latency = (time.time() - start) * 1000
 
 **Testing meeting Q&A and latency**
 
-- `scripts/test_koov_meeting_qa.py` runs a simulated meeting (pre-loaded transcript), asks a question, and reports memory + LLM latency and the final transcript. Use `--question "..."` or `--web` for a web-backed question.
+- `scripts/test_mechus_meeting_qa.py` runs a simulated meeting (pre-loaded transcript), asks a question, and reports memory + LLM latency and the final transcript. Use `--question "..."` or `--web` for a web-backed question.

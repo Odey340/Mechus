@@ -42,7 +42,7 @@ The default inspection route is:
 - Bathroom
 - Bedroom
 
-The route can be customized using `KOOV_INSPECT_TOUR`.
+The route can be customized using `MECHUS_INSPECT_TOUR`.
 
 Tour progression is handled automatically:
 - A stop passes after two clear looks.
@@ -191,15 +191,15 @@ Create a `.env` file in the project root. Never commit this file or expose its c
 | `LIVEKIT_API_KEY` | LiveKit API key |
 | `LIVEKIT_API_SECRET` | LiveKit API secret |
 | `GEMINI_API_KEY` | Google Gemini API key |
-| `KOOV_ELEVEN_VOICE_ID` | ElevenLabs voice ID |
-| `KOOV_OPENAI_API_KEY` | OpenAI API key |
-| `KOOV_INSPECT_TOUR` | Optional custom inspection route |
-| `KOOV_INSPECT_INTERVAL_S` | Optional inspection frame-analysis interval |
-| `KOOV_PUBLIC_BASE_URL` | Public base URL used for report links |
-| `KOOV_CHERT_SIGNING_SECRET` | Chert signing secret |
-| `KOOV_CHERT_TENANT` | Chert tenant configuration for iMessage |
+| `MECHUS_ELEVEN_VOICE_ID` | ElevenLabs voice ID |
+| `MECHUS_OPENAI_API_KEY` | OpenAI API key |
+| `MECHUS_INSPECT_TOUR` | Optional custom inspection route |
+| `MECHUS_INSPECT_INTERVAL_S` | Optional inspection frame-analysis interval |
+| `MECHUS_PUBLIC_BASE_URL` | Public base URL used for report links |
+| `MECHUS_CHERT_SIGNING_SECRET` | Chert signing secret |
+| `MECHUS_CHERT_TENANT` | Chert tenant configuration for iMessage |
 
-**Note:** Some configuration settings retain the historical `koov` / `KOOV_` naming prefix.
+**Note:** Some configuration settings retain the historical `mechus` / `MECHUS_` naming prefix.
 
 Optional inspection settings can be left unset to use their application defaults.
 
@@ -210,7 +210,7 @@ The main application is organized into the following components:
 ```text
 Mechus/
 │
-├── koov/
+├── mechus/
 │   ├── api_server.py          # Flask API server and dashboard backend
 │   ├── chert_worker.py        # Per-call FaceTime worker
 │   ├── chert_livekit.py       # LiveKit audio and video publishing
@@ -263,8 +263,8 @@ Mechus is an active project with several known limitations:
 Built as an AI-powered property inspection project, combining real-time communication, computer vision, and automated reporting to make property inspections easier to conduct and document.
 
 
-- **TTS:** `KOOV_TTS_BACKEND=elevenlabs`, `KOOV_ELEVEN_API_KEY`, `KOOV_ELEVEN_VOICE_ID`.
-- **LLM:** `KOOV_LLM_BACKEND=openai`, `KOOV_OPENAI_API_KEY`.
+- **TTS:** `MECHUS_TTS_BACKEND=elevenlabs`, `MECHUS_ELEVEN_API_KEY`, `MECHUS_ELEVEN_VOICE_ID`.
+- **LLM:** `MECHUS_LLM_BACKEND=openai`, `MECHUS_OPENAI_API_KEY`.
 - **Zoom SDK join:** `ZOOM_APP_CLIENT_ID`, `ZOOM_APP_CLIENT_SECRET`.
 - **FaceTime (Chert):** `CHERT_API_KEY`, `CHERT_PROJECT_ID`, `CHERT_LINE_ID`, `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`.
 

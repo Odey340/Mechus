@@ -1,12 +1,12 @@
-# Secure Software Development Lifecycle (SSDLC) – Koov
+# Secure Software Development Lifecycle (SSDLC) – Mechus
 
-This document describes the Secure Software Development Lifecycle practices used for the Koov application. It serves as evidence of SSDLC for Zoom App Beta and related compliance.
+This document describes the Secure Software Development Lifecycle practices used for the Mechus application. It serves as evidence of SSDLC for Zoom App Beta and related compliance.
 
 ---
 
 ## 1. Overview
 
-Koov follows a risk-aware development process that integrates security into design, implementation, review, and deployment. Our SSDLC covers:
+Mechus follows a risk-aware development process that integrates security into design, implementation, review, and deployment. Our SSDLC covers:
 
 - Security requirements and design
 - Secure coding and dependency management
@@ -87,4 +87,4 @@ Koov follows a risk-aware development process that integrates security into desi
 | Vulnerability management | VULNERABILITY_MANAGEMENT.md |
 | Incident response | INCIDENT_MANAGEMENT_AND_RESPONSE.md |
 
-This SSDLC is applied to the Koov application and is updated as our process matures. For Zoom Beta, we submit this document together with SAST/DAST summaries and the Privacy Policy as supporting evidence.
+This SSDLC is applied to the Mechus application and is updated as our process matures. For Zoom Beta, we submit this document together with SAST/DAST summaries and the Privacy Policy as supporting evidence.

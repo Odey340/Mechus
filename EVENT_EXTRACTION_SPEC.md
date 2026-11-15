@@ -94,6 +94,6 @@ Then `_extract_reversal_value(reversal_text, old_value)` extracts the new value 
 
 ## 4. File references
 
-- **Extraction**: `koov/context_integrity_engine.py` — `_extract_decisions`, `_extract_reversal_value`, `_detect_negation_reversal`, `_extract_action_items`, `_extract_open_questions`, `_apply_issue_resolution`, `_DECISION_PATTERNS`, `_ACTION_PATTERNS`, `_QUESTION_PATTERNS`.
+- **Extraction**: `mechus/context_integrity_engine.py` — `_extract_decisions`, `_extract_reversal_value`, `_detect_negation_reversal`, `_extract_action_items`, `_extract_open_questions`, `_apply_issue_resolution`, `_DECISION_PATTERNS`, `_ACTION_PATTERNS`, `_QUESTION_PATTERNS`.
 - **Ledgers**: same file — `_decision_states`, `_reversal_log`, `_action_items`, `_issues`; `ingest_chunk` applies extraction and updates.
 - **Contract**: `CANONICAL_STATE_SCHEMA.md`; tests: `scripts/simulate_meeting_test.py` (`--failure-case`, `--state-completeness`).

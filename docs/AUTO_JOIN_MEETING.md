@@ -19,7 +19,7 @@ pip install selenium playwright
 playwright install chromium
 ```
 
-**Update `koov/api_server.py` to auto-join:**
+**Update `mechus/api_server.py` to auto-join:**
 
 ```python
 from selenium import webdriver

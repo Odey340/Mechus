@@ -4,8 +4,8 @@ from __future__ import annotations
 import re
 import unittest
 
-from koov.text import normalize_text
-from koov.transcript_noise import INLINE_NOISE_RE, is_noise_only_transcript
+from mechus.text import normalize_text
+from mechus.transcript_noise import INLINE_NOISE_RE, is_noise_only_transcript
 
 
 class TestNoiseOnly(unittest.TestCase):

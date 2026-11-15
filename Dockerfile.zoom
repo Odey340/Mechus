@@ -1,4 +1,4 @@
-# Koov + Zoom SDK: join Zoom without a browser.
+# Mechus + Zoom SDK: join Zoom without a browser.
 # Build for linux/amd64 so pip can use the pre-built zoom-meeting-sdk wheel (no Zoom native SDK needed).
 # Platform is set in docker-compose.zoom.yml (required on Apple Silicon; Zoom SDK has no arm64 wheel).
 
@@ -7,7 +7,7 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
-ENV KOOV_API_HOST=0.0.0.0
+ENV MECHUS_API_HOST=0.0.0.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
@@ -60,7 +60,7 @@ COPY requirements.txt requirements-prod.txt requirements-zoom.txt requirements-r
 # Install zoom-meeting-sdk; on amd64 pip should get the pre-built wheel (no build from source).
 RUN pip3 install --no-cache-dir -r requirements.txt -r requirements-prod.txt -r requirements-zoom.txt -r requirements-rtms.txt -r requirements-openwakeword.txt -r requirements-chert.txt
 
-# Download Vosk *before* COPY koov/ so code edits do not invalidate this layer (saves bandwidth and disk on rebuilds).
+# Download Vosk *before* COPY mechus/ so code edits do not invalidate this layer (saves bandwidth and disk on rebuilds).
 COPY scripts/download_vosk_model.py ./scripts/download_vosk_model.py
 RUN mkdir -p models \
     && python3 scripts/download_vosk_model.py --out models \
@@ -69,14 +69,14 @@ RUN mkdir -p models \
 
 COPY docker-entrypoint-zoom.sh /app/docker-entrypoint-zoom.sh
 RUN chmod +x /app/docker-entrypoint-zoom.sh
-COPY koov/ ./koov/
+COPY mechus/ ./mechus/
 COPY scripts/ ./scripts/
 COPY main.py ./
 
-ENV KOOV_VOSK_MODEL_PATH=/app/models/vosk-model-small-en-us-0.15
-ENV KOOV_JOIN_BACKEND=zoom_sdk
+ENV MECHUS_VOSK_MODEL_PATH=/app/models/vosk-model-small-en-us-0.15
+ENV MECHUS_JOIN_BACKEND=zoom_sdk
 
-RUN mkdir -p /app/koov_notes && \
+RUN mkdir -p /app/mechus_notes && \
     useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 USER appuser
@@ -87,7 +87,7 @@ ENV GUNICORN_THREADS=4
 ENV GUNICORN_BIND=0.0.0.0:5000
 ENV GUNICORN_TIMEOUT=120
 ENTRYPOINT ["/app/docker-entrypoint-zoom.sh"]
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "koov.api_server:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "mechus.api_server:app"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health')" || exit 1

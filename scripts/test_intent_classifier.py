@@ -1,5 +1,5 @@
 """
-Unit tests for koov/intent_classifier.py
+Unit tests for mechus/intent_classifier.py
 
 Run from repo root:
     python scripts/test_intent_classifier.py
@@ -7,7 +7,7 @@ Run from repo root:
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from koov.intent_classifier import (
+from mechus.intent_classifier import (
     classify_pipeline_intent,
     INTENT_PRESENCE_CHECK,
     INTENT_RECAP,
@@ -19,7 +19,7 @@ from koov.intent_classifier import (
     INTENT_GREETING,
     INTENT_HELP,
 )
-from koov.intent import classify_intent as classify_intent_base, INTENT_GREETING as IG, INTENT_GENERAL as IGN
+from mechus.intent import classify_intent as classify_intent_base, INTENT_GREETING as IG, INTENT_GENERAL as IGN
 
 def run(desc, got, expected):
     status = "PASS" if got == expected else "FAIL"
@@ -122,20 +122,20 @@ for cmd, expected in general_tests:
 
 # ── Full pipeline (wake-stripped commands from real transcripts) ───────────
 print("\nfull pipeline commands (as they arrive from wake_detector.strip_wake_phrase)")
-from koov.wake_detector import normalize_for_wake, strip_wake_phrase
+from mechus.wake_detector import normalize_for_wake, strip_wake_phrase
 
-WAKE_PHRASES = ("hey computer", "computer", "koov", "koo", "coop")
+WAKE_PHRASES = ("hey computer", "computer", "mechus", "koo", "coop")
 
 pipeline_tests = [
     # (raw Vosk transcript,           expected intent)
     ("computer can you hear me",      INTENT_PRESENCE_CHECK),
-    ("koov summarize the meeting",    INTENT_RECAP),
-    ("koov what did we decide",       INTENT_DECISION),
-    ("koov action items",             INTENT_ACTION_ITEMS),
+    ("mechus summarize the meeting",    INTENT_RECAP),
+    ("mechus what did we decide",       INTENT_DECISION),
+    ("mechus action items",             INTENT_ACTION_ITEMS),
     ("computer what is two plus two", INTENT_GENERAL),
     ("kuv recap",                     INTENT_RECAP),
     ("coop action items",             INTENT_ACTION_ITEMS),
-    ("koov are you there",            INTENT_PRESENCE_CHECK),
+    ("mechus are you there",            INTENT_PRESENCE_CHECK),
     ("computer hear me",              INTENT_PRESENCE_CHECK),
 ]
 for raw, expected in pipeline_tests:

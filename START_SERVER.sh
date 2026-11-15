@@ -1,6 +1,6 @@
 #!/bin/bash
-# Start the Koov API server (development only).
-# Production: run Koov in Docker and scale with multiple instances. See docs/RUN_KOOV_DOCKER.md and docs/PRODUCTION.md.
+# Start the Mechus API server (development only).
+# Production: run Mechus in Docker and scale with multiple instances. See docs/RUN_MECHUS_DOCKER.md and docs/PRODUCTION.md.
 set -e
 cd "$(dirname "$0")"
 

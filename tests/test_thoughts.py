@@ -1,4 +1,4 @@
-"""Tests for koov/thoughts.py — ThoughtStream and related helpers.
+"""Tests for mechus/thoughts.py — ThoughtStream and related helpers.
 
 Run with:  .venv/bin/python -m pytest tests/test_thoughts.py -v
 """
@@ -10,7 +10,7 @@ import threading
 
 import pytest
 
-from koov.thoughts import ThoughtStream, ThoughtEntry
+from mechus.thoughts import ThoughtStream, ThoughtEntry
 
 
 # ── ThoughtEntry ──────────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ class TestParseJsonVoiceResponseFull:
 
     @pytest.fixture(autouse=True)
     def _import(self):
-        from koov.responder import _parse_json_voice_response_full
+        from mechus.responder import _parse_json_voice_response_full
         self.parse = _parse_json_voice_response_full
 
     def test_both_fields(self):
@@ -224,7 +224,7 @@ class TestParseJsonVoiceResponseFull:
         assert cont is None
 
     def test_backward_compat_spoken_only_wrapper(self):
-        from koov.responder import _parse_json_voice_response
+        from mechus.responder import _parse_json_voice_response
         raw = json.dumps({"private_thoughts": "Reasoning.", "spoken_response": "Done."})
         assert _parse_json_voice_response(raw) == "Done."
 
@@ -238,7 +238,7 @@ class TestStatusThoughtsIntegration:
         try:
             import sys, os
             sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-            from koov.api_server import app, _active_sessions, KoovSession, _session_lock
+            from mechus.api_server import app, _active_sessions, MechusSession, _session_lock
         except ImportError as exc:
             pytest.skip(f"api_server import failed: {exc}")
 
@@ -252,7 +252,7 @@ class TestStatusThoughtsIntegration:
             def get_thoughts_for_status(self):
                 return stream.snapshot()
 
-        fake_session = KoovSession(
+        fake_session = MechusSession(
             meeting_link="https://facetime.apple.com/test",
             user_id="test-user",
             status="active",

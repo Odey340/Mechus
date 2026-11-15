@@ -3,17 +3,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from koov.meeting_store import MeetingStore
-from koov.retrieval import retrieve_for_question
-from koov.team_context import TeamContextStore
+from mechus.meeting_store import MeetingStore
+from mechus.retrieval import retrieve_for_question
+from mechus.team_context import TeamContextStore
 
 
 def test_team_context_manual_and_meeting_import(monkeypatch, tmp_path: Path) -> None:
     meeting_base = tmp_path / "meetings"
     notes_base = tmp_path / "notes"
     team_base = notes_base / "team_context"
-    monkeypatch.setenv("KOOV_MEETING_STORE_DIR", str(meeting_base))
-    monkeypatch.setenv("KOOV_NOTES_DIR", str(notes_base))
+    monkeypatch.setenv("MECHUS_MEETING_STORE_DIR", str(meeting_base))
+    monkeypatch.setenv("MECHUS_NOTES_DIR", str(notes_base))
 
     meeting = MeetingStore("m1")
     meeting.append_enriched_chunk(
@@ -54,8 +54,8 @@ def test_retrieval_includes_shared_team_context() -> None:
 def test_team_context_meeting_import_falls_back_to_notes_jsonl(monkeypatch, tmp_path: Path) -> None:
     meeting_base = tmp_path / "empty_meetings"
     notes_base = tmp_path / "notes"
-    monkeypatch.setenv("KOOV_MEETING_STORE_DIR", str(meeting_base))
-    monkeypatch.setenv("KOOV_NOTES_DIR", str(notes_base))
+    monkeypatch.setenv("MECHUS_MEETING_STORE_DIR", str(meeting_base))
+    monkeypatch.setenv("MECHUS_NOTES_DIR", str(notes_base))
     notes_base.mkdir(parents=True)
     transcript_path = notes_base / "facetime-m1.jsonl"
     transcript_path.write_text(

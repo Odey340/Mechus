@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from koov.audio import trim_f32_silence_edges
+from mechus.audio import trim_f32_silence_edges
 
 
 def test_trim_removes_leading_and_trailing_zeros() -> None:

@@ -11,31 +11,31 @@ Instead of trading accuracy for speed, we use:
 ## Implemented Optimizations (No Accuracy Loss)
 
 ### ✅ 1. Response Caching
-**File**: `koov/response_cache.py` (new)
+**File**: `mechus/response_cache.py` (new)
 **Impact**: Instant responses for repeated questions
 **Accuracy**: 100% (same response as before)
 **Latency Savings**: 500-2000ms for cached questions
 
 ### ✅ 2. Parallel Processing Infrastructure
-**File**: `koov/parallel_processor.py` (new)
+**File**: `mechus/parallel_processor.py` (new)
 **Impact**: Overlap STT and context processing
 **Accuracy**: 100% (same results, just faster)
 **Latency Savings**: 200-400ms
 
 ### ✅ 3. TTS Pre-warming
-**File**: `koov/agent.py`
+**File**: `mechus/agent.py`
 **Impact**: Eliminates first-use TTS latency
 **Accuracy**: 100% (no change)
 **Latency Savings**: 50-100ms
 
 ### ✅ 4. Balanced STT Settings
-**File**: `koov/stt.py`
+**File**: `mechus/stt.py`
 **Settings**: `beam_size=3, best_of=3` (balanced)
 **Accuracy**: High (better than beam_size=1)
 **Latency**: Good (better than beam_size=5)
 
 ### ✅ 5. Full Context & Token Limits
-**File**: `koov/responder.py`
+**File**: `mechus/responder.py`
 **Settings**: Full context (2000/4000), full tokens (150/80)
 **Accuracy**: Maximum
 **Latency**: Acceptable (quality over speed)
@@ -61,38 +61,38 @@ See **[APPLE_SILICON_OPTIMIZATION.md](APPLE_SILICON_OPTIMIZATION.md)** for advan
 ### STT Backend
 ```bash
 # Option 1: Deepgram Nova-2 (Cloud - Fastest + Accurate)
-KOOV_STT_BACKEND=deepgram
-KOOV_DEEPGRAM_API_KEY=your_key
-KOOV_DEEPGRAM_MODEL=nova-2
+MECHUS_STT_BACKEND=deepgram
+MECHUS_DEEPGRAM_API_KEY=your_key
+MECHUS_DEEPGRAM_MODEL=nova-2
 # Latency: ~150-300ms, Accuracy: 95-97%
 
 # Option 2: Faster-Whisper with GPU (Local - Fast + Accurate)
-KOOV_STT_BACKEND=faster-whisper
-KOOV_WHISPER_MODEL=base.en  # or small.en for balance
-KOOV_WHISPER_COMPUTE_TYPE=float16  # if GPU available
+MECHUS_STT_BACKEND=faster-whisper
+MECHUS_WHISPER_MODEL=base.en  # or small.en for balance
+MECHUS_WHISPER_COMPUTE_TYPE=float16  # if GPU available
 # Latency: ~200-400ms (CPU) or ~100-200ms (GPU), Accuracy: 95-97%
 ```
 
 ### LLM Model
 ```bash
 # Best balance: qwen2.5:7b-instruct
-KOOV_OLLAMA_MODEL=qwen2.5:7b-instruct
+MECHUS_OLLAMA_MODEL=qwen2.5:7b-instruct
 # Latency: ~500-1200ms, Quality: Excellent
 
 # Alternative: llama3.1:8b-instruct (slightly faster)
-KOOV_OLLAMA_MODEL=llama3.1:8b-instruct
+MECHUS_OLLAMA_MODEL=llama3.1:8b-instruct
 # Latency: ~400-1000ms, Quality: Excellent
 ```
 
 ### TTS Backend
 ```bash
 # Option 1: ElevenLabs Turbo (Cloud - Fast + High Quality)
-KOOV_TTS_BACKEND=elevenlabs
-KOOV_ELEVEN_MODEL_ID=eleven_turbo_v2
+MECHUS_TTS_BACKEND=elevenlabs
+MECHUS_ELEVEN_MODEL_ID=eleven_turbo_v2
 # Latency: ~200-400ms, Quality: Excellent
 
 # Option 2: Piper (Local - Fast + Good Quality)
-KOOV_TTS_BACKEND=piper
+MECHUS_TTS_BACKEND=piper
 # Latency: ~100-200ms, Quality: Good
 ```
 
@@ -100,7 +100,7 @@ KOOV_TTS_BACKEND=piper
 
 ### 6. Use GPU for STT (if available)
 ```python
-# In koov/stt.py, FasterWhisperTranscriber.__init__()
+# In mechus/stt.py, FasterWhisperTranscriber.__init__()
 # Change device to "cuda" if GPU available
 self._model = WhisperModel(model, device="cuda", compute_type="float16")
 ```
@@ -126,8 +126,8 @@ self._model = WhisperModel(model, device="cuda", compute_type="float16")
 ### 9. Optimize Audio Buffers
 ```bash
 # Reduce unnecessary buffering
-KOOV_MIN_REQUEST_SECONDS=0.5  # Minimum needed
-KOOV_END_SILENCE_SECONDS=0.7   # Minimum needed
+MECHUS_MIN_REQUEST_SECONDS=0.5  # Minimum needed
+MECHUS_END_SILENCE_SECONDS=0.7   # Minimum needed
 ```
 **Impact**: 50-100ms faster wake cycle
 **Accuracy**: No change
@@ -193,15 +193,15 @@ log.info(f"Cache: {cache_stats['size']} entries, {cache_stats['total_hits']} hit
 
 ```bash
 # .env file for best accuracy + speed
-KOOV_STT_BACKEND=deepgram  # or faster-whisper with GPU
-KOOV_DEEPGRAM_MODEL=nova-2
-KOOV_WHISPER_MODEL=base.en  # if using faster-whisper
-KOOV_OLLAMA_MODEL=qwen2.5:7b-instruct
-KOOV_TTS_BACKEND=elevenlabs
-KOOV_ELEVEN_MODEL_ID=eleven_turbo_v2
-KOOV_MAX_RESPONSE_WORDS=80  # Full length for quality
-KOOV_MEMORY_MAX_CHARS=8000  # Full context
-KOOV_MEMORY_RECENT_CHARS=2000  # Full recent context
+MECHUS_STT_BACKEND=deepgram  # or faster-whisper with GPU
+MECHUS_DEEPGRAM_MODEL=nova-2
+MECHUS_WHISPER_MODEL=base.en  # if using faster-whisper
+MECHUS_OLLAMA_MODEL=qwen2.5:7b-instruct
+MECHUS_TTS_BACKEND=elevenlabs
+MECHUS_ELEVEN_MODEL_ID=eleven_turbo_v2
+MECHUS_MAX_RESPONSE_WORDS=80  # Full length for quality
+MECHUS_MEMORY_MAX_CHARS=8000  # Full context
+MECHUS_MEMORY_RECENT_CHARS=2000  # Full recent context
 ```
 
 ## Results

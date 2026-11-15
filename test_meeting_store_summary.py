@@ -5,9 +5,9 @@ import os
 import tempfile
 import unittest
 
-from koov.context_integrity_engine import ContextIntegrityEngine, FinalReport
-from koov.meeting_store import MeetingStore, StoredChunk
-from koov.meeting_summary import build_summary_evidence_text, merge_final_report_into_summary
+from mechus.context_integrity_engine import ContextIntegrityEngine, FinalReport
+from mechus.meeting_store import MeetingStore, StoredChunk
+from mechus.meeting_summary import build_summary_evidence_text, merge_final_report_into_summary
 
 
 class TestMeetingStoreEnriched(unittest.TestCase):

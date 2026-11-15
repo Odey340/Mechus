@@ -12,7 +12,7 @@ pytest.importorskip("flask_cors")
 
 from werkzeug.exceptions import MethodNotAllowed, NotFound  # noqa: E402
 
-from koov import api_server as api  # noqa: E402
+from mechus import api_server as api  # noqa: E402
 
 DASHBOARD_HTML = os.path.join(os.path.dirname(api.__file__), "static", "properties.html")
 MEETING_HTML = os.path.join(os.path.dirname(api.__file__), "static", "dashboard.html")
@@ -22,8 +22,8 @@ MEETING_HTML = os.path.join(os.path.dirname(api.__file__), "static", "dashboard.
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(api, "_notes_dir", lambda: str(tmp_path))
     monkeypatch.setattr(api, "_API_KEY", None)
-    monkeypatch.setenv("KOOV_NOTES_DIR", str(tmp_path))
-    monkeypatch.setenv("KOOV_TEAM_STORE_DIR", str(tmp_path / "team_context"))
+    monkeypatch.setenv("MECHUS_NOTES_DIR", str(tmp_path))
+    monkeypatch.setenv("MECHUS_TEAM_STORE_DIR", str(tmp_path / "team_context"))
     with api._session_lock:
         saved = dict(api._active_sessions)
         api._active_sessions.clear()
@@ -48,7 +48,6 @@ def test_meetings_are_native_dashboard_tab(client):
     assert b'api("/api/join-meeting"' in r.data
     assert b'api("/api/stop"' in r.data
     assert b"Send Mechus to a meeting" in r.data
-    assert b"Koov" not in r.data
 
 
 def test_dashboard_uses_imessage_as_the_real_chat(client):
@@ -175,7 +174,7 @@ def test_welcome_served_and_public(client, monkeypatch):
         ("/static/vendor/lenis.min.js", b"Lenis"),
         ("/static/js/blob.js", b"export function createBlob"),
         ("/static/js/sea.js", b"export function createSea"),
-        ("/static/js/dashboard-scene.js", b"__koovSceneReady"),
+        ("/static/js/dashboard-scene.js", b"__mechusSceneReady"),
     ],
 )
 def test_dashboard_assets_served_and_public(client, monkeypatch, path, needle):

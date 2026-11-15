@@ -1,4 +1,4 @@
-# Koov — how it works (architecture map)
+# Mechus — how it works (architecture map)
 
 This document maps **processes**, **data flow**, and **where configuration applies**. Use it with [ZOOM_SPEAKER_ATTRIBUTION.md](ZOOM_SPEAKER_ATTRIBUTION.md) for Zoom-specific paths.
 
@@ -10,14 +10,14 @@ This document maps **processes**, **data flow**, and **where configuration appli
 flowchart LR
   subgraph local["Local / dev"]
     M["main.py"]
-    M --> A["KoovAgent.run_forever()"]
+    M --> A["MechusAgent.run_forever()"]
   end
-  subgraph api["Koov API server"]
+  subgraph api["Mechus API server"]
     J["POST /api/join-meeting"]
     J --> T["Thread: browser / external / zoom_sdk"]
-    T --> A2["KoovAgent.run_forever()"]
-    T --> W["zoom_sdk: subprocess\npython -m koov.worker"]
-    W --> A3["KoovAgent + Zoom audio"]
+    T --> A2["MechusAgent.run_forever()"]
+    T --> W["zoom_sdk: subprocess\npython -m mechus.worker"]
+    W --> A3["MechusAgent + Zoom audio"]
   end
   subgraph stop["End meeting"]
     S["POST /api/stop"]
@@ -29,7 +29,7 @@ flowchart LR
 |------|------------------------|
 | `python main.py` | Direct run with mic/speaker from `.env`. |
 | `POST /api/join-meeting` | API spawns agent thread or **worker** subprocess (`zoom_sdk`). |
-| `koov.worker` | Zoom SDK join + agent (one process per meeting). |
+| `mechus.worker` | Zoom SDK join + agent (one process per meeting). |
 
 ---
 
@@ -59,9 +59,9 @@ flowchart TB
 
 | Mode | Env | What you get |
 |------|-----|----------------|
-| Default Zoom | `KOOV_ZOOM_STREAM_ATTRIBUTION=0` | **Mixed** audio — one stream, everyone; speaker often `unknown` unless diarization. |
-| Per-participant | `KOOV_ZOOM_STREAM_ATTRIBUTION=1` | **One-way** only — each frame tagged with Zoom **display name** (or `user_<id>`). No mixed feed. |
-| Diarization | `KOOV_DIARIZATION_ENABLED=1` and **no** stream attribution | **Mixed** audio split by pyannote → `SPEAKER_00`… |
+| Default Zoom | `MECHUS_ZOOM_STREAM_ATTRIBUTION=0` | **Mixed** audio — one stream, everyone; speaker often `unknown` unless diarization. |
+| Per-participant | `MECHUS_ZOOM_STREAM_ATTRIBUTION=1` | **One-way** only — each frame tagged with Zoom **display name** (or `user_<id>`). No mixed feed. |
+| Diarization | `MECHUS_DIARIZATION_ENABLED=1` and **no** stream attribution | **Mixed** audio split by pyannote → `SPEAKER_00`… |
 
 Stream attribution and full pyannote diarization are **mutually exclusive** in code (stream attribution wins; diarizer is not used).
 
@@ -86,12 +86,12 @@ flowchart LR
 | Step | Module / role |
 |------|----------------|
 | 1 | Prefer **Vosk trigger text** (captured **before** `reset()`) so the full phrase isn’t lost. |
-| 2–4 | `koov/wake_detector.py` |
-| 5 | `koov/intent_classifier.py` → may delegate to `koov/intent.py` |
-| 6 | `koov/command_router.py` — presence/greeting/stop → instant; else **responder** |
+| 2–4 | `mechus/wake_detector.py` |
+| 5 | `mechus/intent_classifier.py` → may delegate to `mechus/intent.py` |
+| 6 | `mechus/command_router.py` — presence/greeting/stop → instant; else **responder** |
 | 7 | Memory segment, `NoteStore` **wake_cycle**, optional meeting snapshot |
 
-**STT for the user’s question** uses `KOOV_STT_BACKEND` (faster-whisper, OpenAI, ElevenLabs, etc.) — **not** the same as TTS. **TTS** (`KOOV_TTS_BACKEND`) only turns Koov’s reply into audio for the meeting.
+**STT for the user’s question** uses `MECHUS_STT_BACKEND` (faster-whisper, OpenAI, ElevenLabs, etc.) — **not** the same as TTS. **TTS** (`MECHUS_TTS_BACKEND`) only turns Mechus’s reply into audio for the meeting.
 
 ---
 
@@ -112,8 +112,8 @@ flowchart TB
   TTS --> OUT["Audio out\n(speakers / Zoom virtual mic)"]
 ```
 
-- **Retrieval** (`koov/retrieval.py`): intent classification, optional **light path** for `general` (skip heavy chunk retrieval).
-- **Responder** (`koov/responder.py`): system prompt, meeting-only grounding, optional **structured state** (decisions, action items).
+- **Retrieval** (`mechus/retrieval.py`): intent classification, optional **light path** for `general` (skip heavy chunk retrieval).
+- **Responder** (`mechus/responder.py`): system prompt, meeting-only grounding, optional **structured state** (decisions, action items).
 - **Response cache**: keyed by question similarity; cleared on `set_meeting`.
 
 ---
@@ -143,10 +143,10 @@ flowchart LR
 |------|------|--------|
 | Live status + recent transcript lines | `GET /api/status?meeting_id=` | `live_transcripts` (capped). |
 | Full transcript while active | `GET /api/transcript?meeting_id=` | Requires active session. |
-| Speaker label overrides | `POST /api/meeting/speakers` | Writes `speaker_maps/<safe_meeting_id>.json` under `KOOV_NOTES_DIR`. |
-| End meeting + **executive summary** | `POST /api/stop` | Body includes **`final_summary`** (LLM + interactions). Worker writes `koov_meetings/<id>/final_summary.json`. |
+| Speaker label overrides | `POST /api/meeting/speakers` | Writes `speaker_maps/<safe_meeting_id>.json` under `MECHUS_NOTES_DIR`. |
+| End meeting + **executive summary** | `POST /api/stop` | Body includes **`final_summary`** (LLM + interactions). Worker writes `mechus_meetings/<id>/final_summary.json`. |
 
-Koov **does not push** to the dashboard; the app **polls** or reads the **stop response**.
+Mechus **does not push** to the dashboard; the app **polls** or reads the **stop response**.
 
 ---
 
@@ -158,7 +158,7 @@ flowchart LR
   STOP --> W["Worker: SIGTERM"]
   W --> GS["get_meeting_data_for_summary()\nchunks + engine state"]
   GS --> LLM["generate_final_summary\n(OpenAI)"]
-  LLM --> INT["get_koov_interactions()\nNoteStore wake_cycle"]
+  LLM --> INT["get_mechus_interactions()\nNoteStore wake_cycle"]
   INT --> FILE["final_summary.json"]
   STOP --> R["JSON response\nfinal_summary"]
 ```
@@ -169,12 +169,12 @@ flowchart LR
 
 | Path | Purpose |
 |------|---------|
-| `koov_notes/<session>.jsonl` | Transcript notes + **wake_cycle** (user/Koov turns). |
-| `koov_notes/worker-status-<meeting_id>.json` | Worker heartbeat, `transcript_path`. |
-| `koov_notes/speaker_maps/<safe_meeting_id>.json` | Manual speaker aliases (legacy `speaker-map-<meeting_id>.json` in notes root is still read). |
-| `koov_meetings/<meeting_id>/chunks.jsonl` | Meeting transcript chunks for replay/summary. |
-| `koov_meetings/<meeting_id>/snapshot.json` | Structured state snapshot. |
-| `koov_meetings/<meeting_id>/final_summary.json` | End-of-meeting **executive_summary**, action_items, **interactions**. |
+| `mechus_notes/<session>.jsonl` | Transcript notes + **wake_cycle** (user/Mechus turns). |
+| `mechus_notes/worker-status-<meeting_id>.json` | Worker heartbeat, `transcript_path`. |
+| `mechus_notes/speaker_maps/<safe_meeting_id>.json` | Manual speaker aliases (legacy `speaker-map-<meeting_id>.json` in notes root is still read). |
+| `mechus_meetings/<meeting_id>/chunks.jsonl` | Meeting transcript chunks for replay/summary. |
+| `mechus_meetings/<meeting_id>/snapshot.json` | Structured state snapshot. |
+| `mechus_meetings/<meeting_id>/final_summary.json` | End-of-meeting **executive_summary**, action_items, **interactions**. |
 
 ---
 
@@ -182,13 +182,13 @@ flowchart LR
 
 | Variable | Effect |
 |----------|--------|
-| `KOOV_WAKE_PHRASE` | Comma-separated wake words. |
-| `KOOV_STT_BACKEND` | Transcribes **user speech** (wake recording + transcript chunks). |
-| `KOOV_TTS_BACKEND` | **ElevenLabs / Piper** — Koov’s **voice out** only. |
-| `KOOV_ZOOM_STREAM_ATTRIBUTION` | Per-user Zoom streams + display names. |
-| `KOOV_DIARIZATION_ENABLED` | Pyannote on **mixed** audio when stream attribution is off. |
-| `KOOV_LLM_BACKEND` | OpenAI chat vs rules. |
+| `MECHUS_WAKE_PHRASE` | Comma-separated wake words. |
+| `MECHUS_STT_BACKEND` | Transcribes **user speech** (wake recording + transcript chunks). |
+| `MECHUS_TTS_BACKEND` | **ElevenLabs / Piper** — Mechus’s **voice out** only. |
+| `MECHUS_ZOOM_STREAM_ATTRIBUTION` | Per-user Zoom streams + display names. |
+| `MECHUS_DIARIZATION_ENABLED` | Pyannote on **mixed** audio when stream attribution is off. |
+| `MECHUS_LLM_BACKEND` | OpenAI chat vs rules. |
 
 ---
 
-*This map is a guide; see source under `koov/` for exact behavior.*
+*This map is a guide; see source under `mechus/` for exact behavior.*
