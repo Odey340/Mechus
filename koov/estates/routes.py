@@ -151,6 +151,21 @@ def page_check_report(mid: str):
     return Response("Report not found", status=404, mimetype="text/plain")
 
 
+@bp.get("/checks/<mid>/report.pdf")
+def check_report_pdf(mid: str):
+    """The same report as a PDF download."""
+    from koov.estates import checks as check_reports
+
+    for prop in store.list_properties():
+        check = _find_check(prop["id"], mid)
+        if check is not None:
+            resp = Response(check_reports.render_pdf(prop, check), mimetype="application/pdf")
+            resp.headers["Content-Disposition"] = f'attachment; filename="{check_reports.pdf_filename(prop, check)}"'
+            resp.headers["Cache-Control"] = "no-store"
+            return resp
+    return Response("Report not found", status=404, mimetype="text/plain")
+
+
 @bp.get("/checks/<mid>/photo/<name>")
 def check_report_photo(mid: str, name: str):
     from koov.estates import checks as check_reports

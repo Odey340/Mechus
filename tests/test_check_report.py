@@ -73,6 +73,12 @@ def test_report_page_shows_findings_rooms_and_photos(env):
     assert c.get("/checks/m-1/photo/001.jpg").mimetype == "image/jpeg"
     assert c.get("/checks/m-1/photo/..%2f..%2fworker-status-m-1.json").status_code == 404
     assert c.get("/checks/nope").status_code == 404
+    assert "/checks/m-1/report.pdf" in page
+    pdf = c.get("/checks/m-1/report.pdf")
+    assert pdf.status_code == 200 and pdf.mimetype == "application/pdf" and pdf.data[:5] == b"%PDF-"
+    assert pdf.headers["Content-Disposition"].startswith('attachment; filename="mechus-move-out-Apt-9-')
+    assert pdf.data.count(b"/Subtype /Image") >= 2  # the logo and at least one photo are embedded
+    assert c.get("/checks/nope/report.pdf").status_code == 404
     check = c.get(f"/api/estates/properties/{prop['id']}/checks", headers={"X-API-Key": "secret"}).get_json()["checks"][0]
     assert check["report_url"] == "/checks/m-1"
     assert checks.summary_text(prop, check) == (

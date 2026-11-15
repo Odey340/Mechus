@@ -19,6 +19,8 @@ websocket-client>=1.8.0
 imageio-ffmpeg>=0.5.1
 opencv-python-headless>=4.9
 pillow-heif>=0.16
+# PDF download of walkthrough reports (pure Python)
+fpdf2>=2.7
 
 # Tiger Data (TimescaleDB) meeting analytics - see docs/TIGER_DATA.md
 psycopg[binary,pool]>=3.2

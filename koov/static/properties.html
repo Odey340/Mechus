@@ -1643,6 +1643,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
           el("div", { class: "s", text: `${c.ok || 0} of ${c.areas || 0} areas checked out · ${c.issues || 0} issue${c.issues === 1 ? "" : "s"} · ${ago(r.at)}` })),
         el("span", { class: "tag " + (tone[r.result] || ""), text: label[r.result] || "Unknown" }),
         el("a", { class: "btn btn-ghost btn-sm", href: r.report_url, target: "_blank", rel: "noopener", text: "Open" }),
+        r.report_url.startsWith("/checks/") ? el("a", { class: "btn btn-ghost btn-sm", href: r.report_url + "/report.pdf", download: "" }, icon("doc", 14), "PDF") : null,
         send);
     };
     rc(v, el("h1", { text: "Reports" }),
