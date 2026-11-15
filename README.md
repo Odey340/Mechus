@@ -1,35 +1,41 @@
 # Mechus
 
-**An AI-powered FaceTime inspection assistant that guides tenants through property inspections and documents visible damage for landlords.**
+**Your AI property inspector. Just answer the call.**
+
+Mechus is an AI-powered property inspector you can FaceTime. A landlord starts an inspection from a web dashboard, Mechus calls the tenant over FaceTime Video, guides them through the unit room by room, identifies potential damage through their camera, and produces a printable report with photographic evidence.
+
+Tenants never install an app or create an account. They simply answer a call and follow the spoken instructions.
+
+---
 
 ## What It Is
 
-Mechus is an AI-powered property inspection assistant that automates guided move-in and move-out inspections over FaceTime.
+Mechus makes property inspections easier, more transparent, and more consistent for landlords and tenants.
 
-A landlord adds a tenant through the web dashboard and initiates an inspection. Mechus calls the tenant through FaceTime Video, guides them through the property room by room, identifies potential damage through the tenant's camera, and documents its findings for the landlord.
+Instead of relying on clipboards, manual walkthroughs, and scattered photos, Mechus uses real-time video analysis and AI-guided inspections to document property conditions.
 
-Tenants do not need to install an application or create an account. They simply answer a FaceTime call and follow Mechus's spoken instructions.
-
-When the inspection finishes, the landlord receives access to a printable inspection report containing findings, photographs, and a room-by-room record of the inspection.
+The platform supports both move-in and move-out inspections, allowing landlords to establish an initial property baseline and compare it against future inspections.
 
 ## How It Works
 
-Mechus combines a Flask dashboard, a LiveKit video pipeline, a FaceTime bridge, and Gemini vision analysis to conduct inspections.
+Mechus combines a Flask dashboard, a LiveKit video pipeline, a FaceTime bridge, and Gemini vision analysis.
 
-The inspection process works as follows:
-
-1. **Inspection initiated:** The landlord starts an inspection from the web dashboard. Flask launches a dedicated worker process for the call.
-2. **LiveKit session:** The worker joins a LiveKit room, publishing its audio track and a video tile containing a status card that displays the current inspection stop.
-3. **FaceTime connection:** Chert's FaceTime bridge joins the same room and places a FaceTime call to the tenant. The tenant's camera and audio arrive as ordinary LiveKit tracks.
-4. **Frame analysis:** Every three seconds, Mechus sends a camera frame to Gemini Flash-Lite for analysis. The model returns structured JSON describing:
-   - The area currently visible.
-   - Whether the current tour stop is visible.
-   - Potential damage findings, including bounding boxes.
-   - A spoken response or instruction.
-5. **Spoken guidance:** Mechus communicates with the tenant through its published audio track, guiding them through the inspection.
-6. **Report generation:** When the call ends, the inspection results are processed into a report. The landlord is notified through iMessage when messaging is configured.
+1. **Inspection Initiated:** A landlord starts a move-in or move-out inspection from the web dashboard.
+2. **LiveKit Session:** A dedicated Python worker joins a LiveKit room and publishes audio and a video status card displaying the current inspection stop.
+3. **FaceTime Connection:** Chert's FaceTime bridge connects to the same room and calls the tenant using their phone number or Apple ID email.
+4. **Frame Analysis:** Every three seconds, a camera frame is sent to Gemini Flash-Lite for structured visual analysis.
+5. **Spoken Guidance:** Mechus provides real-time spoken instructions, guiding tenants through each inspection area.
+6. **Evidence Storage:** Inspection photos, findings, move-in baselines, and historical records are stored in MongoDB, with a local-file fallback.
+7. **Report Generation:** Once the inspection ends, results are compiled into a printable report. The landlord receives an iMessage summary when messaging is configured.
 
 ## Features
+
+### Live AI Walkthroughs
+
+- FaceTime-based inspections without requiring tenants to install an application.
+- Real-time camera analysis using Google Gemini Flash-Lite.
+- Spoken instructions and contextual follow-up questions.
+- Independent Python worker processes for individual inspection sessions.
 
 ### Guided Property Tours
 
@@ -37,75 +43,63 @@ Mechus guides tenants through one room and one inspection item at a time.
 
 The default inspection route is:
 
-- Living room
-- Kitchen
-- Bathroom
-- Bedroom
+`Living Room → Kitchen → Bathroom → Bedroom`
 
 The route can be customized using `MECHUS_INSPECT_TOUR`.
 
-Tour progression is handled automatically:
-- A stop passes after two clear looks.
-- A stop is flagged when damage is detected.
-- A stop is marked as not shown after one reminder.
-- Mechus finishes the inspection with a spoken summary.
+- An inspection stop passes after two clear looks.
+- Potential damage triggers a flagged finding.
+- An inspection stop is marked as not shown after one reminder.
+- Mechus provides a spoken summary when the walkthrough is complete.
 
-### Damage Detection and Findings
+### AI Damage Detection
 
 - Camera frames are analyzed using Gemini Flash-Lite.
-- Potential damage findings include bounding boxes.
-- Findings are consolidated across frames using Jaccard similarity on word sets.
-- Each finding is associated with the relevant inspection stop.
+- Potential damage is returned with bounding boxes.
+- Findings are consolidated across frames using Jaccard similarity.
+- Each finding is associated with its corresponding inspection stop.
+- Photographic evidence is captured for flagged findings and passing inspection stops.
 
-### Inspection Photography
+### Move-In and Move-Out Comparisons
 
-Mechus captures:
-- One photograph per finding, with the detected damage outlined in a red bounding box.
-- One photograph for each inspection stop that passes.
+Move-in inspections establish a visual baseline of the property's condition.
+
+During move-out inspections, Mechus compares the live camera feed against the saved baseline to identify potential changes rather than flagging every existing imperfection.
 
 ### Printable Inspection Reports
 
-Each completed inspection produces a printable report containing:
+Each completed inspection generates a report containing:
 
-- An overall verdict: **Passed**, **Needs review**, or **Incomplete**.
-- Inspection findings and associated photographs.
-- A room-by-room inspection record.
-- An indication that AI-generated findings require human review.
+- Overall inspection verdict: Passed, Needs Review, or Incomplete.
+- Photographic evidence of potential findings.
+- Room-by-room inspection records.
+- A notice that AI-generated findings require human review.
 
 ### Landlord Dashboard
 
-The web dashboard includes several sections:
+The web dashboard provides several management sections:
 
-- **Tenants:** Add tenants and initiate move-in or move-out inspections.
-- **Reports:** View completed inspection reports and their results.
-- **Overview:** Access the property dashboard overview.
-- **Properties:** Manage property information.
-- **Meetings:** Initiate FaceTime calls using a phone number or Apple ID email.
+| Section | Purpose |
+|---|---|
+| Tenants | Add tenants and initiate inspections |
+| Reports | View completed inspection reports |
+| Overview | View the property dashboard |
+| Properties | Manage property information |
+| Meetings | Start FaceTime calls using phone numbers or Apple ID emails |
 
-### FaceTime Calling
+### FaceTime Integration
 
-- Calls tenants through Chert's FaceTime bridge.
-- Supports phone numbers and Apple ID email addresses.
-- Displays understandable call failures, including:
-  - Unverified recipient.
-  - Line in use, displayed as "Someone else is using the line."
-  - No answer.
+Mechus uses Chert's FaceTime bridge to initiate calls through a phone number or Apple ID email.
 
-### Voice Interaction
+The integration also surfaces readable call failures, including unverified recipients, unavailable lines, and unanswered calls.
 
-Mechus supports the wake word **"Mechus"** for its ordinary assistant calls, with speech-to-text handling.
+### Landlord Notifications and Shared History
 
-During inspection calls, however, Mechus does not listen to the tenant. It watches the camera and speaks its inspection instructions.
+When Chert messaging is configured, Mechus sends inspection summaries to landlords over iMessage.
 
-### Landlord Notifications
+The integration also supports a shared property timeline containing repairs, photographs, and agreements.
 
-When Chert messaging is configured, Mechus sends the inspection summary to the landlord through iMessage.
-
-If messaging is unavailable or unconfigured, the summary is logged on the property's timeline.
-
-### API Rate-Limit Handling
-
-The inspection pipeline includes handling for HTTP 429 responses from the vision model.
+Without messaging configuration, inspection summaries are logged on the property's timeline.
 
 ## Tech Stack
 
@@ -118,54 +112,56 @@ The inspection pipeline includes handling for HTTP 429 responses from the vision
 | Google Gemini Flash-Lite | Camera-frame analysis and damage detection |
 | ElevenLabs | Text-to-speech |
 | OpenAI | Speech-related API functionality |
-| SQLite | Local database storage |
+| MongoDB | Inspection photo, baseline, and history storage |
+| FFmpeg | Frame extraction from uploaded walkthrough videos |
 | JavaScript, HTML, CSS | Dashboard interface |
 | Docker | Containerization |
 | Vercel | Static deployment |
-
-The report pipeline also supports uploaded inspection images and local-file fallback for inspection frame storage.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Python 3.11
-- API credentials for the services you intend to use.
-- A configured LiveKit instance.
-- Access to Chert for FaceTime calling.
+- MongoDB instance (optional; local-file fallback available)
+- Configured LiveKit instance
+- Access to Chert for FaceTime calling
+- API credentials for the services you intend to use
 
 ### Installation
 
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Mechus.git
+git clone https://github.com/Odey340/Mechus.git
 cd Mechus
 ```
 
-Install the Python dependencies:
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Copy the example environment file:
+Create your environment configuration:
 
 ```bash
 cp .env.example .env
 ```
 
-Fill in the required API keys and configuration values in `.env`.
+Add the required API keys and service credentials to your `.env` file.
 
-### Run the Application
+**Never commit your `.env` file or expose API credentials.**
 
-Start the Flask application:
+### Running Mechus
+
+Start the application:
 
 ```bash
 python scripts/run.py
 ```
 
-The default API port is `5000`, configurable through `API_PORT`.
+The API listens on port `5000` by default.
 
 Open the dashboard:
 
@@ -173,99 +169,89 @@ Open the dashboard:
 http://127.0.0.1:5000
 ```
 
-Navigate to the **Tenants** tab to begin setting up an inspection.
+Navigate to the **Tenants** tab to configure and initiate an inspection.
 
 ## Configuration
 
-Mechus uses environment variables for API credentials, service configuration, and inspection settings.
-
-Create a `.env` file in the project root. Never commit this file or expose its credentials publicly.
-
-### Environment Variables
+Mechus uses environment variables to configure its integrations and inspection behavior.
 
 | Variable | Description |
 |---|---|
 | `CHERT_API_KEY` | Chert API authentication key |
+| `CHERT_PROJECT_ID` | Chert project ID |
+| `CHERT_LINE_ID` | Chert FaceTime line ID |
 | `CHERT_PHONE_NUMBER` | Chert phone configuration |
+| `MECHUS_CHERT_SIGNING_SECRET` | Chert signing secret |
+| `MECHUS_CHERT_TENANT` | Chert tenant configuration for iMessage |
 | `LIVEKIT_URL` | LiveKit server URL |
 | `LIVEKIT_API_KEY` | LiveKit API key |
 | `LIVEKIT_API_SECRET` | LiveKit API secret |
 | `GEMINI_API_KEY` | Google Gemini API key |
+| `MECHUS_TTS_BACKEND` | Text-to-speech backend (`elevenlabs`) |
+| `MECHUS_ELEVEN_API_KEY` | ElevenLabs API key |
 | `MECHUS_ELEVEN_VOICE_ID` | ElevenLabs voice ID |
+| `MECHUS_LLM_BACKEND` | Language model backend (`openai`) |
 | `MECHUS_OPENAI_API_KEY` | OpenAI API key |
+| `MONGODB_URI` | MongoDB connection string |
 | `MECHUS_INSPECT_TOUR` | Optional custom inspection route |
-| `MECHUS_INSPECT_INTERVAL_S` | Optional inspection frame-analysis interval |
+| `MECHUS_INSPECT_INTERVAL_S` | Optional frame-analysis interval |
 | `MECHUS_PUBLIC_BASE_URL` | Public base URL used for report links |
-| `MECHUS_CHERT_SIGNING_SECRET` | Chert signing secret |
-| `MECHUS_CHERT_TENANT` | Chert tenant configuration for iMessage |
+| `ZOOM_APP_CLIENT_ID` | Optional Zoom SDK client ID |
+| `ZOOM_APP_CLIENT_SECRET` | Optional Zoom SDK client secret |
 
-**Note:** Some configuration settings retain the historical `mechus` / `MECHUS_` naming prefix.
-
-Optional inspection settings can be left unset to use their application defaults.
+Optional settings can be left unset to use their defaults.
 
 ## Project Structure
 
-The main application is organized into the following components:
-
 ```text
 Mechus/
-│
 ├── mechus/
-│   ├── api_server.py          # Flask API server and dashboard backend
-│   ├── chert_worker.py        # Per-call FaceTime worker
-│   ├── chert_livekit.py       # LiveKit audio and video publishing
-│   ├── inspection.py          # Frame analysis, guided tours, photo capture
+│   ├── api_server.py        # Flask API server and dashboard backend
+│   ├── chert_worker.py      # Per-call FaceTime worker
+│   ├── chert_livekit.py     # LiveKit audio and video publishing
+│   ├── inspection.py        # Frame analysis, guided tours, photo capture
 │   ├── estates/
-│   │   └── checks.py          # Inspection report page
+│   │   └── checks.py        # Inspection report page
 │   ├── static/
-│   │   └── properties/        # Dashboard static assets
-│   └── brand.py               # Assistant branding and wake word
-│
+│   │   └── properties/      # Dashboard static assets
+│   └── brand.py             # Assistant branding and wake word
 ├── scripts/
-│   └── run.py                 # Application entry point
-│
-├── tests/                     # Pytest test suite
-│
-├── .env.example               # Example environment configuration
-├── requirements.txt           # Python dependencies
+│   └── run.py               # Application entry point
+├── tests/                   # Pytest test suite
+├── .env.example             # Environment variable template
+├── requirements.txt         # Python dependencies
 └── README.md
 ```
 
 ## Testing
 
-Mechus uses `pytest` for automated testing.
+Mechus uses Pytest for automated testing.
 
-Run the test suite from the repository root:
+Run the test suite:
 
 ```bash
 python -m pytest tests
 ```
 
-The test suite has 661 passing tests on Windows.
+The project currently has 661 passing tests on Windows.
 
-One virtual-camera test is Linux-specific and fails when run in that environment. This is an environment-specific limitation rather than an indication that the entire test suite is failing.
+One virtual-camera test is Linux-specific and fails in that environment. This is an environment limitation rather than a broader test-suite failure.
 
 ## Limitations
 
-Mechus is an active project with several known limitations:
-
-- **Shared FaceTime line:** A shared Chert line accepts and handles one call at a time.
-- **No tenant listening during inspections:** During inspection calls, Mechus does not listen to the tenant. It watches the camera and provides spoken guidance.
-- **AI accuracy:** Findings are AI-generated estimates and can be incorrect or incomplete. Landlords must review the results before making decisions about property condition or tenant responsibility.
-- **Real-world testing:** The guided inspection tour has had limited testing on real calls.
-- **Public report links:** Report links are publicly accessible. They should not be treated as private or access-controlled.
-- **iMessage configuration:** Sending reports through iMessage requires Chert messaging to be configured. Without it, summaries are logged on the property timeline.
+- **Shared FaceTime Line:** A shared Chert line handles one call at a time.
+- **Tenant Interaction:** During inspections, Mechus analyzes the camera feed and provides spoken guidance but does not listen to the tenant.
+- **AI Accuracy:** Findings are estimates and can be incorrect or incomplete. Human review is required before decisions about property condition or tenant responsibility.
+- **Real-World Testing:** The guided inspection process has had limited testing on real calls.
+- **Public Report Links:** Report links are publicly accessible and should not be treated as private.
+- **iMessage Dependency:** Landlord notifications require Chert messaging. Without it, summaries are logged on the property timeline.
 
 ## Team
 
-**Mechus Development Team**
+- **Odey**
+- **Rajiv**
+- **Goutham**
 
-Built as an AI-powered property inspection project, combining real-time communication, computer vision, and automated reporting to make property inspections easier to conduct and document.
+---
 
-
-- **TTS:** `MECHUS_TTS_BACKEND=elevenlabs`, `MECHUS_ELEVEN_API_KEY`, `MECHUS_ELEVEN_VOICE_ID`.
-- **LLM:** `MECHUS_LLM_BACKEND=openai`, `MECHUS_OPENAI_API_KEY`.
-- **Zoom SDK join:** `ZOOM_APP_CLIENT_ID`, `ZOOM_APP_CLIENT_SECRET`.
-- **FaceTime (Chert):** `CHERT_API_KEY`, `CHERT_PROJECT_ID`, `CHERT_LINE_ID`, `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`.
-
-All behavior is driven by environment variables so you can deploy and scale without code changes.
+*No clipboard. No arguing over blurry photos. Just answer the call.*
