@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import html
 import logging
+import os
 import re
 import threading
 import time
@@ -49,7 +50,7 @@ def counts(check: dict[str, Any]) -> dict[str, int]:
         "areas": len(items),
         "ok": sum(1 for i in items if i.get("status") == "ok"),
         "issues": len(check.get("findings") or []),
-        "not_shown": sum(1 for i in items if i.get("status") == "not_shown"),
+        "not_shown": sum(1 for i in items if i.get("status") in ("not_shown", "skipped")),
         "not_reached": sum(1 for i in items if i.get("status") == "pending"),
     }
 
@@ -115,7 +116,8 @@ def render(prop: dict[str, Any], check: dict[str, Any]) -> str:
     else:
         issues_html = ""
 
-    status_text = {"ok": "Looks good", "issue": "Issue noted", "not_shown": "Not shown", "pending": "Not reached"}
+    status_text = {"ok": "Looks good", "issue": "Issue noted", "not_shown": "Not shown", "skipped": "Skipped by tenant",
+                   "pending": "Not reached"}
     rooms_html = ""
     for room in check.get("rooms") or []:
         rows = "".join(
@@ -171,7 +173,7 @@ img {{ width: 100%; border-radius: 8px; display: block; border: 1px solid var(--
 .stops {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }}
 .stop b {{ display: block; margin-top: 6px; }}
 .st {{ font-size: 13px; font-weight: 600; }} .st.ok {{ color: var(--good); }} .st.issue {{ color: var(--bad); }}
-.st.not_shown, .st.pending {{ color: var(--warn); }}
+.st.not_shown, .st.pending, .st.skipped {{ color: var(--warn); }}
 .error {{ background: var(--bad-bg); color: var(--bad); border-radius: 8px; padding: 10px 12px; }}
 footer {{ color: var(--muted); font-size: 12.5px; margin-top: 18px; }}
 @media (max-width: 560px) {{ .finding {{ grid-template-columns: 1fr; }} }}
@@ -341,7 +343,8 @@ def render_pdf(prop: dict[str, Any], check: dict[str, Any]) -> bytes:
     rooms = check.get("rooms") or []
     if rooms:
         heading("Room by room")
-    status_text = {"ok": "Looks good", "issue": "Issue noted", "not_shown": "Not shown", "pending": "Not reached"}
+    status_text = {"ok": "Looks good", "issue": "Issue noted", "not_shown": "Not shown", "skipped": "Skipped by tenant",
+                   "pending": "Not reached"}
     status_ink = {"ok": (31, 122, 77), "issue": (163, 42, 42)}
     cell_w, gap = (width - 8) / 3, 4
     for room in rooms:
@@ -380,6 +383,58 @@ def render_pdf(prop: dict[str, Any], check: dict[str, Any]) -> bytes:
     return bytes(pdf.output())
 
 
+def email_configured() -> bool:
+    return (os.environ.get("MECHUS_EMAIL_ENABLED", "").strip() == "1"
+            and bool((os.environ.get("MECHUS_EMAIL_USERNAME") or "").strip())
+            and bool((os.environ.get("MECHUS_EMAIL_PASSWORD") or "").strip()))
+
+
+def email_report(to_addr: str, prop: dict[str, Any], check: dict[str, Any], url: str = "") -> None:
+    """Email the report to the landlord with the PDF attached (SMTP settings: MECHUS_EMAIL_*)."""
+    import smtplib
+    from email.mime.application import MIMEApplication
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+    if not email_configured():
+        raise RuntimeError("Email isn't set up on this server: set MECHUS_EMAIL_ENABLED=1, "
+                           "MECHUS_EMAIL_USERNAME and MECHUS_EMAIL_PASSWORD.")
+    username = (os.environ.get("MECHUS_EMAIL_USERNAME") or "").strip()
+    password = (os.environ.get("MECHUS_EMAIL_PASSWORD") or "").replace(" ", "").strip()
+    from_addr = (os.environ.get("MECHUS_EMAIL_FROM") or username).strip()
+    msg = MIMEMultipart()
+    msg["From"], msg["To"] = from_addr, to_addr
+    msg["Subject"] = headline(prop, check)
+    body = summary_text(prop, check, url) + "\n\nThe full report with photos is attached as a PDF.\n\n- " + ASSISTANT_NAME
+    msg.attach(MIMEText(body, "plain", "utf-8"))
+    attachment = MIMEApplication(render_pdf(prop, check), _subtype="pdf")
+    attachment.add_header("Content-Disposition", "attachment", filename=pdf_filename(prop, check))
+    msg.attach(attachment)
+    host = os.environ.get("MECHUS_EMAIL_SMTP_HOST", "smtp.gmail.com")
+    port = int(os.environ.get("MECHUS_EMAIL_SMTP_PORT", "587"))
+    with smtplib.SMTP(host, port, timeout=30) as server:
+        server.starttls()
+        server.login(username, password)
+        server.sendmail(from_addr, [to_addr], msg.as_string())
+
+
+def deliver_to_landlord(pid: str, prop: dict[str, Any], check: dict[str, Any]) -> str:
+    """Send the report to the landlord: by email when their contact is an email address
+    (PDF attached), otherwise by iMessage through Chert. Returns "email" or "imessage".
+    Raises with a readable message when that channel is not set up."""
+    from mechus.estates import messaging
+
+    contact = str((prop.get("landlord") or {}).get("phone") or "").strip()
+    if not contact:
+        raise ValueError("Add the landlord's phone number or email to this tenant first (Details).")
+    url = messaging.public_url(f"/checks/{check['meeting_id']}")
+    if "@" in contact:
+        email_report(contact, prop, check, url if url.startswith("http") else "")
+        return "email"
+    messaging.send_direct(pid, "landlord", summary_text(prop, check, url))
+    return "imessage"
+
+
 def notify_landlord_when_done(pid: str, meeting_id: str, find_check: Any, *, timeout_s: float = 3600.0) -> None:
     """Background: when the call ends, log the report on the property's timeline and text
     the landlord a summary with the report link (when iMessage via Chert is configured and
@@ -406,8 +461,10 @@ def notify_landlord_when_done(pid: str, meeting_id: str, find_check: Any, *, tim
         sent = False
         if check.get("result") != "no_answer" and (prop.get("landlord") or {}).get("phone"):
             try:
-                messaging.send_direct(pid, "landlord", text)
-                sent = True
+                channel = deliver_to_landlord(pid, prop, check)
+                sent = channel == "imessage"  # an iMessage is already on the timeline
+                if channel == "email":
+                    text = f"Report emailed to the landlord. {text}"
             except Exception as exc:  # noqa: BLE001 - not configured, send failed: the report still exists
                 log.info("walkthrough report for %s not texted to the landlord: %s", meeting_id, exc)
         if not sent:

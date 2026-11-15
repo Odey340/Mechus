@@ -497,6 +497,20 @@ def main() -> None:
             shutdown_early(f"inspection could not start: {type(exc).__name__}: {exc}")
             return
         inspector.start()
+        # Let the tenant say "skip", "repeat" or "that's it" during the tour.
+        if (os.environ.get("MECHUS_INSPECT_LISTEN", "1") or "1").strip().lower() not in ("0", "false", "no", "off"):
+            try:
+                from mechus.inspection_listen import TenantListener
+
+                tenant_listener = TenantListener(
+                    audio_in=session.audio_in, transcribe=agent._stt.transcribe_pcm16, on_text=inspector.hear,
+                    is_speaking=lambda: getattr(session.audio_out, "_active", 0) > 0,
+                    sample_rate_hz=config.sample_rate_hz, frame_ms=config.frame_ms,
+                )
+                tenant_listener.start()
+                agent_holder["tenant_listener"] = tenant_listener
+            except Exception as exc:  # noqa: BLE001
+                log.warning("Chert worker: tenant listener could not start: %s", exc)
         agent_thread = inspector  # same is_alive()/join() surface as the agent thread
     else:
         agent_thread = threading.Thread(target=agent.run_forever, daemon=True, name=f"MechusAgent-{meeting_id}")
@@ -590,6 +604,8 @@ def main() -> None:
     # ── 5. Shutdown: hang up first so the caller isn't left on a dead line ───
     if inspector is not None:
         inspector.stop()
+    if agent_holder.get("tenant_listener") is not None:
+        agent_holder["tenant_listener"].stop()
     try:
         agent.stop()
     except Exception:

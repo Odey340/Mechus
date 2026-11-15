@@ -1336,13 +1336,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     const name = el("input", { class: "input", placeholder: "Joey Tribbiani", autocomplete: "off", required: "" });
     const phone = el("input", { class: "input", placeholder: "+1 555 123 4567", autocomplete: "off", inputmode: "tel", required: "" });
     const unit = el("input", { class: "input", placeholder: "Apt 4B", autocomplete: "off", required: "" });
-    const landlord = el("input", { class: "input", placeholder: "Optional: +1 555 987 6543", autocomplete: "off", inputmode: "tel" });
+    const landlord = el("input", { class: "input", placeholder: "Optional: +1 555 987 6543 or name@email.com", autocomplete: "off" });
     const add = el("button", { class: "btn btn-primary", type: "submit" }, "Add tenant");
     const form = el("form", { class: "tenant-add" },
       el("label", { class: "field" }, el("span", { text: "Tenant name" }), name),
       el("label", { class: "field" }, el("span", { text: "Phone (FaceTime)" }), phone),
       el("label", { class: "field" }, el("span", { text: "Unit" }), unit),
-      el("label", { class: "field" }, el("span", { text: "Landlord phone (gets the report)" }), landlord), add);
+      el("label", { class: "field" }, el("span", { text: "Landlord phone or email (gets the report)" }), landlord), add);
     const fail = (text) => { note.textContent = text; note.classList.add("call-error"); note.setAttribute("role", "alert"); };
     const clear = () => { note.textContent = ""; note.classList.remove("call-error"); };
 
@@ -1642,11 +1642,11 @@ dialog::backdrop { background: rgba(0, 0, 0, .7); }
     const label = { passed: "Passed", needs_review: "Needs review", incomplete: "Incomplete", in_progress: "In progress", no_answer: "Did not connect" };
     const note = el("p", { class: "meeting-message", "aria-live": "polite" });
     const row = (r) => {
-      const send = el("button", { class: "btn btn-secondary btn-sm", type: "button" }, icon("chat", 14), "Text to landlord");
+      const send = el("button", { class: "btn btn-secondary btn-sm", type: "button" }, icon("chat", 14), "Send to landlord");
       send.onclick = async () => {
         busy(send, true, "Sending…"); note.textContent = ""; note.classList.remove("call-error");
-        try { await api(`/api/estates/checks/${r.meeting_id}/send`, { method: "POST" }); toast("Report texted to the landlord"); }
-        catch (e) { note.textContent = "Couldn't text the report: " + e.message; note.classList.add("call-error"); note.setAttribute("role", "alert"); toast(e.message, "err"); }
+        try { const d = await api(`/api/estates/checks/${r.meeting_id}/send`, { method: "POST" }); toast(d.channel === "email" ? "Report emailed to the landlord with the PDF" : "Report texted to the landlord"); }
+        catch (e) { note.textContent = "Couldn't send the report: " + e.message; note.classList.add("call-error"); note.setAttribute("role", "alert"); toast(e.message, "err"); }
         finally { busy(send, false); }
       };
       const c = r.counts || {};

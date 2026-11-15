@@ -34,7 +34,8 @@ def test_parse_tour():
 
 def test_tour_walks_every_stop_in_order_and_wraps_up(tmp_path):
     insp, spoken = make(tmp_path, [reply()] * 6)
-    assert insp.tour.opening() == "Let's start in the kitchen. Show me the counters, nice and slow."
+    assert insp.tour.opening() == ("Let's start in the kitchen. Show me the counters, nice and slow. "
+                                   "If something doesn't apply, just say skip.")
     for _ in range(6):
         insp.step()
     assert spoken == [

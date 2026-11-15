@@ -40,6 +40,26 @@ from mechus.brand import ASSISTANT_NAME
 
 log = logging.getLogger(__name__)
 
+# The inspection's clock. scripts/rehearse_inspection.py swaps it so tour timeouts follow
+# recorded footage instead of the wall clock.
+_CLOCK = time.monotonic
+
+
+def _now() -> float:
+    return _CLOCK()
+
+
+# What the tenant can say during a tour (Inspector.hear).
+_FINISH = re.compile(
+    r"\b(that'?s (?:it|all|everything)|i'?m done|we'?re done|all done|"
+    r"(?:end|stop|finish) the (?:tour|inspection|call|check)|finish up)\b", re.I)
+_SKIP = re.compile(
+    r"\b(skip|next one|move on|don'?t have|do not have|doesn'?t have|there(?:'s| is) no|"
+    r"there isn'?t|not applicable)\b", re.I)
+_REPEAT = re.compile(
+    r"\b(repeat|say that again|come again|pardon|what did you say|what (?:do|should) i show|"
+    r"what(?:'s| is) next|what now|where (?:do|should) i)\b", re.I)
+
 _SEVERITIES = ("low", "medium", "high")
 
 
@@ -595,7 +615,7 @@ class Tour:
         ]
         self.index = 0
         self.done = not self.steps
-        self._prompted_at = time.monotonic()
+        self._prompted_at = _now()
         self._reminded = False
 
     # what is being checked right now
@@ -608,7 +628,28 @@ class Tour:
 
     def opening(self) -> str:
         step = self.steps[0]
-        return f"Let's start in the {step['room']}. Show me the {step['item']}, nice and slow."
+        return (f"Let's start in the {step['room']}. Show me the {step['item']}, nice and slow. "
+                "If something doesn't apply, just say skip.")
+
+    def instruction(self) -> str:
+        """Say again what to show right now."""
+        step = self.current()
+        if step is None:
+            return ""
+        self._prompted_at = _now()
+        self._reminded = False
+        return f"Show me the {step['item']} in the {step['room']}."
+
+    def skip(self) -> str:
+        """The tenant says this stop does not apply."""
+        return self._advance("skipped") if self.current() is not None else ""
+
+    def finish(self) -> str:
+        """The tenant ends the tour early; what is left stays 'not reached'."""
+        if self.done:
+            return ""
+        self.done = True
+        return f"Okay, we'll stop there. {self.closing()}"
 
     # reports from the inspector, each returns a line to speak (or "")
     def found(self, count: int) -> None:
@@ -633,11 +674,11 @@ class Tour:
             return ""
         if step["issues"]:  # damage already noted here: do not wait for a second clean look
             return self._advance("issue")
-        if time.monotonic() - self._prompted_at < self.item_timeout_s:
+        if _now() - self._prompted_at < self.item_timeout_s:
             return ""
         if not self._reminded:
             self._reminded = True
-            self._prompted_at = time.monotonic()
+            self._prompted_at = _now()
             return f"I still need to see the {step['item']} in the {step['room']}. Point the camera at it for me."
         return self._advance("not_shown")
 
@@ -654,11 +695,13 @@ class Tour:
             )
         elif status == "issue":
             closing = f"Got it, that's noted for the {item}."
+        elif status == "skipped":
+            closing = f"Okay, skipping the {item}."
         else:
             closing = f"I'll mark the {item} as not shown."
         self.index += 1
         self._reminded = False
-        self._prompted_at = time.monotonic()
+        self._prompted_at = _now()
         if self.index >= len(self.steps):
             self.done = True
             return f"{closing} {self.closing()}"
@@ -669,7 +712,7 @@ class Tour:
 
     def closing(self) -> str:
         issues = sum(s["issues"] for s in self.steps)
-        missed = sum(1 for s in self.steps if s["status"] == "not_shown")
+        missed = sum(1 for s in self.steps if s["status"] != "ok" and not s["issues"])
         if issues:
             result = f"I noted {issues} issue{'s' if issues != 1 else ''}"
         else:
@@ -698,7 +741,7 @@ class Tour:
             )
         return {
             "done": self.done, "current": self.label(), "verdict": self.verdict(), "rooms": rooms,
-            "not_shown": [f"{s['room']}: {s['item']}" for s in self.steps if s["status"] == "not_shown"],
+            "not_shown": [f"{s['room']}: {s['item']}" for s in self.steps if s["status"] in ("not_shown", "skipped")],
         }
 
 
@@ -731,6 +774,8 @@ class Inspector:
         )
         self._tour_opened = False
         self._step_asks = 0  # "closer look" requests on the current tour stop
+        self._lock = threading.RLock()  # the tour is driven by the camera loop and by what the tenant says
+        self.heard: list[dict[str, Any]] = []  # what the tenant said that Mechus acted on
         self.mode = mode
         self.unit = unit
         self._meeting_id = meeting_id
@@ -754,7 +799,7 @@ class Inspector:
         self._streak_scene: set[str] = set()
         self._clean_streak = 0  # consecutive clear, damage-free frames of the same scene
         self._scene_asks = 0  # questions asked since the scene last changed
-        self._last_talk_at = time.monotonic()  # the greeting has just played
+        self._last_talk_at = _now()  # the greeting has just played
         self.frames_analysed = 0
         self.frames_saved = 0
         self._last_saved_scene: set[str] = set()
@@ -800,6 +845,7 @@ class Inspector:
             "areas_cleared": [name for _, name in self._cleared],
             "said": list(self.said),
             "tour": self.tour.summary() if self.tour is not None else None,
+            "heard": list(self.heard),
             "verdict": self.tour.verdict() if self.tour is not None else ("needs_review" if self.announced else ""),
         }
 
@@ -840,6 +886,28 @@ class Inspector:
             log.warning("Inspection: could not save a report photo: %s", exc)
             return ""
 
+    def hear(self, text: str) -> str:
+        """The tenant said something. Acts on "skip", "repeat" and "that's it"; anything else
+        is ignored. Returns "skip" | "repeat" | "finish" | ""."""
+        text = (text or "").strip()
+        if not text or self.tour is None or self.tour.done:
+            return ""
+        with self._lock:
+            if _FINISH.search(text):
+                kind, line = "finish", self.tour.finish()
+            elif _SKIP.search(text):
+                kind, line = "skip", self.tour.skip()
+            elif _REPEAT.search(text):
+                kind, line = "repeat", self.tour.instruction()
+            else:
+                return ""
+            self._step_asks = 0
+            self.heard.append({"text": text[:200], "did": kind, "at": time.time()})
+        log.info("[HEARD] %r -> %s", text, kind)
+        if line and not self._stop.is_set():
+            self._say("tour", line, "")
+        return kind
+
     def card_status(self) -> str:
         """Short line for Mechus's video tile: where the tour is."""
         return self.tour.label() if self.tour is not None else "Inspection active"
@@ -863,7 +931,7 @@ class Inspector:
         if line:
             return line
         # Still on the same stop: ask for a better look when the view is poor.
-        quiet_s = time.monotonic() - self._last_talk_at
+        quiet_s = _now() - self._last_talk_at
         if ask and view != "clear" and self._step_asks < 1 and quiet_s >= self._ask_gap_s:
             self._step_asks += 1
             return ask
@@ -891,7 +959,7 @@ class Inspector:
             self._clean_streak = 0
         self._streak_scene = toks
 
-        quiet_s = time.monotonic() - self._last_talk_at
+        quiet_s = _now() - self._last_talk_at
         ask_toks = _tokens(ask)
         ask_ok = (
             bool(ask_toks)
@@ -926,7 +994,7 @@ class Inspector:
             self._speak(text)
         except Exception as exc:  # noqa: BLE001
             log.warning("Inspection: could not speak: %s", exc)
-        self._last_talk_at = time.monotonic()
+        self._last_talk_at = _now()
 
     def step(self) -> list[Finding]:
         """Analyse one frame. Returns the findings that were new (and spoken)."""
@@ -939,7 +1007,7 @@ class Inspector:
             said=[s["text"] for s in self.said], cleared=[name for _, name in self._cleared],
             target=self.tour.current() if self.tour is not None else None,
         )
-        t0 = time.monotonic()
+        t0 = _now()
         raw = self._analyze(prompt, images)
         scene, matched, findings = parse_findings(raw)
         view, ask, ok = parse_talk(raw)
@@ -951,7 +1019,7 @@ class Inspector:
         log.info(
             "Inspection frame %d: scene=%r view=%s matched_move_in=%s findings=%d new=%d (%d ms)",
             self.frames_analysed, scene, view, matched, len(findings), len(fresh),
-            int((time.monotonic() - t0) * 1000),
+            int((_now() - t0) * 1000),
         )
         if self.mode == "move_in":
             scene_toks = _tokens(scene)
@@ -997,14 +1065,15 @@ class Inspector:
                 self._speak(f.say)
             except Exception as exc:  # noqa: BLE001
                 log.warning("Inspection: could not speak finding: %s", exc)
-            self._last_talk_at = time.monotonic()
+            self._last_talk_at = _now()
         if self.tour is not None:
             # Guided tour: the tour decides what comes next, not the model.
             was_done = self.tour.done
-            _stop = self.tour.current()
-            line = self._tour_line(view, ask, parse_target_seen(raw), fresh[:2])
-            if _stop is not None and _stop["status"] == "ok" and not _stop["photo"]:
-                _stop["photo"] = self._save_photo(jpeg)  # what the stop looked like when it passed
+            with self._lock:
+                _stop = self.tour.current()
+                line = self._tour_line(view, ask, parse_target_seen(raw), fresh[:2])
+                if _stop is not None and _stop["status"] == "ok" and not _stop["photo"]:
+                    _stop["photo"] = self._save_photo(jpeg)  # what the stop looked like when it passed
             if line and not self._stop.is_set():
                 self._say("tour", line, scene)
             if was_done:
@@ -1020,9 +1089,9 @@ class Inspector:
         if self.tour is not None and not self.tour.done and not self._tour_opened:
             self._tour_opened = True
             self._say("tour", self.tour.opening(), "")
-            self.tour._prompted_at = time.monotonic()
+            self.tour._prompted_at = _now()
         while not self._stop.is_set():
-            t0 = time.monotonic()
+            t0 = _now()
             try:
                 self.step()
             except urllib.error.HTTPError as exc:
@@ -1032,4 +1101,4 @@ class Inspector:
             except Exception as exc:  # noqa: BLE001
                 log.warning("Inspection: frame analysis failed: %s: %s", type(exc).__name__, exc)
                 self._stop.wait(1.0)
-            self._stop.wait(max(0.0, self._interval_s - (time.monotonic() - t0)))
+            self._stop.wait(max(0.0, self._interval_s - (_now() - t0)))

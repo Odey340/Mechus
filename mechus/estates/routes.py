@@ -211,10 +211,10 @@ def send_check_report(mid: str):
         check = _find_check(p["id"], mid)
         if check is None:
             continue
-        if not (p.get("landlord") or {}).get("phone"):
-            raise ValueError("Add the landlord's phone number to this tenant first (Details).")
-        text = check_reports.summary_text(p, check, messaging.public_url(check["report_url"]))
-        return {"event": messaging.send_direct(p["id"], "landlord", text), "text": text}
+        try:
+            return {"channel": check_reports.deliver_to_landlord(p["id"], p, check)}
+        except OSError as exc:  # SMTP connection / login problems
+            raise RuntimeError(f"Could not send the email: {exc}") from None
     raise KeyError(mid)
 
 
