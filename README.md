@@ -1,3 +1,5 @@
+#3rd @ Chert Track @ HackUTA
+
 ## MongoDB Atlas & Data Architecture
 
 MongoDB Atlas is the coordination and memory layer behind Mechus. It does more than store inspection results: it manages live-call baselines, report revisions, exactly-once event processing, and idempotent onboarding across concurrent application workers.
