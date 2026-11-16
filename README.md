@@ -1,4 +1,4 @@
-#3rd @ Chert Track @ HackUTA
+# 3rd @ Chert Track @ HackUTA
 
 ## MongoDB Atlas & Data Architecture
 
